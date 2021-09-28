@@ -1,6 +1,6 @@
 object Dependencies {
     const val CoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.CoroutinesCore}"
-    const val AndroidXCore = "androidx.core:core-ktx:${Versions.CoroutinesCore}"
+    const val AndroidXCore = "androidx.core:core-ktx:${Versions.AndroidXCore}"
     const val AndroidXActivityCompose = "androidx.activity:activity-compose:${Versions.AndroidXActivityCompose}"
     const val AndroidXLifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidXLifecycleViewModelCompose}"
 }
