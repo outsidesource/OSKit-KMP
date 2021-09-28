@@ -8,6 +8,7 @@ plugins {
     kotlin("multiplatform") version Versions.Kotlin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
+    id("maven-publish")
 }
 apply(plugin = "kotlinx-atomicfu")
 
@@ -19,6 +20,7 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://plugins.gradle.org/m2/")
 }
 
 kotlin {
@@ -79,6 +81,30 @@ kotlin {
         val desktopTest by getting
         val iosMain by getting
         val iosTest by getting
+    }
+
+    afterEvaluate {
+        publishing {
+            publications {
+                create<MavenPublication>("maven") {
+                    groupId = "com.outsidesource.oskitkmp"
+                    artifactId = "oskitkmp"
+                    version = "1.0"
+                    artifact("$buildDir/outputs/aar/OSKit-kmp-release.aar")
+                }
+            }
+
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/outsidesource/OSKit-KMP")
+                    credentials {
+                        username = System.getenv("OSD_DEVELOPER")
+                        password = System.getenv("OSD_TOKEN")
+                    }
+                }
+            }
+        }
     }
 }
 

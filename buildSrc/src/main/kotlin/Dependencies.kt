@@ -1,10 +1,3 @@
-object Dependencies {
-    const val CoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.CoroutinesCore}"
-    const val AndroidXCore = "androidx.core:core-ktx:${Versions.AndroidXCore}"
-    const val AndroidXActivityCompose = "androidx.activity:activity-compose:${Versions.AndroidXActivityCompose}"
-    const val AndroidXLifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidXLifecycleViewModelCompose}"
-    const val KotlinxDateTime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.KotlinxDateTime}"
-}
 
 object Versions {
     const val Kotlin = "1.5.21"
@@ -17,4 +10,12 @@ object Versions {
     const val AndroidXActivityCompose = "1.3.1"
     const val AndroidXLifecycleViewModelCompose = "1.0.0-alpha07"
     const val KotlinxDateTime = "0.3.0"
+}
+
+object Dependencies {
+    const val CoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.CoroutinesCore}"
+    const val AndroidXCore = "androidx.core:core-ktx:${Versions.AndroidXCore}"
+    const val AndroidXActivityCompose = "androidx.activity:activity-compose:${Versions.AndroidXActivityCompose}"
+    const val AndroidXLifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidXLifecycleViewModelCompose}"
+    const val KotlinxDateTime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.KotlinxDateTime}"
 }
