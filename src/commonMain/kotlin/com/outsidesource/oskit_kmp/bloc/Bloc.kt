@@ -1,6 +1,7 @@
 package com.outsidesource.oskit_kmp.bloc
 
 import com.outsidesource.oskit_kmp.outcome.Outcome
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.coroutines.*
@@ -140,9 +141,9 @@ abstract class Bloc<T : Any>(
 
         try {
             val effect = CancellableEffect(cancelOnDispose = cancelOnDispose, job = async { block() }, onDone = onDone)
-            kotlinx.atomicfu.locks.synchronized(_effectsLock) { _effects[id] = effect }
+            synchronized(_effectsLock) { _effects[id] = effect }
             val result = withContext(context) { effect.run() }
-            kotlinx.atomicfu.locks.synchronized(_effectsLock) { if (_effects[id] == effect) _effects.remove(id) }
+            synchronized(_effectsLock) { if (_effects[id] == effect) _effects.remove(id) }
             result
         } catch (e: CancellationException) {
             Outcome.Error(e)
@@ -161,7 +162,7 @@ abstract class Bloc<T : Any>(
      */
     protected fun cancelEffect(id: Any) {
         _effects[id]?.cancel()
-        kotlinx.atomicfu.locks.synchronized(_effectsLock) { _effects.remove(id) }
+        synchronized(_effectsLock) { _effects.remove(id) }
     }
 
     /**
@@ -176,13 +177,13 @@ abstract class Bloc<T : Any>(
         checkShouldStart()
 
         if (lifetimeScope != null) {
-            kotlinx.atomicfu.locks.synchronized(_dependentScopesLock) {
+            synchronized(_dependentScopesLock) {
                 if (_dependentScopes.contains(lifetimeScope)) return
                 _dependentScopes.add(lifetimeScope)
             }
 
             lifetimeScope.coroutineContext.job.invokeOnCompletion {
-                kotlinx.atomicfu.locks.synchronized(_dependentScopesLock) { _dependentScopes.remove(lifetimeScope) }
+                synchronized(_dependentScopesLock) { _dependentScopes.remove(lifetimeScope) }
                 CoroutineScope(Dispatchers.Default).launch { handleUnsubscribe() }
             }
         }
@@ -203,9 +204,9 @@ abstract class Bloc<T : Any>(
         if (_dependentCount.value > 0) return
 
         _effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
-        kotlinx.atomicfu.locks.synchronized(_effectsLock) { _effects.clear() }
+        synchronized(_effectsLock) { _effects.clear() }
         blocScope.coroutineContext.cancelChildren()
-        kotlinx.atomicfu.locks.synchronized(_dependentScopesLock) { _dependentScopes.clear() }
+        synchronized(_dependentScopesLock) { _dependentScopes.clear() }
         if (!persistStateOnDispose) _state.value = computed(initialState)
         onDispose()
     }
