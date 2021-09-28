@@ -41,6 +41,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore) {
                     version {
                         strictly(Versions.CoroutinesCore)
