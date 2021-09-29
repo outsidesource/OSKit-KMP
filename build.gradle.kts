@@ -1,3 +1,7 @@
+import java.io.File
+import java.io.FileInputStream
+import java.util.*
+
 buildscript {
     dependencies {
         classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${Versions.AtomicFu}")
@@ -11,9 +15,14 @@ plugins {
     id("maven-publish")
 }
 apply(plugin = "kotlinx-atomicfu")
+apply(from = "versioning.gradle.kts")
+
+val versionProperty = Properties().apply {
+    load(FileInputStream(File(rootProject.rootDir, "version.properties")))
+}[""] ?: "0.1.0"
 
 group = "com.outsidesource"
-version = "0.1.0"
+version = versionProperty
 
 repositories {
     google()
@@ -89,7 +98,7 @@ kotlin {
                 create<MavenPublication>("maven") {
                     groupId = "com.outsidesource.oskitkmp"
                     artifactId = "oskitkmp"
-                    version = "1.0"
+                    version = versionProperty as String
                     artifact("$buildDir/outputs/aar/OSKit-kmp-release.aar")
                 }
             }
