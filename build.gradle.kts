@@ -10,7 +10,6 @@ plugins {
     id("com.android.library")
     id("maven-publish")
 }
-apply(plugin = "kotlinx-atomicfu")
 
 group = "com.outsidesource"
 version = "0.1.0"
@@ -44,6 +43,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore) {
                     version {
