@@ -8,6 +8,7 @@ plugins {
     kotlin("multiplatform") version Versions.Kotlin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
+    id("maven-publish")
 }
 apply(plugin = "kotlinx-atomicfu")
 
@@ -30,7 +31,9 @@ kotlin {
             useJUnit()
         }
     }
-    android()
+    android {
+        publishLibraryVariants("release", "debug")
+    }
     ios {
         binaries {
             framework {
