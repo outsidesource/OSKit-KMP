@@ -2,19 +2,12 @@ import java.io.File
 import java.io.FileInputStream
 import java.util.*
 
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${Versions.AtomicFu}")
-    }
-}
-
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
     id("maven-publish")
 }
-apply(plugin = "kotlinx-atomicfu")
 apply(from = "versioning.gradle.kts")
 
 val versionProperty = Properties().apply {
@@ -41,7 +34,9 @@ kotlin {
             useJUnit()
         }
     }
-    android()
+    android {
+        publishLibraryVariants("release", "debug")
+    }
     ios {
         binaries {
             framework {
@@ -52,6 +47,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore) {
                     version {
@@ -94,15 +90,6 @@ kotlin {
 
     afterEvaluate {
         publishing {
-            publications {
-                create<MavenPublication>("maven") {
-                    groupId = "com.outsidesource.oskitkmp"
-                    artifactId = "oskitkmp"
-                    version = versionProperty as String
-                    artifact("$buildDir/outputs/aar/OSKit-kmp-release.aar")
-                }
-            }
-
             repositories {
                 maven {
                     name = "GitHubPackages"
@@ -138,3 +125,18 @@ android {
         kotlinCompilerVersion = Versions.Kotlin
     }
 }
+
+val packForXcode by tasks.creating(Sync::class) {
+    group = "build"
+    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
+    val sdkName = System.getenv("SDK_NAME") ?: "iphonesimulator"
+    val targetName = "ios" + if (sdkName.startsWith("iphoneos")) "Arm64" else "X64"
+    val framework = kotlin.targets.getByName<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>(targetName).binaries.getFramework(mode)
+    inputs.property("mode", mode)
+    dependsOn(framework.linkTask)
+    val targetDir = File(buildDir, "xcode-frameworks")
+    from({ framework.outputDirectory })
+    into(targetDir)
+}
+
+tasks.getByName("build").dependsOn(packForXcode)

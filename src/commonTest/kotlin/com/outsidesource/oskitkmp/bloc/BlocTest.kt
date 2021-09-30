@@ -1,7 +1,7 @@
-package com.outsidesource.oskit_kmp.bloc
+package com.outsidesource.oskitkmp.bloc
 
-import com.outsidesource.oskit_kmp.concurrency.withDelay
-import com.outsidesource.oskit_kmp.outcome.Outcome
+import com.outsidesource.oskitkmp.concurrency.withDelay
+import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
