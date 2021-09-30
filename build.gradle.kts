@@ -36,7 +36,7 @@ kotlin {
         }
     }
     android {
-        publishLibraryVariants("release")
+        publishLibraryVariants("release", "debug")
     }
     ios {
         binaries {
@@ -95,7 +95,7 @@ kotlin {
                 repositories {
                     maven {
                         name = "GitHubPackages"
-                        url = uri(repo)
+                        url = uri("https://maven.pkg.github.com/$repo")
                         credentials {
                             username = getenv("OSD_DEVELOPER")
                             password = getenv("OSD_TOKEN")
