@@ -13,5 +13,5 @@ pluginManagement {
         }
     }
 }
-rootProject.name = "OSKit-KMP"
+rootProject.name = "oskit-kmp"
 
