@@ -12,9 +12,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Set Run ID
       run: |
-        echo ::set-env name=OSD_DEVELOPER::${{ secrets.OSD_DEVELOPER }}
-        echo ::set-env name=OSD_TOKEN::${{ secrets.OSD_TOKEN }}
-        echo ::set-env name=GITHUB_RUN_ID::${{ github.run_id }}
+        echo "OSD_DEVELOPER=::${{ secrets.OSD_DEVELOPER }}" >> $GITHUB_ENV
+        echo "OSD_TOKEN=::${{ secrets.OSD_TOKEN }}" >> $GITHUB_ENV
+        echo "GITHUB_RUN_ID=::${{ github.run_id }}" >> $GITHUB_ENV
 
     - name: Publish Package
       run: ./gradlew publish --no-daemon
