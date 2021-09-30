@@ -16,11 +16,8 @@ jobs:
         echo ::set-env name=OSD_TOKEN::${{ secrets.OSD_TOKEN }}
         echo ::set-env name=GITHUB_RUN_ID::${{ github.run_id }}
 
-    - name: Assemble the aar file
-      run: ./gradlew assemble
-
     - name: Publish Package
-      run: ./gradlew publish
+      run: ./gradlew publish --no-daemon
 
     - name: Read Version Properties
       id: read_property

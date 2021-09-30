@@ -1,5 +1,6 @@
 import java.io.File
 import java.io.FileInputStream
+import java.lang.System.getenv
 import java.util.*
 
 plugins {
@@ -89,14 +90,16 @@ kotlin {
     }
 
     afterEvaluate {
-        publishing {
-            repositories {
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/outsidesource/OSKit-KMP")
-                    credentials {
-                        username = System.getenv("OSD_DEVELOPER")
-                        password = System.getenv("OSD_TOKEN")
+        getenv("GITHUB_REPOSITORY")?.let { repo ->
+            publishing {
+                repositories {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri(repo)
+                        credentials {
+                            username = getenv("OSD_DEVELOPER")
+                            password = getenv("OSD_TOKEN")
+                        }
                     }
                 }
             }
