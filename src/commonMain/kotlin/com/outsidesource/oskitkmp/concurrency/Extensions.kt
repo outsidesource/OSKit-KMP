@@ -1,4 +1,4 @@
-package com.outsidesource.oskit_kmp.concurrency
+package com.outsidesource.oskitkmp.concurrency
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.coroutineScope

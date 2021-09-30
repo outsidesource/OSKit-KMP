@@ -1,4 +1,4 @@
-package com.outsidesource.oskit_kmp.outcome
+package com.outsidesource.oskitkmp.outcome
 
 import kotlin.Exception
 

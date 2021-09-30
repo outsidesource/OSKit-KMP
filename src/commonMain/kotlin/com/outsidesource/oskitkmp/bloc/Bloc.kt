@@ -1,6 +1,6 @@
-package com.outsidesource.oskit_kmp.bloc
+package com.outsidesource.oskitkmp.bloc
 
-import com.outsidesource.oskit_kmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject

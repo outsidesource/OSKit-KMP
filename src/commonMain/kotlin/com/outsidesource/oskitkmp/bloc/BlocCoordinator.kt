@@ -1,4 +1,4 @@
-package com.outsidesource.oskit_kmp.bloc
+package com.outsidesource.oskitkmp.bloc
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
