@@ -1,8 +1,7 @@
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.kotlinx:atomicfu-gradle-plugin:${Versions.AtomicFu}")
-    }
-}
+import java.io.File
+import java.io.FileInputStream
+import java.lang.System.getenv
+import java.util.*
 
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
@@ -10,15 +9,21 @@ plugins {
     id("com.android.library")
     id("maven-publish")
 }
+apply(from = "versioning.gradle.kts")
+
+val versionProperty = Properties().apply {
+    load(FileInputStream(File(rootProject.rootDir, "version.properties")))
+}[""] ?: "0.1.0"
 
 group = "com.outsidesource"
-version = "0.1.0"
+version = versionProperty
 
 repositories {
     google()
     gradlePluginPortal()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven("https://plugins.gradle.org/m2/")
 }
 
 kotlin {
@@ -82,6 +87,23 @@ kotlin {
         val desktopTest by getting
         val iosMain by getting
         val iosTest by getting
+    }
+
+    afterEvaluate {
+        getenv("GITHUB_REPOSITORY")?.let { repo ->
+            publishing {
+                repositories {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri(repo)
+                        credentials {
+                            username = getenv("OSD_DEVELOPER")
+                            password = getenv("OSD_TOKEN")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

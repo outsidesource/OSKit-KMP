@@ -1,0 +1,36 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Develop CI
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Amend Build Number
+      run: echo ::set-env name=OS_BUILD_NUMBER::${{ github.run_number }}
+
+    # Fetch SemVer for tagging
+    - name: Read Properties
+      id: read_property
+      uses: christian-draeger/read-properties@1.0.1
+      with:
+        path: './version.properties'
+        property: 'version'
+
+
+    - name: Build Tag For Develop
+      run: echo ::set-env name=OS_DEV_TAG::"${{steps.read_property.outputs.value}}-$OS_BUILD_NUMBER"
+    - name: Tag Development Build
+      run: |
+        git config --local user.email osddeveloper@outsidesource.com
+        git config --local user.name "OSD Developer"
+        git tag $OS_DEV_TAG
+        git push --tags
