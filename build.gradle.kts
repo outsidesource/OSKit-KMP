@@ -27,7 +27,7 @@ repositories {
 }
 
 kotlin {
-    jvm("desktop") {
+    jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "11"
         }
@@ -77,25 +77,25 @@ kotlin {
                 implementation("junit:junit:4.13.2")
             }
         }
-        val desktopMain by getting {
+        val jvmMain by getting {
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
             }
         }
-        val desktopTest by getting
+        val jvmTest by getting
         val iosMain by getting
         val iosTest by getting
     }
 
     afterEvaluate {
-        getenv("GITHUB_REPOSITORY")?.let { repo ->
+        getenv("GITHUB_REPOSITORY")?.let { repoName ->
             publishing {
                 repositories {
                     maven {
                         name = "GitHubPackages"
-                        url = uri("https://maven.pkg.github.com/$repo")
+                        url = uri("https://maven.pkg.github.com/$repoName")
                         credentials {
                             username = getenv("OSD_DEVELOPER")
                             password = getenv("OSD_TOKEN")
