@@ -41,7 +41,7 @@ kotlin {
     ios {
         binaries {
             framework {
-                baseName = "oskit-kmp"
+                baseName = "oskitkmp"
             }
         }
     }

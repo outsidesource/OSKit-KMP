@@ -28,11 +28,11 @@ fun <B : Bloc<S>, S> rememberBloc(factory: () -> B): Pair<S, B> {
 }
 
 @Composable
-fun <BC : BlocCoordinator<S>, S> rememberBlocCoordinator(block: (scope: CoroutineScope) -> BC): Pair<S, BC> {
+fun <BC : BlocCoordinator<S>, S> rememberBlocCoordinator(block: () -> BC): Pair<S, BC> {
     val viewModel = viewModel<BlocViewModel>()
     val (bc, stream) = remember {
-        val bc = block(viewModel.viewModelScope)
-        val stream = bc.stream
+        val bc = block()
+        val stream = bc.stream(viewModel.viewModelScope)
         Pair(bc, stream)
     }
     val state by stream.collectAsState(initial = bc.state)
