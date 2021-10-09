@@ -15,8 +15,8 @@ interface IRouter {
     fun push(route: IRoute)
     fun replace(route: IRoute)
     fun pop()
-    fun <T: IRoute> pop(to: KClass<T>, inclusive: Boolean = false)
-    fun popToRoot()
+    fun popWhile(block: (entry: IRoute) -> Boolean)
+    fun <T: IRoute> popTo(to: KClass<T>, inclusive: Boolean)
     fun hasBackStack(): Boolean
 }
 
@@ -64,7 +64,7 @@ class Router(initialRoute: IRoute): IRouter {
         notifyListeners()
     }
 
-    override fun <T: IRoute> pop(to: KClass<T>, inclusive: Boolean) {
+    override fun <T: IRoute> popTo(to: KClass<T>, inclusive: Boolean) {
         if (routeStack.size <= 1) return
 
         while (routeStack.size > 1) {
@@ -80,10 +80,16 @@ class Router(initialRoute: IRoute): IRouter {
         notifyListeners()
     }
 
-    override fun popToRoot() {
+    override fun popWhile(block: (route: IRoute) -> Boolean) {
+        if (routeStack.size <= 1) return
+        routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+
         while (routeStack.size > 1) {
-            routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+            if (!block(routeStack.last().route)) break
+            routeStack.removeLast().apply { lifecycle = RouteLifecycle.Destroyed }
         }
+
+        routeStack.last().lifecycle = RouteLifecycle.Active
         notifyListeners()
     }
 
