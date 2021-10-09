@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-abstract class BlocCoordinator<S> {
+abstract class BlocCoordinator<S : Any> {
     internal abstract fun proxy(scope: CoroutineScope): StateFlow<S>
     abstract val state: S
 
@@ -52,7 +52,7 @@ abstract class BlocCoordinator4<D1 : Any, D2 : Any, D3 : Any, D4 : Any, S : Any>
             .also { react(it.value) }
 }
 
-abstract class BlocCoordinator5<D1 : Any, D2 : Any, D3 : Any, D4 : Any, D5 : Any, S>(
+abstract class BlocCoordinator5<D1 : Any, D2 : Any, D3 : Any, D4 : Any, D5 : Any, S : Any>(
     private val d1: Bloc<D1>,
     private val d2: Bloc<D2>,
     private val d3: Bloc<D3>,
@@ -71,4 +71,12 @@ abstract class BlocCoordinator5<D1 : Any, D2 : Any, D3 : Any, D4 : Any, D5 : Any
     )
         .stateIn(scope, SharingStarted.Eagerly, state)
         .also { react(it.value) }
+}
+
+abstract class BlocCoordinatorN<S : Any>(private vararg val d: Bloc<Any>) : BlocCoordinator<S>() {
+    protected abstract fun transform(s: Array<Any>): S
+    final override val state: S get() = transform(d.map { it.state }.toTypedArray())
+    override fun proxy(scope: CoroutineScope) =
+        combine(d.map { it.stream(scope) }, ::transform).stateIn(scope, SharingStarted.Eagerly, state)
+            .also { react(it.value) }
 }
