@@ -37,6 +37,7 @@ typealias RouteChangeListener = (route: RouteStackEntry) -> Unit
 class Router(initialRoute: IRoute): IRouter {
     private val routeStack: MutableList<RouteStackEntry> = mutableListOf(RouteStackEntry(initialRoute))
     private val listeners: MutableList<RouteChangeListener> = mutableListOf()
+    private val routeDestroyedListeners: MutableMap<Int, MutableList<() -> Unit>> = mutableMapOf()
     val current get() = routeStack.last()
 
     fun subscribe(listener: RouteChangeListener) = listeners.add(listener)
@@ -52,29 +53,31 @@ class Router(initialRoute: IRoute): IRouter {
 
     override fun replace(route: IRoute) {
         val entry = RouteStackEntry(route)
-        routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+        routeStack.removeLast().removeRouteDestroyedListeners().lifecycle = RouteLifecycle.Destroyed
         routeStack += entry
         notifyListeners()
     }
 
     override fun pop() {
         if (routeStack.size <= 1) return
-        routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+        routeStack.removeLast().removeRouteDestroyedListeners().lifecycle = RouteLifecycle.Destroyed
         routeStack.last().lifecycle = RouteLifecycle.Active
         notifyListeners()
     }
 
     override fun <T: IRoute> popTo(to: KClass<T>, inclusive: Boolean) {
         if (routeStack.size <= 1) return
+        routeStack.removeLast().removeRouteDestroyedListeners().lifecycle = RouteLifecycle.Destroyed
 
         while (routeStack.size > 1) {
             val top = routeStack.last()
             if (top.route::class == to) {
                 if (!inclusive) break
-                routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+                routeStack.removeLast().removeRouteDestroyedListeners(true).lifecycle = RouteLifecycle.Destroyed
                 break
             }
-            routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+
+            routeStack.removeLast().removeRouteDestroyedListeners(true).lifecycle = RouteLifecycle.Destroyed
         }
         routeStack.last().lifecycle = RouteLifecycle.Active
         notifyListeners()
@@ -82,11 +85,11 @@ class Router(initialRoute: IRoute): IRouter {
 
     override fun popWhile(block: (route: IRoute) -> Boolean) {
         if (routeStack.size <= 1) return
-        routeStack.removeLast().lifecycle = RouteLifecycle.Destroyed
+        routeStack.removeLast().removeRouteDestroyedListeners().lifecycle = RouteLifecycle.Destroyed
 
         while (routeStack.size > 1) {
             if (!block(routeStack.last().route)) break
-            routeStack.removeLast().apply { lifecycle = RouteLifecycle.Destroyed }
+            routeStack.removeLast().removeRouteDestroyedListeners(true).lifecycle = RouteLifecycle.Destroyed
         }
 
         routeStack.last().lifecycle = RouteLifecycle.Active
@@ -94,6 +97,17 @@ class Router(initialRoute: IRoute): IRouter {
     }
 
     override fun hasBackStack(): Boolean = routeStack.size > 1
+
+    internal fun addRouteDestroyedListener(entry: RouteStackEntry, block: () -> Unit) {
+        routeDestroyedListeners.putIfAbsent(entry.id, mutableListOf())
+        routeDestroyedListeners[entry.id]?.add(block)
+    }
+
+    private fun RouteStackEntry.removeRouteDestroyedListeners(runListeners: Boolean = false): RouteStackEntry {
+        if (runListeners) routeDestroyedListeners[this.id]?.forEach { it() }
+        routeDestroyedListeners.remove(this.id)
+        return this
+    }
 
     private fun notifyListeners() = listeners.forEach { it(routeStack.last()) }
 }

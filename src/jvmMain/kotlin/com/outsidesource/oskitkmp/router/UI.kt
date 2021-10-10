@@ -88,9 +88,12 @@ fun localRouteScope(): CoroutineScope = LocalRouteScopeProvider.current
 @Composable
 @NonRestartableComposable
 fun RouteDestroyedEffect(effect: () -> Unit) {
+    val router = localRouter()
     val route = localRoute()
 
     return DisposableEffect(Unit) {
+        if (router is Router) router.addRouteDestroyedListener(route, effect)
+
         onDispose {
             if (route.lifecycle == RouteLifecycle.Destroyed) effect()
         }
