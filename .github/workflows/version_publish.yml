@@ -26,7 +26,10 @@ jobs:
         property: 'version'
 
     - name: Commit changes
-      run: git commit -am "[skip ci] version revision bump to v${{steps.read_property.outputs.value}}"
+      run: |
+        git config --local user.email osddeveloper@outsidesource.com
+        git config --local user.name "OSD Developer"
+        git commit -am "[skip ci] version revision bump to v${{steps.read_property.outputs.value}}"
 
     - name: Push Changes
       run: git push
