@@ -46,7 +46,7 @@ jobs:
       run: |
         git config --local user.email osddeveloper@outsidesource.com
         git config --local user.name "OSD Developer"
-        git tag ${{ steps.read_property.outputs.value }}
+        git tag v${{ steps.read_property.outputs.value }}
         git push --tags
 
     - name: Create Release
