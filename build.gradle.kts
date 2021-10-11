@@ -13,7 +13,7 @@ apply(from = "versioning.gradle.kts")
 
 val versionProperty = Properties().apply {
     load(FileInputStream(File(rootProject.rootDir, "version.properties")))
-}[""] ?: "0.1.0"
+}["version"] ?: "0.0.0"
 
 group = "com.outsidesource"
 version = versionProperty
