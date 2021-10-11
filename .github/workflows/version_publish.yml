@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Increment Patch Version
-      run: ./gradlew incrementRevision
+      run: ./gradlew incrementPatch
 
       # Fetch SemVer for tagging
     - name: Read Properties
@@ -29,7 +29,7 @@ jobs:
       run: |
         git config --local user.email osddeveloper@outsidesource.com
         git config --local user.name "OSD Developer"
-        git commit -am "[skip ci] version revision bump to v${{steps.read_property.outputs.value}}"
+        git commit -am "[skip ci] version patch bump to v${{steps.read_property.outputs.value}}"
 
     - name: Push Changes
       run: git push
