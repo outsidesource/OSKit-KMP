@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Amend Build Number
-      run: echo ::set-env name=OS_BUILD_NUMBER::${{ github.run_number }}
+      run: echo "OS_BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
 
     # Fetch SemVer for tagging
     - name: Read Properties
@@ -27,7 +27,7 @@ jobs:
 
 
     - name: Build Tag For Develop
-      run: echo ::set-env name=OS_DEV_TAG::"${{steps.read_property.outputs.value}}-$OS_BUILD_NUMBER"
+      run: echo "OS_DEV_TAG=${{steps.read_property.outputs.value}}-$OS_BUILD_NUMBER" >> $GITHUB_ENV
     - name: Tag Development Build
       run: |
         git config --local user.email osddeveloper@outsidesource.com
