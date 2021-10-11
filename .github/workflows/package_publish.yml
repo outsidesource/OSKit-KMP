@@ -55,21 +55,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.read_property.outputs.value }}
-        release_name: Release ${{ steps.read_property.outputs.value }}
+        release_name: Release v${{ steps.read_property.outputs.value }}
         body: sed -e 's/:/\n/g' ./notes.txt
         draft: false
         prerelease: false
-
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        ref: develop
-
-    - name: Increment Patch Version
-      run: ./gradlew incrementRevision
-
-    - name: Commit changes
-      run: git commit -am "[skip ci] version revision bump"
-
-    - name: Push Changes
-      run: git push
