@@ -1,22 +1,24 @@
 package com.outsidesource.oskitkmp.router
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import com.outsidesource.oskitkmp.bloc.Bloc
 import com.outsidesource.oskitkmp.extensions.disablePointerInput
-import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 
+/**
+ * [RouteSwitch] is the primary means of using a [Router] in a composable. [RouteSwitch] will automatically subscribe
+ * to the passed in [Router] and update when the [Router] updates.
+ *
+ * @param [router] The [Router] to listen to.
+ *
+ * @param [content] The composable content to switch between routes. The current route to render is provided as the
+ * parameter of the block. Route transitions are supported by the provided [IRoute] also implementing [IAnimatedRoute].
+ */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
@@ -37,6 +39,15 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
             LocalRouteProvider provides state,
             LocalRouteScopeProvider provides routeScopeHolder.getOrPut(state.id) { createRouteScope() },
         ) {
+            DisposableEffect(Unit) {
+                router.setRouteViewStatus(state, RouteViewStatus.Visible)
+                onDispose {
+                    if (state.lifecycle != RouteLifecycle.Destroyed) {
+                        router.setRouteViewStatus(state, RouteViewStatus.Disposed)
+                    }
+                }
+            }
+
             RouteDestroyedEffect {
                 routeScopeHolder.remove(state.id)
                 saveableStateHolder.removeState(state.id)
@@ -76,21 +87,37 @@ val LocalRouterProvider = staticCompositionLocalOf<IRouter> { Router(object : IR
 val LocalRouteProvider = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
 val LocalRouteScopeProvider = staticCompositionLocalOf { createRouteScope() }
 
+/**
+ * [localRouter] returns the composition local [IRouter]
+ */
 @Composable
 fun localRouter(): IRouter = LocalRouterProvider.current
 
+/**
+ * [localRoute] returns the composition local [RouteStackEntry]
+ */
 @Composable
 fun localRoute(): RouteStackEntry = LocalRouteProvider.current
 
+/**
+ * [localRouteScope] return the composition local [CoroutineScope] attached to the route's lifecycle
+ */
 @Composable
 fun localRouteScope(): CoroutineScope = LocalRouteScopeProvider.current
 
+/**
+ * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
+ * attached to is currently visible in the composition, the effect will not be run until the composable has been disposed
+ */
 @Composable
 @NonRestartableComposable
 fun RouteDestroyedEffect(effect: () -> Unit) {
+    val router = localRouter()
     val route = localRoute()
 
     return DisposableEffect(Unit) {
+        if (router is Router) router.addRouteDestroyedListener(route, effect)
+
         onDispose {
             if (route.lifecycle == RouteLifecycle.Destroyed) effect()
         }
