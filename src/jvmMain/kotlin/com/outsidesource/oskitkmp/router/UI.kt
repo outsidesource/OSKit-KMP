@@ -10,6 +10,15 @@ import androidx.compose.ui.platform.LocalDensity
 import com.outsidesource.oskitkmp.extensions.disablePointerInput
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * [RouteSwitch] is the primary means of using a [Router] in a composable. [RouteSwitch] will automatically subscribe
+ * to the passed in [Router] and update when the [Router] updates.
+ *
+ * @param [router] The [Router] to listen to.
+ *
+ * @param [content] The composable content to switch between routes. The current route to render is provided as the
+ * parameter of the block. Route transitions are supported by the provided [IRoute] also implementing [IAnimatedRoute].
+ */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
@@ -78,15 +87,28 @@ val LocalRouterProvider = staticCompositionLocalOf<IRouter> { Router(object : IR
 val LocalRouteProvider = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
 val LocalRouteScopeProvider = staticCompositionLocalOf { createRouteScope() }
 
+/**
+ * [localRouter] returns the composition local [IRouter]
+ */
 @Composable
 fun localRouter(): IRouter = LocalRouterProvider.current
 
+/**
+ * [localRoute] returns the composition local [RouteStackEntry]
+ */
 @Composable
 fun localRoute(): RouteStackEntry = LocalRouteProvider.current
 
+/**
+ * [localRouteScope] return the composition local [CoroutineScope] attached to the route's lifecycle
+ */
 @Composable
 fun localRouteScope(): CoroutineScope = LocalRouteScopeProvider.current
 
+/**
+ * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
+ * attached to is currently visible in the composition, the effect will not be run until the composable has been disposed
+ */
 @Composable
 @NonRestartableComposable
 fun RouteDestroyedEffect(effect: () -> Unit) {
