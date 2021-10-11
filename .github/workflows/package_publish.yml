@@ -27,6 +27,11 @@ jobs:
     - name: Publish Package
       run: ./gradlew publish --no-daemon
 
+  create_release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
     - name: Read Version Properties
       id: read_property
       uses: christian-draeger/read-properties@1.0.1
@@ -55,11 +60,12 @@ jobs:
         draft: false
         prerelease: false
 
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
       with:
         ref: develop
 
-    - name: Increment Version Minor
+    - name: Increment Patch Version
       run: ./gradlew incrementRevision
 
     - name: Commit changes

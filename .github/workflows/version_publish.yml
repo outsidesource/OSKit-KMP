@@ -25,7 +25,6 @@ jobs:
         path: './version.properties'
         property: 'version'
 
-
     - name: Build Tag For Develop
       run: echo "OS_DEV_TAG=${{steps.read_property.outputs.value}}-$OS_BUILD_NUMBER" >> $GITHUB_ENV
     - name: Tag Development Build
@@ -34,3 +33,12 @@ jobs:
         git config --local user.name "OSD Developer"
         git tag $OS_DEV_TAG
         git push --tags
+
+    - name: Increment Patch Version
+      run: ./gradlew incrementRevision
+
+    - name: Commit changes
+      run: git commit -am "[skip ci] version revision bump"
+
+    - name: Push Changes
+      run: git push
