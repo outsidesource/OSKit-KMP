@@ -1,21 +1,14 @@
 package com.outsidesource.oskitkmp.router
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import com.outsidesource.oskitkmp.bloc.Bloc
 import com.outsidesource.oskitkmp.extensions.disablePointerInput
-import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -37,6 +30,15 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
             LocalRouteProvider provides state,
             LocalRouteScopeProvider provides routeScopeHolder.getOrPut(state.id) { createRouteScope() },
         ) {
+            DisposableEffect(Unit) {
+                router.setRouteViewStatus(state, RouteViewStatus.Visible)
+                onDispose {
+                    if (state.lifecycle != RouteLifecycle.Destroyed) {
+                        router.setRouteViewStatus(state, RouteViewStatus.Disposed)
+                    }
+                }
+            }
+
             RouteDestroyedEffect {
                 routeScopeHolder.remove(state.id)
                 saveableStateHolder.removeState(state.id)
