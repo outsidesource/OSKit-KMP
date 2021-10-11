@@ -14,10 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Amend Build Number
-      run: echo ::set-env name=OS_BUILD_NUMBER::${{ github.run_number }}
+    - name: Increment Patch Version
+      run: ./gradlew incrementPatch
 
-    # Fetch SemVer for tagging
+      # Fetch SemVer for tagging
     - name: Read Properties
       id: read_property
       uses: christian-draeger/read-properties@1.0.1
@@ -25,12 +25,11 @@ jobs:
         path: './version.properties'
         property: 'version'
 
-
-    - name: Build Tag For Develop
-      run: echo ::set-env name=OS_DEV_TAG::"${{steps.read_property.outputs.value}}-$OS_BUILD_NUMBER"
-    - name: Tag Development Build
+    - name: Commit changes
       run: |
         git config --local user.email osddeveloper@outsidesource.com
         git config --local user.name "OSD Developer"
-        git tag $OS_DEV_TAG
-        git push --tags
+        git commit -am "[skip ci] version patch bump to v${{steps.read_property.outputs.value}}"
+
+    - name: Push Changes
+      run: git push

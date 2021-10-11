@@ -8,15 +8,13 @@ import kotlin.test.assertTrue
 class BlocCoordinatorTest {
     @Test
     fun coordinatorInitialValue() = runBlocking {
-        val scope = CoroutineScope(Dispatchers.Default)
-        val c = TestCoordinator(scope, TestBloc1(), TestBloc2())
+        val c = TestCoordinator(TestBloc1(), TestBloc2())
         assertTrue(c.state.one == 0 && c.state.two == "", "Initial State was wrong")
     }
 
     @Test
     fun coordinatorUpdatedValue() = runBlocking {
-        val scope = CoroutineScope(Dispatchers.Default)
-        val c = TestCoordinator(scope, TestBloc1(), TestBloc2())
+        val c = TestCoordinator(TestBloc1(), TestBloc2())
 
         c.increment()
         c.increment()
@@ -29,9 +27,9 @@ class BlocCoordinatorTest {
     @Test
     fun coordinatorSubscription() = runBlocking {
         val scope = CoroutineScope(Dispatchers.Default)
-        val c = TestCoordinator(scope, TestBloc1(), TestBloc2())
+        val c = TestCoordinator(TestBloc1(), TestBloc2())
         var events = 0
-        val sub = launch { c.stream.collect { events++ } }
+        val sub = launch { c.stream(scope).collect { events++ } }
 
         delay(16)
         c.increment()
@@ -50,32 +48,33 @@ class BlocCoordinatorTest {
     @Test
     fun coordinatorSubscriptionDistinct() = runBlocking {
         val scope = CoroutineScope(Dispatchers.Default)
-        val c = TestCoordinator(scope, TestBloc1(), TestBloc2())
+        val c = TestCoordinator(TestBloc1(), TestBloc2())
         var events = 0
-        val sub = launch { c.stream.collect { events++ } }
+        val sub = launch { c.stream(scope).collect { events++ } }
 
-        delay(16)
+        delay(100)
         c.setValue("one")
-        delay(16)
+        delay(100)
         c.setValue("two")
-        delay(16)
+        delay(100)
         c.setValue("two")
-        delay(16)
+        delay(100)
         c.setValue("two")
-        delay(16)
+        delay(100)
         c.setValue("three")
-        delay(16)
+        delay(100)
 
-        assertTrue(events == 4 && c.state.two == "three", "Distinct did not work")
+        assertTrue(events == 4, "Distinct did not work. Received $events events instead of 4")
+        assertTrue(c.state.two == "three", "End state was not correct")
         sub.cancelAndJoin()
     }
 
     @Test
     fun unsubscriptionDispose() = runBlocking {
         val scope = CoroutineScope(Dispatchers.Default)
-        val c = TestCoordinator(scope, TestBloc1(), TestBloc2())
-        val sub = scope.launch { c.stream.collect { } }
-        val sub2 = scope.launch { c.stream.collect { } }
+        val c = TestCoordinator(TestBloc1(), TestBloc2())
+        val sub = scope.launch { c.stream(scope).collect { } }
+        val sub2 = scope.launch { c.stream(scope).collect { } }
 
         c.increment()
         c.increment()
@@ -112,8 +111,8 @@ private class TestBloc2 : Bloc<TestBCState2>(TestBCState2(two = ""), persistStat
     fun setValue(value: String) = update(state.copy(two = value))
 }
 
-private class TestCoordinator(private val scope: CoroutineScope, private val bloc1: TestBloc1, private val bloc2: TestBloc2) :
-    BlocCoordinator2<TestBCState, TestBCState2, TestBCCombinedState>(scope, bloc1, bloc2) {
+private class TestCoordinator(private val bloc1: TestBloc1, private val bloc2: TestBloc2) :
+    BlocCoordinator2<TestBCState, TestBCState2, TestBCCombinedState>(bloc1, bloc2) {
 
     override fun transform(s1: TestBCState, s2: TestBCState2) = TestBCCombinedState(one = s1.one, two = s2.two)
 

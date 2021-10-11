@@ -27,6 +27,11 @@ jobs:
     - name: Publish Package
       run: ./gradlew publish --no-daemon
 
+  create_release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
     - name: Read Version Properties
       id: read_property
       uses: christian-draeger/read-properties@1.0.1
@@ -50,20 +55,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.read_property.outputs.value }}
-        release_name: Release ${{ steps.read_property.outputs.value }}
+        release_name: Release v${{ steps.read_property.outputs.value }}
         body: sed -e 's/:/\n/g' ./notes.txt
         draft: false
         prerelease: false
-
-    - uses: actions/checkout@v2
-      with:
-        ref: develop
-
-    - name: Increment Version Minor
-      run: ./gradlew incrementRevision
-
-    - name: Commit changes
-      run: git commit -am "[skip ci] version revision bump"
-
-    - name: Push Changes
-      run: git push
