@@ -11,3 +11,4 @@ app/phone
 app/tablet
 app/phoneQa/
 credential.properties
+*.hprof
