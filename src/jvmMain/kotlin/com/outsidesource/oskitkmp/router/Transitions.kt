@@ -62,20 +62,20 @@ data class RouteTransition(
 val DefaultRouteTransition = RouteTransition(
     enter = {
         val offsetY = with(it) { -25.dp.toPx() }.toInt()
-        fadeIn(0f, tween(400)) + slideIn({ IntOffset(0, offsetY) }, tween(400))
+        fadeIn(tween(400), 0f) + slideIn(tween(400)) { IntOffset(0, offsetY) }
     },
-    exit = { fadeOut(0f, tween(400)) },
-    popEnter = { fadeIn(0f, tween(400)) },
+    exit = { fadeOut(tween(400), 0f) },
+    popEnter = { fadeIn(tween(400), 0f) },
     popExit = {
         val offsetY = with(it) { -25.dp.toPx() }.toInt()
-        slideOut({ IntOffset(0, offsetY) }, tween(400)) + fadeOut(0f, tween(400))
+        slideOut(tween(400)) { IntOffset(0, offsetY) } + fadeOut(tween(400), 0f)
     },
 )
 
 @ExperimentalAnimationApi
 val HorizontalSlideRouteTransition = RouteTransition(
-    enter = { slideInHorizontally({ it }, tween(400)) + fadeIn(.99f, tween(400)) },
-    exit = { slideOutHorizontally({ -it }, tween(400)) + fadeOut(.99f, tween(400)) },
-    popEnter = { slideInHorizontally({ -it }, tween(400)) + fadeIn(.99f, tween(400)) },
-    popExit = { slideOutHorizontally({ it }, tween(400)) + fadeOut(.99f, tween(400)) },
+    enter = { slideInHorizontally(tween(400)) { it } + fadeIn(tween(400), .99f) },
+    exit = { slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(400), .99f) },
+    popEnter = { slideInHorizontally(tween(400)) { -it } + fadeIn(tween(400), .99f) },
+    popExit = { slideOutHorizontally(tween(400)) { it } + fadeOut(tween(400), .99f) },
 )

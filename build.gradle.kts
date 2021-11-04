@@ -50,11 +50,7 @@ kotlin {
             dependencies {
                 implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
-                implementation(Dependencies.CoroutinesCore) {
-                    version {
-                        strictly(Versions.CoroutinesCore)
-                    }
-                }
+                implementation(Dependencies.CoroutinesCore)
             }
         }
         val commonTest by getting {
