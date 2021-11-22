@@ -1,6 +1,6 @@
 object Versions {
     const val Kotlin = "1.5.31"
-    const val ComposePlugin = "1.0.0-beta6-dev464"
+    const val ComposePlugin = "1.0.0-beta6-dev474"
     const val KotlinCompilerExtension = "1.0.1"
 
     const val CoroutinesCore = "1.5.2"
