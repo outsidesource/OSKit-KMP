@@ -14,3 +14,11 @@ fun Modifier.disablePointerInput(disabled: Boolean) = pointerInput(disabled) {
         }
     }
 }
+
+fun Modifier.consumePointerInput(pass: PointerEventPass = PointerEventPass.Main) = pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) {
+            awaitPointerEvent(pass).changes.forEach { it.consumeAllChanges() }
+        }
+    }
+}
