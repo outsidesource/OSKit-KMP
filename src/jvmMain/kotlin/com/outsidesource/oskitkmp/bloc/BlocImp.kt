@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import com.outsidesource.oskitkmp.router.LocalRouteScope
 import com.outsidesource.oskitkmp.router.RouteDestroyedEffect
-import com.outsidesource.oskitkmp.router.localRouteScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -14,7 +14,7 @@ internal actual val defaultBlocEffectDispatcher: CoroutineDispatcher = Dispatche
 
 @Composable
 fun <B : Bloc<S>, S> rememberBloc(factory: () -> B): Pair<S, B> {
-    val routeScope = localRouteScope()
+    val routeScope = LocalRouteScope.current
     RouteDestroyedEffect { routeScope.cancel() }
 
     val (bloc, stream) = remember {
@@ -29,7 +29,7 @@ fun <B : Bloc<S>, S> rememberBloc(factory: () -> B): Pair<S, B> {
 
 @Composable
 fun <BC : BlocCoordinator<S>, S> rememberBlocCoordinator(block: () -> BC): Pair<S, BC> {
-    val routeScope = localRouteScope()
+    val routeScope = LocalRouteScope.current
     RouteDestroyedEffect { routeScope.cancel() }
 
     val (bc, stream) = remember {
