@@ -3,8 +3,7 @@ package com.outsidesource.oskitkmp.bloc
 import com.outsidesource.oskitkmp.concurrency.withDelay
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -94,14 +93,14 @@ class BlocTest {
 
     @Test
     fun persistStateOnDispose() = runBlocking {
-        val bloc = TestBloc(persistStateOnDispose = false)
+        val bloc = TestBloc(retainStateOnDispose = false)
         bloc.increment()
         bloc.increment()
         assertTrue(bloc.state.testInt == 2, "State did not update")
         bloc.stream().first()
         assertTrue(bloc.state.testInt == 0, "State did not reset on dispose with persistStateOnDispose == false")
 
-        val bloc2 = TestBloc(persistStateOnDispose = true)
+        val bloc2 = TestBloc(retainStateOnDispose = true)
         bloc2.increment()
         bloc2.increment()
         assertTrue(bloc2.state.testInt == 2, "State did not update")
@@ -262,15 +261,55 @@ class BlocTest {
         deferred.await()
         assertTrue(bloc.effectStatus(bloc::testEffect2) == EffectStatus.Idle, "Effect was not idle after effect completion")
     }
+
+    @Test
+    fun testDependency() = runBlocking {
+        var testBlocDisposed = true
+        val testBloc = TestBloc(retainStateOnDispose = true, onDisposeCallback = { testBlocDisposed = true })
+        testBloc.setString("dependency")
+        testBloc.increment()
+        val dependencyBloc = TestDependencyBloc(testBloc)
+
+        // Test initial computed state without subscription
+        assertTrue(dependencyBloc.state.dependentString == "dependency", "Computed dependent state was incorrect")
+
+        // Test computed dependency state with subscription
+        val subDeferred = async { dependencyBloc.stream().drop(1).first() }
+        testBloc.increment()
+        val subValue = subDeferred.await()
+        assertTrue(subValue.dependentInt == 2, "Dependency update did not update parent value")
+
+        // Test that dependencies are disposed
+        assertTrue(testBlocDisposed, "Dependency was not disposed")
+
+        // Test Resubscribe
+        val subDeferred2 = async { dependencyBloc.stream().drop(1).first() }
+        testBloc.increment()
+        val subValue2 = subDeferred2.await()
+        assertTrue(subValue2.dependentInt == 3, "Dependency update did not update parent value after resubscription")
+
+        // Test distinct until changed
+        var updateCount = 0
+        val sub = launch { dependencyBloc.stream().drop(1).collect { updateCount++ } }
+        testBloc.setString("distinctTest1")
+        delay(16)
+        testBloc.setString("distinctTest2")
+        delay(16)
+        testBloc.setString("distinctTest2")
+        delay(16)
+        testBloc.setString("distinctTest2")
+        sub.cancelAndJoin()
+        assertTrue(updateCount == 2, "Dependency emitted update with equal value")
+    }
 }
 
 private data class TestState(val testString: String = "Test", val testInt: Int = 0, val testComputedInt: Int = 0)
 
 private class TestBloc(
-    persistStateOnDispose: Boolean = false,
+    retainStateOnDispose: Boolean = false,
     private val onStartCallback: (() -> Unit)? = null,
     private val onDisposeCallback: (() -> Unit)? = null,
-) : Bloc<TestState>(TestState(), persistStateOnDispose = persistStateOnDispose) {
+) : Bloc<TestState>(TestState(), retainStateOnDispose = retainStateOnDispose) {
 
     override fun computed(state: TestState): TestState = state.copy(testComputedInt = state.testInt + 2)
 
@@ -326,4 +365,20 @@ private class TestBloc(
     fun cancelTestEffect() = cancelEffect("testEffect")
     fun cancelTestEffect2() = cancelEffect(::testEffect2)
     fun cancelTestEffect3() = cancelEffect(::testEffect3)
+}
+
+
+private data class TestDependencyState(val count: Int = 0, val dependentString: String, val dependentInt: Int)
+
+private class TestDependencyBloc(private val testBloc: TestBloc): Bloc<TestDependencyState>(
+    initialState = TestDependencyState(dependentString = "", dependentInt = 0),
+    retainStateOnDispose = true,
+    dependencies = listOf(testBloc)
+) {
+    override fun computed(state: TestDependencyState): TestDependencyState = state.copy(
+        dependentString = testBloc.state.testString,
+        dependentInt = testBloc.state.testInt
+    )
+
+    fun set(value: Int) = update(state.copy(count = value))
 }
