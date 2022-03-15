@@ -94,14 +94,14 @@ class BlocTest {
 
     @Test
     fun persistStateOnDispose() = runBlocking {
-        val bloc = TestBloc(persistStateOnDispose = false)
+        val bloc = TestBloc(retainStateOnDispose = false)
         bloc.increment()
         bloc.increment()
         assertTrue(bloc.state.testInt == 2, "State did not update")
         bloc.stream().first()
         assertTrue(bloc.state.testInt == 0, "State did not reset on dispose with persistStateOnDispose == false")
 
-        val bloc2 = TestBloc(persistStateOnDispose = true)
+        val bloc2 = TestBloc(retainStateOnDispose = true)
         bloc2.increment()
         bloc2.increment()
         assertTrue(bloc2.state.testInt == 2, "State did not update")
@@ -267,10 +267,10 @@ class BlocTest {
 private data class TestState(val testString: String = "Test", val testInt: Int = 0, val testComputedInt: Int = 0)
 
 private class TestBloc(
-    persistStateOnDispose: Boolean = false,
+    retainStateOnDispose: Boolean = false,
     private val onStartCallback: (() -> Unit)? = null,
     private val onDisposeCallback: (() -> Unit)? = null,
-) : Bloc<TestState>(TestState(), persistStateOnDispose = persistStateOnDispose) {
+) : Bloc<TestState>(TestState(), retainStateOnDispose = retainStateOnDispose) {
 
     override fun computed(state: TestState): TestState = state.copy(testComputedInt = state.testInt + 2)
 

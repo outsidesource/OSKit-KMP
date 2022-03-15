@@ -17,7 +17,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * Bloc Lifecycle
  * A Bloc's lifecycle is dependent on its observers. When the first observer subscribes to the Bloc [onStart] is called.
  * When the last observer unsubscribes [onDispose] is called. A Bloc may choose to reset its state when [onDispose]
- * is called by setting [persistStateOnDispose] to false. A Bloc will call [onStart] again if it gains a new
+ * is called by setting [retainStateOnDispose] to false. A Bloc will call [onStart] again if it gains a new
  * observer after it has been disposed. Likewise, a Bloc will call [onDispose] again if it loses those observers.
  *
  * Observing State
@@ -38,12 +38,12 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * [initialState] The initial state of a Bloc.
  *
- * [persistStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
- * disposed. If true, the Bloc's state will persist until the Bloc is garbage collected.
+ * [retainStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
+ * disposed. If true, the Bloc's state will be retained until the Bloc is garbage collected.
  */
 abstract class Bloc<T: Any>(
     private val initialState: T,
-    private val persistStateOnDispose: Boolean = false,
+    private val retainStateOnDispose: Boolean = false,
     private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
 
@@ -126,7 +126,7 @@ abstract class Bloc<T: Any>(
      *
      * [onDone] a block of synchronous code to be run when the effect finishes regardless of success or failure. This
      * can be used to update state regardless of if an effect is cancelled or not. NOTE: It is not guaranteed that
-     * [onDone] will run before disposal and resetting of state if [persistStateOnDispose === false] so be careful
+     * [onDone] will run before disposal and resetting of state if [retainStateOnDispose === false] so be careful
      * when updating state.
      */
     protected suspend fun <T> effect(
@@ -213,7 +213,7 @@ abstract class Bloc<T: Any>(
         blocScope.coroutineContext.cancelChildren()
         synchronized(subscriptionScopesLock) { subscriptionScopes.clear() }
         synchronized(dependencySubscriptionsLock) { dependencySubscriptions.clear() }
-        if (!persistStateOnDispose) _state.value = computed(initialState)
+        if (!retainStateOnDispose) _state.value = computed(initialState)
         onDispose()
     }
 }
