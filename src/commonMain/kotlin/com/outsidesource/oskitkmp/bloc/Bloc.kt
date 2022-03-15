@@ -5,13 +5,9 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-
 
 /**
  * Bloc (Business Logic Component)
@@ -45,18 +41,21 @@ import kotlin.coroutines.cancellation.CancellationException
  * [persistStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
  * disposed. If true, the Bloc's state will persist until the Bloc is garbage collected.
  */
-abstract class Bloc<T : Any>(
+abstract class Bloc<T: Any>(
     private val initialState: T,
     private val persistStateOnDispose: Boolean = false,
+    private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
 
-    private val _effectsLock = SynchronizedObject()
-    private val _dependentScopesLock = SynchronizedObject()
+    private val effectsLock = SynchronizedObject()
+    private val subscriptionScopes = mutableListOf<CoroutineScope>()
+    private val subscriptionScopesLock = SynchronizedObject()
+    private val subscriptionCount = atomic(0)
+    private val dependencySubscriptionsLock = SynchronizedObject()
+    private val dependencySubscriptions = mutableListOf<Job>()
 
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
-    private val _effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
-    private val _dependentScopes = mutableListOf<CoroutineScope>()
-    private val _dependentCount = atomic(0)
+    private val effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Bloc's lifecycle. All [Job]s launched
@@ -67,12 +66,12 @@ abstract class Bloc<T : Any>(
     /**
      * Returns the current status of the Bloc
      */
-    val status get() = if (_dependentCount.value > 0) BlocStatus.Started else BlocStatus.Idle
+    val status get() = if (subscriptionCount.value > 0) BlocStatus.Started else BlocStatus.Idle
 
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() = _state.value
+    val state get() = if (dependencies.isNotEmpty()) computed(_state.value) else _state.value
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
@@ -141,9 +140,9 @@ abstract class Bloc<T : Any>(
 
         try {
             val effect = CancellableEffect(cancelOnDispose = cancelOnDispose, job = async { block() }, onDone = onDone)
-            synchronized(_effectsLock) { _effects[id] = effect }
+            synchronized(effectsLock) { effects[id] = effect }
             val result = withContext(context) { effect.run() }
-            synchronized(_effectsLock) { if (_effects[id] == effect) _effects.remove(id) }
+            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
             result
         } catch (e: CancellationException) {
             Outcome.Error(e)
@@ -154,15 +153,15 @@ abstract class Bloc<T : Any>(
      * Returns the current status of an effect
      */
     fun effectStatus(id: Any): EffectStatus {
-        return if (this._effects.containsKey(id)) EffectStatus.Running else EffectStatus.Idle
+        return if (this.effects.containsKey(id)) EffectStatus.Running else EffectStatus.Idle
     }
 
     /**
      * Cancels an effect with the given [id].
      */
     protected fun cancelEffect(id: Any) {
-        _effects[id]?.cancel()
-        synchronized(_effectsLock) { _effects.remove(id) }
+        effects[id]?.cancel()
+        synchronized(effectsLock) { effects.remove(id) }
     }
 
     /**
@@ -177,36 +176,43 @@ abstract class Bloc<T : Any>(
         checkShouldStart()
 
         if (lifetimeScope != null) {
-            synchronized(_dependentScopesLock) {
-                if (_dependentScopes.contains(lifetimeScope)) return
-                _dependentScopes.add(lifetimeScope)
+            synchronized(subscriptionScopesLock) {
+                if (subscriptionScopes.contains(lifetimeScope)) return
+                subscriptionScopes.add(lifetimeScope)
             }
 
             lifetimeScope.coroutineContext.job.invokeOnCompletion {
-                synchronized(_dependentScopesLock) { _dependentScopes.remove(lifetimeScope) }
+                synchronized(subscriptionScopesLock) { subscriptionScopes.remove(lifetimeScope) }
                 CoroutineScope(Dispatchers.Default).launch { handleUnsubscribe() }
             }
         }
-        _dependentCount.incrementAndGet()
+        subscriptionCount.incrementAndGet()
     }
 
     private fun handleUnsubscribe() {
-        _dependentCount.decrementAndGet()
+        subscriptionCount.decrementAndGet()
         checkShouldDispose()
     }
 
     private fun checkShouldStart() {
-        if (_dependentCount.value > 0) return
+        if (subscriptionCount.value > 0) return
+
+        synchronized(dependencySubscriptionsLock) {
+            dependencySubscriptions.addAll(dependencies.map {
+                blocScope.launch { it.stream().collect { update(state) } }
+            })
+        }
         onStart()
     }
 
     private fun checkShouldDispose() {
-        if (_dependentCount.value > 0) return
+        if (subscriptionCount.value > 0) return
 
-        _effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
-        synchronized(_effectsLock) { _effects.clear() }
+        effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
+        synchronized(effectsLock) { effects.clear() }
         blocScope.coroutineContext.cancelChildren()
-        synchronized(_dependentScopesLock) { _dependentScopes.clear() }
+        synchronized(subscriptionScopesLock) { subscriptionScopes.clear() }
+        synchronized(dependencySubscriptionsLock) { dependencySubscriptions.clear() }
         if (!persistStateOnDispose) _state.value = computed(initialState)
         onDispose()
     }
