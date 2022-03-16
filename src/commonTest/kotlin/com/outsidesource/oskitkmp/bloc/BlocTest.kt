@@ -279,7 +279,6 @@ class BlocTest {
         testBloc.increment()
         val subValue = subDeferred.await()
         assertTrue(subValue.dependentInt == 2, "Dependency update did not update parent value")
-        println(2)
 
         // Test that dependencies are disposed
         delay(16)
