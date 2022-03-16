@@ -3,12 +3,22 @@ import java.io.FileInputStream
 import java.lang.System.getenv
 import java.util.*
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath(kotlin("gradle-plugin", Versions.Kotlin))
+    }
+}
+
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
     id("maven-publish")
 }
+
 apply(from = "versioning.gradle.kts")
 
 val versionProperty = Properties().apply {
@@ -29,7 +39,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         testRuns["test"].executionTask.configure {
             useJUnit()
