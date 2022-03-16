@@ -264,7 +264,7 @@ class BlocTest {
 
     @Test
     fun testDependency() = runBlocking {
-        var testBlocDisposed = true
+        var testBlocDisposed = false
         val testBloc = TestBloc(retainStateOnDispose = true, onDisposeCallback = { testBlocDisposed = true })
         testBloc.setString("dependency")
         testBloc.increment()
@@ -280,6 +280,7 @@ class BlocTest {
         assertTrue(subValue.dependentInt == 2, "Dependency update did not update parent value")
 
         // Test that dependencies are disposed
+        delay(16)
         assertTrue(testBlocDisposed, "Dependency was not disposed")
 
         // Test Resubscribe
