@@ -199,7 +199,7 @@ abstract class Bloc<T: Any>(
 
         synchronized(dependencySubscriptionsLock) {
             dependencySubscriptions.addAll(dependencies.map {
-                blocScope.launch { it.stream().collect { update(state) } }
+                blocScope.launch { it.stream().drop(1).collect { update(state) } }
             })
         }
         onStart()

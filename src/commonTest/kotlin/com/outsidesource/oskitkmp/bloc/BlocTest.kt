@@ -275,9 +275,11 @@ class BlocTest {
 
         // Test computed dependency state with subscription
         val subDeferred = async { dependencyBloc.stream().drop(1).first() }
+        delay(16)
         testBloc.increment()
         val subValue = subDeferred.await()
         assertTrue(subValue.dependentInt == 2, "Dependency update did not update parent value")
+        println(2)
 
         // Test that dependencies are disposed
         delay(16)
@@ -285,6 +287,7 @@ class BlocTest {
 
         // Test Resubscribe
         val subDeferred2 = async { dependencyBloc.stream().drop(1).first() }
+        delay(16)
         testBloc.increment()
         val subValue2 = subDeferred2.await()
         assertTrue(subValue2.dependentInt == 3, "Dependency update did not update parent value after resubscription")
@@ -292,6 +295,7 @@ class BlocTest {
         // Test distinct until changed
         var updateCount = 0
         val sub = launch { dependencyBloc.stream().drop(1).collect { updateCount++ } }
+        delay(16)
         testBloc.setString("distinctTest1")
         delay(16)
         testBloc.setString("distinctTest2")
