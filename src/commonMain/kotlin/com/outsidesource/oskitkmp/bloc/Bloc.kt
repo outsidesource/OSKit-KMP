@@ -1,9 +1,8 @@
 package com.outsidesource.oskitkmp.bloc
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import kotlinx.atomicfu.locks.synchronized
-import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.coroutines.CoroutineContext
@@ -50,7 +49,6 @@ abstract class Bloc<T: Any>(
     private val effectsLock = SynchronizedObject()
     private val subscriptionScopes = mutableListOf<CoroutineScope>()
     private val subscriptionScopesLock = SynchronizedObject()
-    private val subscriptionCount = atomic(0)
     private val dependencySubscriptionsLock = SynchronizedObject()
     private val dependencySubscriptions = mutableListOf<Job>()
 
@@ -66,12 +64,12 @@ abstract class Bloc<T: Any>(
     /**
      * Returns the current status of the Bloc
      */
-    val status get() = if (subscriptionCount.value > 0) BlocStatus.Started else BlocStatus.Idle
+    val status get() = if (_state.subscriptionCount.value > 0) BlocStatus.Started else BlocStatus.Idle
 
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() = if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
+    val state get() = if (dependencies.isNotEmpty() && _state.subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
@@ -188,16 +186,14 @@ abstract class Bloc<T: Any>(
                 CoroutineScope(Dispatchers.Default).launch { handleUnsubscribe() }
             }
         }
-        subscriptionCount.incrementAndGet()
     }
 
     private fun handleUnsubscribe() {
-        subscriptionCount.decrementAndGet()
         checkShouldDispose()
     }
 
     private fun checkShouldStart() {
-        if (subscriptionCount.value > 0) return
+        if (_state.subscriptionCount.value > 0) return
 
         synchronized(dependencySubscriptionsLock) {
             dependencySubscriptions.addAll(dependencies.map {
@@ -208,7 +204,7 @@ abstract class Bloc<T: Any>(
     }
 
     private fun checkShouldDispose() {
-        if (subscriptionCount.value > 0) return
+        if (_state.subscriptionCount.value > 0) return
 
         effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
         synchronized(effectsLock) { effects.clear() }
