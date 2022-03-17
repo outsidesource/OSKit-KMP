@@ -71,7 +71,7 @@ abstract class Bloc<T: Any>(
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() = if (dependencies.isNotEmpty()) computed(_state.value) else _state.value
+    val state get() = if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
