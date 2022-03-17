@@ -271,7 +271,11 @@ class BlocTest {
         val dependencyBloc = TestDependencyBloc(testBloc)
 
         // Test initial computed state without subscription
-        assertTrue(dependencyBloc.state.dependentString == "dependency", "Computed dependent state was incorrect")
+        assertTrue(dependencyBloc.state.dependentString == "dependency", "Computed initial dependent state was incorrect")
+
+        // Test updated dependency state on first()
+        testBloc.setString("dependency2")
+        assertTrue(dependencyBloc.stream().first().dependentString == "dependency2", "Dependent state on first() was incorrect after dependent update")
 
         // Test computed dependency state with subscription
         val subDeferred = async { dependencyBloc.stream().drop(1).first() }

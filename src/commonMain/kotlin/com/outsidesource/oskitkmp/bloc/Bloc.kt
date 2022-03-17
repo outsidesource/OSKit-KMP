@@ -83,10 +83,12 @@ abstract class Bloc<T: Any>(
      * This prevents premature Bloc disposal mainly during activity/fragment recreation due to configuration change.
      * Typically viewModelScope is the most appropriate scope here.
      */
-    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> =
-        _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
+    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> {
+        if (dependencies.isNotEmpty()) _state.value = computed(_state.value)
+        return _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
             if (lifetimeScope == null) handleUnsubscribe()
         }
+    }
 
     /**
      * Computes properties based on latest state for every update
