@@ -309,6 +309,24 @@ class BlocTest {
         sub.cancelAndJoin()
         assertTrue(updateCount == 2, "Dependency emitted update with equal value")
     }
+
+    @Test
+    fun testDependencyComputedCalls() = runBlocking {
+        var testBlocComputedCount = 0
+        val testBloc = TestBloc(retainStateOnDispose = true, onComputedCallback = { testBlocComputedCount++ })
+
+        var dependencyBlocComputedCount = 0
+        val dependencyBloc = TestDependencyBloc(testBloc) { dependencyBlocComputedCount++ }
+
+        testBloc.state
+        testBloc.state
+        assertTrue(testBlocComputedCount == 1, "Initial non dependent state computes more than once with no updates")
+
+//        // This is a future optimization
+//        dependencyBloc.state
+//        dependencyBloc.state
+//        assertTrue(dependencyBlocComputedCount == 1, "Dependent state computes more than once with no updates")
+    }
 }
 
 private data class TestState(val testString: String = "Test", val testInt: Int = 0, val testComputedInt: Int = 0)
@@ -317,9 +335,13 @@ private class TestBloc(
     retainStateOnDispose: Boolean = false,
     private val onStartCallback: (() -> Unit)? = null,
     private val onDisposeCallback: (() -> Unit)? = null,
+    private val onComputedCallback: (() -> Unit)? = null,
 ) : Bloc<TestState>(TestState(), retainStateOnDispose = retainStateOnDispose) {
 
-    override fun computed(state: TestState): TestState = state.copy(testComputedInt = state.testInt + 2)
+    override fun computed(state: TestState): TestState {
+        onComputedCallback?.invoke()
+        return state.copy(testComputedInt = state.testInt + 2)
+    }
 
     override fun onStart() = this.onStartCallback?.invoke() ?: Unit
     override fun onDispose() = this.onDisposeCallback?.invoke() ?: Unit
@@ -376,17 +398,21 @@ private class TestBloc(
 }
 
 
-private data class TestDependencyState(val count: Int = 0, val dependentString: String, val dependentInt: Int)
+private data class TestDependencyState(val count: Int = 0, val dependentString: String = "", val dependentInt: Int = 0)
 
-private class TestDependencyBloc(private val testBloc: TestBloc): Bloc<TestDependencyState>(
-    initialState = TestDependencyState(dependentString = "", dependentInt = 0),
+private class TestDependencyBloc(private val testBloc: TestBloc, private val onComputedCallback: (() -> Unit)? = null): Bloc<TestDependencyState>(
+    initialState = TestDependencyState(dependentString = "", dependentInt = 0, count = 0),
     retainStateOnDispose = true,
     dependencies = listOf(testBloc)
 ) {
-    override fun computed(state: TestDependencyState): TestDependencyState = state.copy(
-        dependentString = testBloc.state.testString,
-        dependentInt = testBloc.state.testInt
-    )
+    override fun computed(state: TestDependencyState): TestDependencyState {
+        onComputedCallback?.invoke()
+
+        return state.copy(
+            dependentString = testBloc.state.testString,
+            dependentInt = testBloc.state.testInt,
+        )
+    }
 
     fun set(value: Int) = update(state.copy(count = value))
 }
