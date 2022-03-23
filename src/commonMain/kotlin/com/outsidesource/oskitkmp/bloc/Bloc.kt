@@ -33,7 +33,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * Effects are asynchronous functions that update the state over time. An effect can be created with
  * an asynchronous function that calls [update] multiple times or by using the [effect] method. The [effect] method
  * provides a built-in cancellation mechanism. Calling an effect multiple times will cancel the previously started
- * effect and replace it with the new effect. The [effect] method also allows configuring whether or not the
+ * effect and replace it with the new effect. The [effect] method also allows configuring whether the
  * effect should be cancelled when the Bloc is disposed or not.
  *
  * [initialState] The initial state of a Bloc.
