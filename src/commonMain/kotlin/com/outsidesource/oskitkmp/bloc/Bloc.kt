@@ -47,14 +47,11 @@ abstract class Bloc<T: Any>(
     private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
 
-    private val effectsLock = SynchronizedObject()
-    private val subscriptionScopes = mutableListOf<CoroutineScope>()
-    private val subscriptionScopesLock = SynchronizedObject()
     private val subscriptionCount = atomic(0)
     private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
     private val effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
+    private val effectsLock = SynchronizedObject()
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Bloc's lifecycle. All [Job]s launched
@@ -175,18 +172,7 @@ abstract class Bloc<T: Any>(
 
     private fun handleSubscribe(lifetimeScope: CoroutineScope?) {
         checkShouldStart()
-
-        if (lifetimeScope != null) {
-            synchronized(subscriptionScopesLock) {
-                if (subscriptionScopes.contains(lifetimeScope)) return
-                subscriptionScopes.add(lifetimeScope)
-            }
-
-            lifetimeScope.coroutineContext.job.invokeOnCompletion {
-                synchronized(subscriptionScopesLock) { subscriptionScopes.remove(lifetimeScope) }
-                CoroutineScope(Dispatchers.Default).launch { handleUnsubscribe() }
-            }
-        }
+        lifetimeScope?.coroutineContext?.job?.invokeOnCompletion { handleUnsubscribe() }
         subscriptionCount.incrementAndGet()
     }
 
@@ -201,6 +187,7 @@ abstract class Bloc<T: Any>(
         dependencies.forEach {
             dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
         }
+
         onStart()
     }
 
@@ -211,7 +198,6 @@ abstract class Bloc<T: Any>(
         synchronized(effectsLock) { effects.clear() }
         blocScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
-        synchronized(subscriptionScopesLock) { subscriptionScopes.clear() }
         if (!retainStateOnDispose) _state.value = computed(initialState)
         onDispose()
     }
