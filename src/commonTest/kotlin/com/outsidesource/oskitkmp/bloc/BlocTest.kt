@@ -92,6 +92,26 @@ class BlocTest {
     }
 
     @Test
+    fun testLifetimeScope() = runBlocking {
+        var onDisposedCount = 0
+        val bloc = TestBloc(onDisposeCallback = { onDisposedCount++ })
+        val testScope = CoroutineScope(Dispatchers.Default + Job())
+        val subscription1 = launch { bloc.stream(testScope).collect {} }
+        val subscription2 = launch { bloc.stream(testScope).collect {} }
+        delay(16)
+        subscription1.cancel()
+        subscription2.cancel()
+        delay(16)
+        assertTrue(onDisposedCount == 0, "Bloc disposed even though lifetime scope was not cancelled")
+        testScope.launch { bloc.stream(testScope).collect {} }
+        testScope.launch { bloc.stream(testScope).collect {} }
+        delay(16)
+        testScope.cancel()
+        delay(16)
+        assertTrue(onDisposedCount == 1, "Bloc was not disposed when lifetime scope was cancelled")
+    }
+
+    @Test
     fun persistStateOnDispose() = runBlocking {
         val bloc = TestBloc(retainStateOnDispose = false)
         bloc.increment()
