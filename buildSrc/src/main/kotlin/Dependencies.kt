@@ -2,6 +2,7 @@ object Versions {
     const val Kotlin = "1.6.10"
     const val ComposePlugin = "1.0.1"
     const val KotlinCompilerExtension = "1.1.0-rc2"
+    const val KtLintPlugin = "10.2.1"
 
     const val CoroutinesCore = "1.6.0"
     const val AndroidXCore = "1.6.0"

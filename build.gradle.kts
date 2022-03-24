@@ -14,6 +14,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
+    id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
     id("maven-publish")
@@ -135,10 +136,23 @@ android {
     }
 }
 
+ktlint {
+    debug.set(true)
+    disabledRules.set(setOf("no-wildcard-imports"))
+
+    filter {
+        include("src/**/*.kt")
+        exclude("**/*.kts")
+        val excludedDirs = listOf("/generated/", "/commonTest/", "/androidTest/", "/iosTest/", "/jvmTest/")
+        exclude { tree -> excludedDirs.any { projectDir.toURI().relativize(tree.file.toURI()).path.contains(it) } }
+    }
+}
+tasks.getByName("preBuild").dependsOn("ktlintFormat")
+
 val packForXcode by tasks.creating(Sync::class) {
     group = "build"
-    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
-    val sdkName = System.getenv("SDK_NAME") ?: "iphonesimulator"
+    val mode = getenv("CONFIGURATION") ?: "DEBUG"
+    val sdkName = getenv("SDK_NAME") ?: "iphonesimulator"
     val targetName = "ios" + if (sdkName.startsWith("iphoneos")) "Arm64" else "X64"
     val framework = kotlin.targets.getByName<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>(targetName).binaries.getFramework(mode)
     inputs.property("mode", mode)
