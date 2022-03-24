@@ -235,7 +235,7 @@ class BlocTest {
         subscription.cancelAndJoin()
         delay(200)
         val effectResult = effectPromise.await()
-        assertTrue(bloc.state.testInt == 0,  "State should have been 0 due to dispose.")
+        assertTrue(bloc.state.testInt == 0, "State should have been 0 due to dispose.")
         if (effectResult !is Outcome.Error || effectResult.error !is CancellationException)
             fail("Effect was not cancelled")
 
@@ -244,19 +244,19 @@ class BlocTest {
         val effectPromise2 = async { bloc.noCancelOnDisposeEffect() }
         subscription2.cancelAndJoin()
         val effectResult2 = effectPromise2.await()
-        assertTrue(bloc.state.testInt == 1,  "State should have been 1 due to cancelOnDispose == false")
+        assertTrue(bloc.state.testInt == 1, "State should have been 1 due to cancelOnDispose == false")
         if (effectResult2 !is Outcome.Ok || effectResult2.value.testInt != 1) fail("Effect was cancelled")
     }
 
     @Test
     fun blocStatus() = runBlocking {
         val bloc = TestBloc()
-        assertTrue(bloc.status == BlocStatus.Idle,  "Bloc Status was not Idle")
+        assertTrue(bloc.status == BlocStatus.Idle, "Bloc Status was not Idle")
         val subscription = launch { bloc.stream().collect { } }
         delay(16)
-        assertTrue(bloc.status == BlocStatus.Started,  "Bloc Status was not Started")
+        assertTrue(bloc.status == BlocStatus.Started, "Bloc Status was not Started")
         subscription.cancelAndJoin()
-        assertTrue(bloc.status == BlocStatus.Idle,  "Bloc Status was not Idle after dispose")
+        assertTrue(bloc.status == BlocStatus.Idle, "Bloc Status was not Idle after dispose")
     }
 
     @Test
@@ -264,9 +264,9 @@ class BlocTest {
         val bloc = TestBloc()
         val subscription = launch { bloc.stream().collect { } }
         delay(100)
-        assertTrue(bloc.state.testComputedInt == 2,  "Computed value not updated in constructor")
+        assertTrue(bloc.state.testComputedInt == 2, "Computed value not updated in constructor")
         bloc.increment()
-        assertTrue(bloc.state.testComputedInt == 3,  "Computed value not updated in update")
+        assertTrue(bloc.state.testComputedInt == 3, "Computed value not updated in update")
         subscription.cancelAndJoin()
         assertTrue(bloc.state.testComputedInt == 2, "Computed value not updated after dispose")
     }
@@ -417,10 +417,9 @@ private class TestBloc(
     fun cancelTestEffect3() = cancelEffect(::testEffect3)
 }
 
-
 private data class TestDependencyState(val count: Int = 0, val dependentString: String = "", val dependentInt: Int = 0)
 
-private class TestDependencyBloc(private val testBloc: TestBloc, private val onComputedCallback: (() -> Unit)? = null): Bloc<TestDependencyState>(
+private class TestDependencyBloc(private val testBloc: TestBloc, private val onComputedCallback: (() -> Unit)? = null) : Bloc<TestDependencyState>(
     initialState = TestDependencyState(dependentString = "", dependentInt = 0, count = 0),
     retainStateOnDispose = true,
     dependencies = listOf(testBloc)

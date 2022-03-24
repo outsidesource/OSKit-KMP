@@ -29,7 +29,7 @@ fun <B : Bloc<S>, S> rememberBloc(factory: () -> B): Pair<S, B> {
 }
 
 @Composable
-fun <B: Bloc<IS>, IS, OS> rememberBlocSelector(factory: () -> B, transform: (state: IS) -> OS): Pair<OS, B> {
+fun <B : Bloc<IS>, IS, OS> rememberBlocSelector(factory: () -> B, transform: (state: IS) -> OS): Pair<OS, B> {
     val routeScope = LocalRouteScope.current
     RouteDestroyedEffect { routeScope.cancel() }
 

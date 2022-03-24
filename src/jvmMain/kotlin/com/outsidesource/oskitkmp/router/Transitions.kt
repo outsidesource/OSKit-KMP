@@ -21,7 +21,6 @@ interface IAnimatedRoute {
     val transition: RouteTransition
 }
 
-
 /**
  * [routeTransition] is a convenience delegate function to help implement [IAnimatedRoute]
  *
@@ -53,7 +52,6 @@ data class RouteTransition(
     val popEnter: AnimatedContentScope<RouteStackEntry>.(density: Density) -> EnterTransition,
     val popExit: AnimatedContentScope<RouteStackEntry>.(density: Density) -> ExitTransition,
 )
-
 
 /**
  * [DefaultRouteTransition] the default transition used if no other transition is supplied.

@@ -53,9 +53,10 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
                 saveableStateHolder.removeState(state.id)
             }
             saveableStateHolder.SaveableStateProvider(state.id) {
-                Box(modifier = Modifier.fillMaxSize()
-                    // Prevent accidental routing via spamming of buttons by disabling all input while transitioning out
-                    .disablePointerInput(transition.targetState == EnterExitState.PostExit)
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        // Prevent accidental routing via spamming of buttons by disabling all input while transitioning out
+                        .disablePointerInput(transition.targetState == EnterExitState.PostExit)
                 ) {
                     content(state.route)
                 }
@@ -75,10 +76,10 @@ private fun createRouteTransition(): AnimatedContentScope<RouteStackEntry>.() ->
 
         if (route is IAnimatedRoute) {
             (if (isPopping) route.transition.popEnter else route.transition.enter)(density) with
-                    (if (isPopping) route.transition.popExit else route.transition.exit)(density)
+                (if (isPopping) route.transition.popExit else route.transition.exit)(density)
         } else {
             (if (isPopping) DefaultRouteTransition.popEnter else DefaultRouteTransition.enter)(density) with
-                    (if (isPopping) DefaultRouteTransition.popExit else DefaultRouteTransition.exit)(density)
+                (if (isPopping) DefaultRouteTransition.popExit else DefaultRouteTransition.exit)(density)
         }
     }
 }

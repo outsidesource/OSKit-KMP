@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 
@@ -29,7 +28,7 @@ fun <B : Bloc<S>, S> rememberBloc(factory: () -> B): Pair<S, B> {
 }
 
 @Composable
-fun <B: Bloc<IS>, IS, OS> rememberBlocSelector(factory: () -> B, transform: (state: IS) -> OS): Pair<OS, B> {
+fun <B : Bloc<IS>, IS, OS> rememberBlocSelector(factory: () -> B, transform: (state: IS) -> OS): Pair<OS, B> {
     val viewModel = viewModel<BlocViewModel>()
     val (bloc, stream) = remember {
         val bloc = factory()

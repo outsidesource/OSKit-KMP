@@ -41,7 +41,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * [retainStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
  * disposed. If true, the Bloc's state will be retained until the Bloc is garbage collected.
  */
-abstract class Bloc<T: Any>(
+abstract class Bloc<T : Any>(
     private val initialState: T,
     private val retainStateOnDispose: Boolean = false,
     private val dependencies: List<Bloc<*>> = emptyList(),
@@ -67,7 +67,8 @@ abstract class Bloc<T: Any>(
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() = if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
+    val state get() =
+        if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
