@@ -51,8 +51,6 @@ abstract class Bloc<T: Any>(
     private val subscriptionScopes = mutableListOf<CoroutineScope>()
     private val subscriptionScopesLock = SynchronizedObject()
     private val subscriptionCount = atomic(0)
-    private val dependencySubscriptionsLock = SynchronizedObject()
-    private val dependencySubscriptions = mutableListOf<Job>()
     private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
@@ -200,10 +198,8 @@ abstract class Bloc<T: Any>(
     private fun checkShouldStart() {
         if (subscriptionCount.value > 0) return
 
-        synchronized(dependencySubscriptionsLock) {
-            dependencySubscriptions.addAll(dependencies.map {
-                dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
-            })
+        dependencies.forEach {
+            dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
         }
         onStart()
     }
@@ -215,7 +211,6 @@ abstract class Bloc<T: Any>(
         synchronized(effectsLock) { effects.clear() }
         blocScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
-        synchronized(dependencySubscriptionsLock) { dependencySubscriptions.clear() }
         synchronized(subscriptionScopesLock) { subscriptionScopes.clear() }
         if (!retainStateOnDispose) _state.value = computed(initialState)
         onDispose()
