@@ -14,6 +14,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
+    kotlin("plugin.serialization") version Versions.Kotlin
     id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
@@ -62,6 +63,8 @@ kotlin {
                 implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore)
+                implementation(Dependencies.KotlinxSerializationJson)
+                implementation(Dependencies.KtorCore)
             }
         }
         val commonTest by getting {
@@ -89,6 +92,10 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
+
+                implementation(Dependencies.KtorServerCore)
+                implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorWebsockets)
             }
         }
         val jvmTest by getting

@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.bloc
 
+import com.outsidesource.oskitkmp.devTool.OSDevTool
+import com.outsidesource.oskitkmp.devTool.sendJsonEvent
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -46,7 +48,6 @@ abstract class Bloc<T : Any>(
     private val retainStateOnDispose: Boolean = false,
     private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
-
     private val subscriptionCount = atomic(0)
     private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
@@ -69,6 +70,10 @@ abstract class Bloc<T : Any>(
      */
     val state get() =
         if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
+
+    init {
+        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "New Bloc", initialState)
+    }
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
@@ -167,7 +172,9 @@ abstract class Bloc<T : Any>(
      * Immutably update the state and notify all subscribers of the change.
      */
     protected fun update(state: T): T {
-        _state.value = computed(state)
+        val updated = computed(state)
+        _state.value = updated
+        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Updated", updated)
         return _state.value
     }
 
@@ -189,6 +196,7 @@ abstract class Bloc<T : Any>(
             dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
         }
 
+        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Start", _state.value)
         onStart()
     }
 
@@ -200,6 +208,8 @@ abstract class Bloc<T : Any>(
         blocScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
         if (!retainStateOnDispose) _state.value = computed(initialState)
+
+        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
     }
 }
