@@ -64,7 +64,6 @@ kotlin {
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore)
                 implementation(Dependencies.KotlinxSerializationJson)
-                implementation(Dependencies.KtorCore)
             }
         }
         val commonTest by getting {

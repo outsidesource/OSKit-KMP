@@ -6,13 +6,11 @@ import io.ktor.routing.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
+import java.net.BindException
 
 internal actual val devToolScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -31,21 +29,35 @@ actual class OSDevTool {
         }
     }
 
-    private fun startServer() = devToolScope.launch {
-        isInitialized = true
+    private fun startServer(port: Int = 7890, retries: Int = 10) {
+        devToolScope.launch {
+            isInitialized = true
 
-        embeddedServer(CIO, port = 7890) {
-            install(Routing)
-            install(WebSockets)
+            try {
+                coroutineScope { // Adding the coroutineScope fixes an issue where AndroidExceptionPreHandler throws java.lang.NoClassDefFoundError: android/os/Build$VERSION for some reason
+                    println("DevTool Server running on 127.0.0.1:$port")
 
-            routing {
-                webSocket {
-                    sendFlow.collect {
-                        outgoing.send(Frame.Text(devToolJson.encodeToString(it)))
-                    }
+                    embeddedServer(factory = CIO, host = "127.0.0.1", port = port) {
+                        install(Routing)
+                        install(WebSockets)
+
+                        routing {
+                            webSocket {
+                                sendFlow.collect {
+                                    outgoing.send(Frame.Text(devToolJson.encodeToString(it)))
+                                }
+                            }
+                        }
+                    }.start(wait = true)
                 }
+            } catch (e: BindException) {
+                if (retries == 0) {
+                    println("Could not start DevTool Server")
+                    return@launch
+                }
+                startServer((1024..49151).random(), retries - 1)
             }
-        }.start(wait = true)
+        }
     }
 
     actual suspend fun sendEvent(event: DevToolEvent) {

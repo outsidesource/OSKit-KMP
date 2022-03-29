@@ -22,7 +22,6 @@ object Dependencies {
     const val KotlinxDateTime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.KotlinxDateTime}"
     const val KotlinxAtomicFu = "org.jetbrains.kotlinx:atomicfu:${Versions.KotlinxAtomicFu}"
     const val KotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.KotlinxSerializationJson}"
-    const val KtorCore = "io.ktor:ktor-client-core:${Versions.Ktor}"
     const val KtorNetwork = "io.ktor:ktor-network:${Versions.Ktor}"
     const val KtorWebsockets = "io.ktor:ktor-websockets:${Versions.Ktor}"
     const val KtorServerCore = "io.ktor:ktor-server-core:${Versions.Ktor}"
