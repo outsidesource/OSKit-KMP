@@ -95,6 +95,8 @@ kotlin {
 
                 implementation(Dependencies.KtorServerCore)
                 implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorClientCore)
+                implementation(Dependencies.KtorClientCIO)
                 implementation(Dependencies.KtorWebsockets)
             }
         }
@@ -145,7 +147,7 @@ android {
 
 ktlint {
     debug.set(true)
-    disabledRules.set(setOf("no-wildcard-imports"))
+    disabledRules.set(setOf("no-wildcard-imports", "filename"))
 
     filter {
         include("src/**/*.kt")

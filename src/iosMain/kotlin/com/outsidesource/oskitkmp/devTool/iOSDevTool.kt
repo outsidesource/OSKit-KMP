@@ -8,7 +8,10 @@ internal actual val devToolScope: CoroutineScope = CoroutineScope(Dispatchers.De
 
 actual class OSDevTool {
     actual companion object {
-        internal actual fun sendEvent(event: DevToolEvent) {
-        }
+        internal actual val instance by lazy { OSDevTool() }
+        actual fun init() {}
     }
+
+    actual var isInitialized = false
+    internal actual suspend fun sendEvent(event: DevToolEvent) {}
 }

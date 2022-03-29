@@ -1,7 +1,7 @@
 package com.outsidesource.oskitkmp.bloc
 
 import com.outsidesource.oskitkmp.devTool.OSDevTool
-import com.outsidesource.oskitkmp.devTool.sendJsonEvent
+import com.outsidesource.oskitkmp.devTool.sendEvent
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -72,7 +72,7 @@ abstract class Bloc<T : Any>(
         if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     init {
-        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "New Bloc", initialState)
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "New Bloc", initialState)
     }
 
     /**
@@ -174,7 +174,7 @@ abstract class Bloc<T : Any>(
     protected fun update(state: T): T {
         val updated = computed(state)
         _state.value = updated
-        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Updated", updated)
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return _state.value
     }
 
@@ -196,7 +196,7 @@ abstract class Bloc<T : Any>(
             dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
         }
 
-        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Start", _state.value)
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Start", _state.value)
         onStart()
     }
 
@@ -209,7 +209,7 @@ abstract class Bloc<T : Any>(
         dependencySubscriptionScope.coroutineContext.cancelChildren()
         if (!retainStateOnDispose) _state.value = computed(initialState)
 
-        OSDevTool.sendJsonEvent(this::class.simpleName ?: "", "Dispose", _state.value)
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
     }
 }

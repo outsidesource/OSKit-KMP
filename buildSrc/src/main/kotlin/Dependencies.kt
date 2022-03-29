@@ -27,4 +27,6 @@ object Dependencies {
     const val KtorWebsockets = "io.ktor:ktor-websockets:${Versions.Ktor}"
     const val KtorServerCore = "io.ktor:ktor-server-core:${Versions.Ktor}"
     const val KtorServerCIO = "io.ktor:ktor-server-cio:${Versions.Ktor}"
+    const val KtorClientCore = "io.ktor:ktor-client-core:${Versions.Ktor}"
+    const val KtorClientCIO = "io.ktor:ktor-client-cio:${Versions.Ktor}"
 }
