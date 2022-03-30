@@ -19,14 +19,14 @@ actual class OSDevToolClient {
     actual fun connect(
         host: String,
         port: Int,
-    ): Flow<DevToolEvent> = callbackFlow {
+    ): Flow<DevToolClientEvent> = callbackFlow {
         devToolScope.launch {
             try {
                 client.webSocket(method = HttpMethod.Get, host = host, port = port) {
                     while (isActive) {
                         when (val frame = incoming.receive()) {
                             is Frame.Text -> {
-                                val event = DevToolEvent.deserialize(frame.readText())
+                                val event = DevToolClientEvent.deserialize(frame.readText())
                                 send(event)
                             }
                             else -> {}

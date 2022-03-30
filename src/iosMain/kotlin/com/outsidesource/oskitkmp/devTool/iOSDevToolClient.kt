@@ -7,5 +7,5 @@ actual class OSDevToolClient {
     actual fun connect(
         host: String,
         port: Int,
-    ): Flow<DevToolEvent> = callbackFlow {}
+    ): Flow<DevToolClientEvent> = callbackFlow {}
 }

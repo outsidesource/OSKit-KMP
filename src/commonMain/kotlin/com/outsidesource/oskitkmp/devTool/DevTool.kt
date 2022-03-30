@@ -2,41 +2,55 @@ package com.outsidesource.oskitkmp.devTool
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import kotlinx.serialization.ContextualSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonPrimitive
+import kotlin.reflect.KClass
 import kotlin.time.ExperimentalTime
 
-val devToolJson = Json { encodeDefaults = true }
+internal val devToolJson = Json { encodeDefaults = true }
 internal expect val devToolScope: CoroutineScope
+private val registeredSerializers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
 
-interface DevToolSerializable {
-    fun serialize(value: Any): JsonElement
+interface DevToolSerializable
+
+fun <T : Any> devToolSerializer(clazz: KClass<T>, serializer: KSerializer<T>): DevToolSerializable {
+    registeredSerializers[clazz] = serializer
+    return object : DevToolSerializable {}
 }
 
-inline fun <reified T> devToolSerializer(serializer: KSerializer<T>): DevToolSerializable =
-    object : DevToolSerializable {
-        override fun serialize(value: Any): JsonElement = devToolJson.encodeToJsonElement(serializer, value as T)
+private object AnySerializer : KSerializer<Any> {
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor: SerialDescriptor =
+        ContextualSerializer(Any::class, null, emptyArray()).descriptor
+
+    override fun deserialize(decoder: Decoder): Any = -1
+
+    @Suppress("UNCHECKED_CAST")
+    override fun serialize(encoder: Encoder, value: Any) {
+        when (value) {
+            is String -> String.serializer().serialize(encoder, value)
+            is DevToolSerializable ->
+                (registeredSerializers[value::class] as? KSerializer<Any>)?.serialize(encoder, value)
+            else -> String.serializer().serialize(encoder, value.toString())
+        }
     }
+}
 
 @Serializable
 data class DevToolEvent(
     val id: String,
     val time: Long = Clock.System.now().toEpochMilliseconds(),
     val label: String,
-    val json: JsonElement,
+    @Serializable(with = AnySerializer::class) val json: Any,
 )
-
-suspend fun DevToolEvent.Companion.deserialize(event: String): DevToolEvent =
-    withContext(devToolScope.coroutineContext) {
-        devToolJson.decodeFromString(event)
-    }
 
 expect class OSDevTool {
     companion object {
@@ -49,16 +63,10 @@ expect class OSDevTool {
 }
 
 @OptIn(ExperimentalTime::class)
-fun OSDevTool.Companion.sendEvent(id: String, label: String, json: Any = JsonNull) {
+fun OSDevTool.Companion.sendEvent(id: String, label: String, json: Any) {
     if (!instance.isInitialized) return
 
     devToolScope.launch {
-        val encoded = when (json) {
-            is DevToolSerializable -> json.serialize(json)
-            is String -> devToolJson.parseToJsonElement(json)
-            is JsonNull -> json
-            else -> JsonPrimitive(json.toString())
-        }
-        instance.sendEvent(DevToolEvent(id = id, label = label, json = encoded))
+        instance.sendEvent(DevToolEvent(id = id, label = label, json = json))
     }
 }
