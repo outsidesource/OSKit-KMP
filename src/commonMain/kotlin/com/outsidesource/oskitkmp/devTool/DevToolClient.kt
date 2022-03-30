@@ -24,6 +24,7 @@ sealed class OSDevToolClientError(override val message: String = "") : Throwable
     object ServerClosed : OSDevToolClientError("Server was closed")
     object InvalidHost : OSDevToolClientError("Invalid host")
     object Unknown : OSDevToolClientError("Unknown")
+    object UnknownEvent : OSDevToolClientError("Received unknown event")
     object Uninitialized : OSDevToolClientError()
 }
 

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
 import java.net.ConnectException
 
 private val client = HttpClient(CIO) { install(WebSockets) }
@@ -37,6 +38,7 @@ actual class OSDevToolClient {
                 when (e) {
                     is ClosedReceiveChannelException -> close(OSDevToolClientError.ServerClosed)
                     is ConnectException -> close(OSDevToolClientError.InvalidHost)
+                    is SerializationException -> close(OSDevToolClientError.UnknownEvent)
                     else -> {
                         e.printStackTrace()
                         close(OSDevToolClientError.Unknown)

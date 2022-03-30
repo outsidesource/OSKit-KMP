@@ -44,7 +44,7 @@ actual class OSDevTool {
                         routing {
                             webSocket {
                                 sendFlow.collect {
-                                    outgoing.send(Frame.Text(devToolJson.encodeToString(it)))
+                                    send(devToolJson.encodeToString(it))
                                 }
                             }
                         }
