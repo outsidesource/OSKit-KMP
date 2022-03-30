@@ -56,7 +56,7 @@ data class DevToolEvent(
     val id: String,
     val time: Long = Clock.System.now().toEpochMilliseconds(),
     val label: String,
-    @Serializable(with = AnySerializer::class) val json: Any,
+    @Serializable(AnySerializer::class) val json: Any,
 )
 
 expect class OSDevTool {
