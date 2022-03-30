@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.devTool
 
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -18,11 +20,12 @@ import kotlin.time.ExperimentalTime
 internal val devToolJson = Json { encodeDefaults = true }
 internal expect val devToolScope: CoroutineScope
 private val registeredSerializers: MutableMap<KClass<*>, KSerializer<*>> = mutableMapOf()
+private val registeredSerializersLock = SynchronizedObject()
 
 interface DevToolSerializable
 
 fun <T : Any> devToolSerializer(clazz: KClass<T>, serializer: KSerializer<T>): DevToolSerializable {
-    registeredSerializers[clazz] = serializer
+    synchronized(registeredSerializersLock) { registeredSerializers[clazz] = serializer }
     return object : DevToolSerializable {}
 }
 
@@ -37,8 +40,12 @@ private object AnySerializer : KSerializer<Any> {
     override fun serialize(encoder: Encoder, value: Any) {
         when (value) {
             is String -> String.serializer().serialize(encoder, value)
-            is DevToolSerializable ->
-                (registeredSerializers[value::class] as? KSerializer<Any>)?.serialize(encoder, value)
+            is DevToolSerializable -> {
+                val serializer = synchronized(registeredSerializersLock) {
+                    (registeredSerializers[value::class] as? KSerializer<Any>)
+                }
+                serializer?.serialize(encoder, value)
+            }
             else -> String.serializer().serialize(encoder, value.toString())
         }
     }
