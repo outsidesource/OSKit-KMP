@@ -29,5 +29,10 @@ sealed class OSDevToolClientError(override val message: String = "") : Throwable
 }
 
 expect class OSDevToolClient {
-    fun connect(host: String, port: Int): Flow<DevToolClientEvent>
+    fun connect(
+        scheme: String = "ws://",
+        host: String,
+        port: Int = 7890,
+        path: String = ""
+    ): Flow<DevToolClientEvent>
 }

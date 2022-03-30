@@ -18,12 +18,19 @@ private val client = HttpClient(CIO) { install(WebSockets) }
 
 actual class OSDevToolClient {
     actual fun connect(
+        scheme: String,
         host: String,
         port: Int,
+        path: String,
     ): Flow<DevToolClientEvent> = callbackFlow {
         devToolScope.launch {
             try {
-                client.webSocket(method = HttpMethod.Get, host = host, port = port) {
+                client.webSocket({
+                    url.protocol = if (scheme.contains("wss")) URLProtocol.WSS else URLProtocol.WS
+                    url.host = host
+                    url.port = port
+                    url.path(path.trimStart('/').split("/"))
+                }) {
                     while (isActive) {
                         when (val frame = incoming.receive()) {
                             is Frame.Text -> {
