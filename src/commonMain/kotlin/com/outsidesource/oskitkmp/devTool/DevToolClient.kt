@@ -3,17 +3,30 @@ package com.outsidesource.oskitkmp.devTool
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class DevToolClientEvent(
-    val id: String,
-    val time: Long = Clock.System.now().toEpochMilliseconds(),
-    val label: String,
-    val json: JsonElement,
-)
+@SerialName("type")
+sealed class DevToolClientEvent {
+    @Serializable
+    @SerialName("json")
+    data class Json(
+        val id: String,
+        val time: Long = Clock.System.now().toEpochMilliseconds(),
+        val message: String,
+        val json: JsonElement,
+    ) : DevToolClientEvent()
+
+    @Serializable
+    @SerialName("log")
+    data class Log(
+        val time: Long = Clock.System.now().toEpochMilliseconds(),
+        val message: String,
+    ) : DevToolClientEvent()
+}
 
 suspend fun DevToolClientEvent.Companion.deserialize(event: String): DevToolClientEvent =
     withContext(devToolScope.coroutineContext) {

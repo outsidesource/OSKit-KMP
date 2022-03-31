@@ -15,7 +15,7 @@ import java.net.BindException
 internal actual val devToolScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 actual class OSDevTool {
-    private val sendFlow = MutableSharedFlow<DevToolEvent>(
+    private val sendFlow = MutableSharedFlow<DevToolServerEvent>(
         extraBufferCapacity = 64,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
@@ -60,7 +60,7 @@ actual class OSDevTool {
         }
     }
 
-    actual suspend fun sendEvent(event: DevToolEvent) {
+    actual suspend fun sendEvent(event: DevToolServerEvent) {
         sendFlow.emit(event)
     }
 }

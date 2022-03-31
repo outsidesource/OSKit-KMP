@@ -5,17 +5,13 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.serialization.ContextualSerializer
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
-import kotlin.time.ExperimentalTime
 
 internal val devToolJson = Json { encodeDefaults = true }
 internal expect val devToolScope: CoroutineScope
@@ -52,12 +48,24 @@ private object AnySerializer : KSerializer<Any> {
 }
 
 @Serializable
-data class DevToolEvent(
-    val id: String,
-    val time: Long = Clock.System.now().toEpochMilliseconds(),
-    val label: String,
-    @Serializable(AnySerializer::class) val json: Any,
-)
+@SerialName("type")
+sealed class DevToolServerEvent {
+    @Serializable
+    @SerialName("json")
+    data class Json(
+        val id: String,
+        val time: Long = Clock.System.now().toEpochMilliseconds(),
+        val message: String,
+        @Serializable(AnySerializer::class) val json: Any,
+    ) : DevToolServerEvent()
+
+    @Serializable
+    @SerialName("log")
+    data class Log(
+        val time: Long = Clock.System.now().toEpochMilliseconds(),
+        val message: String,
+    ) : DevToolServerEvent()
+}
 
 expect class OSDevTool {
     companion object {
@@ -66,14 +74,21 @@ expect class OSDevTool {
     }
 
     internal var isInitialized: Boolean
-    internal suspend fun sendEvent(event: DevToolEvent)
+    internal suspend fun sendEvent(event: DevToolServerEvent)
 }
 
-@OptIn(ExperimentalTime::class)
-fun OSDevTool.Companion.sendEvent(id: String, label: String, json: Any) {
+fun OSDevTool.Companion.sendEvent(id: String, message: String, json: Any) {
     if (!instance.isInitialized) return
 
     devToolScope.launch {
-        instance.sendEvent(DevToolEvent(id = id, label = label, json = json))
+        instance.sendEvent(DevToolServerEvent.Json(id = id, message = message, json = json))
+    }
+}
+
+fun OSDevTool.Companion.sendEvent(message: String) {
+    if (!instance.isInitialized) return
+
+    devToolScope.launch {
+        instance.sendEvent(DevToolServerEvent.Log(message = message))
     }
 }

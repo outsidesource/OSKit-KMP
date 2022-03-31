@@ -13,5 +13,5 @@ actual class OSDevTool {
     }
 
     actual var isInitialized = false
-    internal actual suspend fun sendEvent(event: DevToolEvent) {}
+    internal actual suspend fun sendEvent(event: DevToolServerEvent) {}
 }
