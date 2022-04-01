@@ -53,12 +53,17 @@ abstract class Bloc<T : Any>(
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
     private val effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
     private val effectsLock = SynchronizedObject()
+    private val blocEffectScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Bloc's lifecycle. All [Job]s launched
      * in [blocScope] will be cancelled when the Bloc is disposed.
      */
-    val blocScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val blocScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Returns the current status of the Bloc
@@ -136,20 +141,28 @@ abstract class Bloc<T : Any>(
     protected suspend fun <T> effect(
         id: Any,
         cancelOnDispose: Boolean = true,
-        context: CoroutineContext = Dispatchers.Default,
+        context: CoroutineContext = blocEffectScope.coroutineContext,
         onDone: ((result: Outcome<T>) -> Unit)? = null,
         block: suspend () -> Outcome<T>,
-    ): Outcome<T> = withContext(defaultBlocEffectDispatcher) {
+    ): Outcome<T> {
         cancelEffect(id)
+        var effect: CancellableEffect<T>? = null
 
-        try {
-            val effect = CancellableEffect(cancelOnDispose = cancelOnDispose, job = async { block() }, onDone = onDone)
-            synchronized(effectsLock) { effects[id] = effect }
-            val result = withContext(context) { effect.run() }
-            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
-            result
-        } catch (e: CancellationException) {
+        return try {
+            withContext(context) {
+                val innerEffect = CancellableEffect(
+                    cancelOnDispose = cancelOnDispose,
+                    job = async { block() },
+                    onDone = onDone
+                ).apply { effect = this }
+
+                synchronized(effectsLock) { effects[id] = innerEffect }
+                innerEffect.run()
+            }
+        } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
         }
     }
 
@@ -240,16 +253,14 @@ internal data class CancellableEffect<T>(
 ) {
     fun cancel() = job.cancel()
 
-    suspend fun run(): Outcome<T> {
-        return try {
-            val result = job.await()
-            onDone?.invoke(result)
-            result
-        } catch (e: CancellationException) {
-            val result = Outcome.Error(e)
-            onDone?.invoke(result)
-            result
-        }
+    suspend fun run(): Outcome<T> = try {
+        val result = job.await()
+        onDone?.invoke(result)
+        result
+    } catch (e: CancellationException) {
+        val result = Outcome.Error(e)
+        onDone?.invoke(result)
+        result
     }
 }
 
@@ -261,4 +272,4 @@ fun <T> Outcome<T>.isCancelledJob(): Boolean = this is Outcome.Error && this.err
 /**
  * Allows implementers to change the default thread effect management is run on.
  */
-internal expect val defaultBlocEffectDispatcher: CoroutineDispatcher
+internal expect val defaultBlocDispatcher: CoroutineDispatcher

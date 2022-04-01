@@ -167,6 +167,16 @@ class BlocTest {
     }
 
     @Test
+    fun effectCancellationIsIndependent() = runBlocking {
+        val bloc = TestBloc()
+        launch { bloc.testEffect() }
+        delay(100)
+        launch { bloc.testThrowingEffect() }
+        delay(500)
+        assertTrue(bloc.state.testInt == 1, "Effect that throws cancels other effects")
+    }
+
+    @Test
     fun effectCancel() = runBlocking {
         val bloc = TestBloc()
 
@@ -400,6 +410,13 @@ private class TestBloc(
         onDone = {
             decrement()
             decrement()
+        }
+    )
+
+    suspend fun testThrowingEffect(): Outcome<Unit> = effect(
+        id = ::testThrowingEffect,
+        block = {
+            throw Exception("Throwing Effect")
         }
     )
 

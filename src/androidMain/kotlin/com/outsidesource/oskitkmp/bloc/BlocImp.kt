@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 
-internal actual val defaultBlocEffectDispatcher: CoroutineDispatcher = Dispatchers.Default
+internal actual val defaultBlocDispatcher: CoroutineDispatcher = Dispatchers.Default
 
 internal class BlocViewModel : ViewModel()
 
