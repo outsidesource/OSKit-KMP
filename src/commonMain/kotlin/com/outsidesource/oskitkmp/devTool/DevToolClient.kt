@@ -14,7 +14,8 @@ sealed class DevToolClientEvent {
     @Serializable
     @SerialName("json")
     data class Json(
-        val id: String,
+        val msgId: Int,
+        val jsonId: String,
         val time: Long = Clock.System.now().toEpochMilliseconds(),
         val message: String,
         val json: JsonElement,
@@ -23,6 +24,7 @@ sealed class DevToolClientEvent {
     @Serializable
     @SerialName("log")
     data class Log(
+        val msgId: Int,
         val time: Long = Clock.System.now().toEpochMilliseconds(),
         val message: String,
     ) : DevToolClientEvent()

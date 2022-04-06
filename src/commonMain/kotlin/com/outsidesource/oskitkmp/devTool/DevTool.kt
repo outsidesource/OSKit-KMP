@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.devTool
 
+import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
@@ -47,13 +48,16 @@ private object AnySerializer : KSerializer<Any> {
     }
 }
 
+private val msgIdCounter = atomic(0)
+
 @Serializable
 @SerialName("type")
 sealed class DevToolServerEvent {
     @Serializable
     @SerialName("json")
     data class Json(
-        val id: String,
+        val msgId: Int,
+        val jsonId: String,
         val time: Long = Clock.System.now().toEpochMilliseconds(),
         val message: String,
         @Serializable(AnySerializer::class) val json: Any,
@@ -62,6 +66,7 @@ sealed class DevToolServerEvent {
     @Serializable
     @SerialName("log")
     data class Log(
+        val msgId: Int,
         val time: Long = Clock.System.now().toEpochMilliseconds(),
         val message: String,
     ) : DevToolServerEvent()
@@ -81,7 +86,9 @@ fun OSDevTool.Companion.sendEvent(id: String, message: String, json: Any) {
     if (!instance.isInitialized) return
 
     devToolScope.launch {
-        instance.sendEvent(DevToolServerEvent.Json(id = id, message = message, json = json))
+        instance.sendEvent(
+            DevToolServerEvent.Json(msgId = msgIdCounter.getAndIncrement(), jsonId = id, message = message, json = json)
+        )
     }
 }
 
@@ -89,6 +96,6 @@ fun OSDevTool.Companion.sendEvent(message: String) {
     if (!instance.isInitialized) return
 
     devToolScope.launch {
-        instance.sendEvent(DevToolServerEvent.Log(message = message))
+        instance.sendEvent(DevToolServerEvent.Log(msgId = msgIdCounter.getAndIncrement(), message = message))
     }
 }
