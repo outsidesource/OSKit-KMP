@@ -28,6 +28,13 @@ sealed class DevToolClientEvent {
         val time: Long = Clock.System.now().toEpochMilliseconds(),
         val message: String,
     ) : DevToolClientEvent()
+
+    @Serializable
+    @SerialName("status")
+    sealed class Status : DevToolClientEvent() {
+        data class Error(val error: DevToolClientError) : Status()
+        object Connected : Status()
+    }
 }
 
 suspend fun DevToolClientEvent.Companion.deserialize(event: String): DevToolClientEvent =
@@ -35,12 +42,13 @@ suspend fun DevToolClientEvent.Companion.deserialize(event: String): DevToolClie
         devToolJson.decodeFromString(event)
     }
 
-sealed class OSDevToolClientError(override val message: String = "") : Throwable(message = message) {
-    object ServerClosed : OSDevToolClientError("Server was closed")
-    object InvalidHost : OSDevToolClientError("Invalid host")
-    object Unknown : OSDevToolClientError("Unknown")
-    object UnknownEvent : OSDevToolClientError("Received unknown event")
-    object Uninitialized : OSDevToolClientError()
+@Serializable
+sealed class DevToolClientError(override val message: String = "") : Throwable(message = message) {
+    object ServerClosed : DevToolClientError("Server was closed")
+    object InvalidHost : DevToolClientError("Invalid host")
+    object Unknown : DevToolClientError("Unknown")
+    object UnknownEvent : DevToolClientError("Received unknown event")
+    object Uninitialized : DevToolClientError()
 }
 
 expect class OSDevToolClient {
