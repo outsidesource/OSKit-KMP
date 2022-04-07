@@ -10,6 +10,8 @@ object Versions {
     const val AndroidXLifecycleViewModelCompose = "1.0.0-alpha07"
     const val KotlinxDateTime = "0.3.0"
     const val KotlinxAtomicFu = "0.17.0"
+    const val KotlinxSerializationJson = "1.3.2"
+    const val Ktor = "1.6.8"
 }
 
 object Dependencies {
@@ -19,4 +21,11 @@ object Dependencies {
     const val AndroidXLifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidXLifecycleViewModelCompose}"
     const val KotlinxDateTime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.KotlinxDateTime}"
     const val KotlinxAtomicFu = "org.jetbrains.kotlinx:atomicfu:${Versions.KotlinxAtomicFu}"
+    const val KotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.KotlinxSerializationJson}"
+    const val KtorNetwork = "io.ktor:ktor-network:${Versions.Ktor}"
+    const val KtorWebsockets = "io.ktor:ktor-websockets:${Versions.Ktor}"
+    const val KtorServerCore = "io.ktor:ktor-server-core:${Versions.Ktor}"
+    const val KtorServerCIO = "io.ktor:ktor-server-cio:${Versions.Ktor}"
+    const val KtorClientCore = "io.ktor:ktor-client-core:${Versions.Ktor}"
+    const val KtorClientCIO = "io.ktor:ktor-client-cio:${Versions.Ktor}"
 }

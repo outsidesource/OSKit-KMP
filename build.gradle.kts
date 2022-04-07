@@ -14,6 +14,7 @@ buildscript {
 
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
+    kotlin("plugin.serialization") version Versions.Kotlin
     id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
@@ -62,6 +63,7 @@ kotlin {
                 implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore)
+                implementation(Dependencies.KotlinxSerializationJson)
             }
         }
         val commonTest by getting {
@@ -89,6 +91,12 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
+
+                implementation(Dependencies.KtorServerCore)
+                implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorClientCore)
+                implementation(Dependencies.KtorClientCIO)
+                implementation(Dependencies.KtorWebsockets)
             }
         }
         val jvmTest by getting
@@ -138,7 +146,7 @@ android {
 
 ktlint {
     debug.set(true)
-    disabledRules.set(setOf("no-wildcard-imports"))
+    disabledRules.set(setOf("no-wildcard-imports", "filename"))
 
     filter {
         include("src/**/*.kt")

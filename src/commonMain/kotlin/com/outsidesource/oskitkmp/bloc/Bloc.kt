@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.bloc
 
+import com.outsidesource.oskitkmp.devTool.OSDevTool
+import com.outsidesource.oskitkmp.devTool.sendEvent
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -46,18 +48,22 @@ abstract class Bloc<T : Any>(
     private val retainStateOnDispose: Boolean = false,
     private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
-
     private val subscriptionCount = atomic(0)
     private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
     private val effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
     private val effectsLock = SynchronizedObject()
+    private val blocEffectScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Bloc's lifecycle. All [Job]s launched
      * in [blocScope] will be cancelled when the Bloc is disposed.
      */
-    val blocScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val blocScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Returns the current status of the Bloc
@@ -69,6 +75,10 @@ abstract class Bloc<T : Any>(
      */
     val state get() =
         if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
+
+    init {
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "New Bloc", initialState)
+    }
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
@@ -131,20 +141,28 @@ abstract class Bloc<T : Any>(
     protected suspend fun <T> effect(
         id: Any,
         cancelOnDispose: Boolean = true,
-        context: CoroutineContext = Dispatchers.Default,
+        context: CoroutineContext = blocEffectScope.coroutineContext,
         onDone: ((result: Outcome<T>) -> Unit)? = null,
         block: suspend () -> Outcome<T>,
-    ): Outcome<T> = withContext(defaultBlocEffectDispatcher) {
+    ): Outcome<T> {
         cancelEffect(id)
+        var effect: CancellableEffect<T>? = null
 
-        try {
-            val effect = CancellableEffect(cancelOnDispose = cancelOnDispose, job = async { block() }, onDone = onDone)
-            synchronized(effectsLock) { effects[id] = effect }
-            val result = withContext(context) { effect.run() }
-            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
-            result
-        } catch (e: CancellationException) {
+        return try {
+            withContext(context) {
+                val innerEffect = CancellableEffect(
+                    cancelOnDispose = cancelOnDispose,
+                    job = async { block() },
+                    onDone = onDone
+                ).apply { effect = this }
+
+                synchronized(effectsLock) { effects[id] = innerEffect }
+                innerEffect.run()
+            }
+        } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
         }
     }
 
@@ -167,7 +185,9 @@ abstract class Bloc<T : Any>(
      * Immutably update the state and notify all subscribers of the change.
      */
     protected fun update(state: T): T {
-        _state.value = computed(state)
+        val updated = computed(state)
+        _state.value = updated
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return _state.value
     }
 
@@ -189,6 +209,7 @@ abstract class Bloc<T : Any>(
             dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
         }
 
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Start", _state.value)
         onStart()
     }
 
@@ -200,6 +221,8 @@ abstract class Bloc<T : Any>(
         blocScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
         if (!retainStateOnDispose) _state.value = computed(initialState)
+
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
     }
 }
@@ -230,16 +253,14 @@ internal data class CancellableEffect<T>(
 ) {
     fun cancel() = job.cancel()
 
-    suspend fun run(): Outcome<T> {
-        return try {
-            val result = job.await()
-            onDone?.invoke(result)
-            result
-        } catch (e: CancellationException) {
-            val result = Outcome.Error(e)
-            onDone?.invoke(result)
-            result
-        }
+    suspend fun run(): Outcome<T> = try {
+        val result = job.await()
+        onDone?.invoke(result)
+        result
+    } catch (e: CancellationException) {
+        val result = Outcome.Error(e)
+        onDone?.invoke(result)
+        result
     }
 }
 
@@ -251,4 +272,4 @@ fun <T> Outcome<T>.isCancelledJob(): Boolean = this is Outcome.Error && this.err
 /**
  * Allows implementers to change the default thread effect management is run on.
  */
-internal expect val defaultBlocEffectDispatcher: CoroutineDispatcher
+internal expect val defaultBlocDispatcher: CoroutineDispatcher
