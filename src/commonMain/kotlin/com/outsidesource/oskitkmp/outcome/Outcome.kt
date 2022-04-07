@@ -1,7 +1,5 @@
 package com.outsidesource.oskitkmp.outcome
 
-import kotlin.Exception
-
 sealed class Outcome<out T> {
     data class Ok<out T>(val value: T) : Outcome<T>()
     data class Error(val error: Any) : Outcome<Nothing>()
@@ -9,7 +7,7 @@ sealed class Outcome<out T> {
     companion object {
         inline fun <T> tryBlock(block: () -> T): Outcome<T> = try {
             Ok(block())
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Error(e)
         }
     }
