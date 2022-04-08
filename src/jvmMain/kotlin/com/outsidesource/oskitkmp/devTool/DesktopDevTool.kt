@@ -35,9 +35,9 @@ actual class OSDevTool {
 
             try {
                 coroutineScope { // Adding the coroutineScope fixes an issue where AndroidExceptionPreHandler throws java.lang.NoClassDefFoundError: android/os/Build$VERSION for some reason
-                    println("DevTool Server running on 127.0.0.1:$port")
+                    println("DevTool Server running on port $port")
 
-                    embeddedServer(factory = CIO, host = "127.0.0.1", port = port) {
+                    embeddedServer(factory = CIO, port = port) {
                         install(Routing)
                         install(WebSockets)
 

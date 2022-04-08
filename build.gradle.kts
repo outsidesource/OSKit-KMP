@@ -79,6 +79,10 @@ kotlin {
                 implementation(Dependencies.AndroidXCore)
                 implementation(Dependencies.AndroidXActivityCompose)
                 implementation(Dependencies.AndroidXLifecycleViewModelCompose)
+
+                implementation(Dependencies.KtorServerCore)
+                implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorWebsockets)
             }
         }
         val androidTest by getting {
