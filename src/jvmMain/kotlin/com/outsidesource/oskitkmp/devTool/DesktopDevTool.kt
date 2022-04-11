@@ -35,7 +35,7 @@ actual class OSDevTool {
 
             try {
                 coroutineScope { // Adding the coroutineScope fixes an issue where AndroidExceptionPreHandler throws java.lang.NoClassDefFoundError: android/os/Build$VERSION for some reason
-                    println("DevTool Server running on port $port")
+                    println("DevTool: Server running on port $port")
 
                     embeddedServer(factory = CIO, port = port) {
                         install(Routing)
@@ -52,7 +52,7 @@ actual class OSDevTool {
                 }
             } catch (e: BindException) {
                 if (retries == 0) {
-                    println("Could not start DevTool Server")
+                    println("DevTool: Could not start Server")
                     return@launch
                 }
                 startServer((1024..49151).random(), retries - 1)
