@@ -88,7 +88,7 @@ abstract class Bloc<T : Any>(
      *
      * [lifetimeScope] allows the bloc to only remove a subscription dependency when the scope has been cancelled.
      * This prevents premature Bloc disposal mainly during activity/fragment recreation due to configuration change.
-     * Typically viewModelScope is the most appropriate scope here.
+     * Typically, viewModelScope is the most appropriate scope here.
      */
     fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> {
         if (dependencies.isNotEmpty()) _state.value = computed(_state.value)

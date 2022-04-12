@@ -64,6 +64,11 @@ kotlin {
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore)
                 implementation(Dependencies.KotlinxSerializationJson)
+                implementation(Dependencies.KtorServerCore)
+                implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorClientCore)
+                implementation(Dependencies.KtorClientCIO)
+                implementation(Dependencies.KtorWebsockets)
             }
         }
         val commonTest by getting {
@@ -79,10 +84,6 @@ kotlin {
                 implementation(Dependencies.AndroidXCore)
                 implementation(Dependencies.AndroidXActivityCompose)
                 implementation(Dependencies.AndroidXLifecycleViewModelCompose)
-
-                implementation(Dependencies.KtorServerCore)
-                implementation(Dependencies.KtorServerCIO)
-                implementation(Dependencies.KtorWebsockets)
             }
         }
         val androidTest by getting {
@@ -95,12 +96,6 @@ kotlin {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material)
-
-                implementation(Dependencies.KtorServerCore)
-                implementation(Dependencies.KtorServerCIO)
-                implementation(Dependencies.KtorClientCore)
-                implementation(Dependencies.KtorClientCIO)
-                implementation(Dependencies.KtorWebsockets)
             }
         }
         val jvmTest by getting
