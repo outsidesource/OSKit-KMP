@@ -56,6 +56,8 @@ actual class OSDevTool {
                     return@launch
                 }
                 startServer((1024..49151).random(), retries - 1)
+            } catch (e: Exception) {
+                println("DevTool: Could not start Server")
             }
         }
     }
