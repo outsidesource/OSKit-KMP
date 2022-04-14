@@ -103,11 +103,11 @@ private data class TestBCCombinedState(
     val two: String,
 )
 
-private class TestBloc1 : Bloc<TestBCState>(TestBCState(0), persistStateOnDispose = false) {
+private class TestBloc1 : Bloc<TestBCState>(TestBCState(0), retainStateOnDispose = false) {
     fun increment() = update(state.copy(one = state.one + 1))
 }
 
-private class TestBloc2 : Bloc<TestBCState2>(TestBCState2(two = ""), persistStateOnDispose = false) {
+private class TestBloc2 : Bloc<TestBCState2>(TestBCState2(two = ""), retainStateOnDispose = false) {
     fun setValue(value: String) = update(state.copy(two = value))
 }
 

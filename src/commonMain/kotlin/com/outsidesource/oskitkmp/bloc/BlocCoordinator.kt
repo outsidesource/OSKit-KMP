@@ -78,5 +78,6 @@ abstract class BlocCoordinatorN<S : Any>(private vararg val d: Bloc<Any>) : Bloc
     final override val state: S get() = transform(d.map { it.state }.toTypedArray())
     override fun proxy(scope: CoroutineScope) =
         combine(d.map { it.stream(scope) }, ::transform).stateIn(scope, SharingStarted.Eagerly, state)
-            .also { react(it.value) }
-}
+                .also { react(it.value) }
+    }
+    

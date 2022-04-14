@@ -1,17 +1,15 @@
 package com.outsidesource.oskitkmp.bloc
 
+import com.outsidesource.oskitkmp.devTool.OSDevTool
+import com.outsidesource.oskitkmp.devTool.sendEvent
 import com.outsidesource.oskitkmp.outcome.Outcome
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
-
 
 /**
  * Bloc (Business Logic Component)
@@ -21,7 +19,7 @@ import kotlin.coroutines.cancellation.CancellationException
  * Bloc Lifecycle
  * A Bloc's lifecycle is dependent on its observers. When the first observer subscribes to the Bloc [onStart] is called.
  * When the last observer unsubscribes [onDispose] is called. A Bloc may choose to reset its state when [onDispose]
- * is called by setting [persistStateOnDispose] to false. A Bloc will call [onStart] again if it gains a new
+ * is called by setting [retainStateOnDispose] to false. A Bloc will call [onStart] again if it gains a new
  * observer after it has been disposed. Likewise, a Bloc will call [onDispose] again if it loses those observers.
  *
  * Observing State
@@ -37,42 +35,50 @@ import kotlin.coroutines.cancellation.CancellationException
  * Effects are asynchronous functions that update the state over time. An effect can be created with
  * an asynchronous function that calls [update] multiple times or by using the [effect] method. The [effect] method
  * provides a built-in cancellation mechanism. Calling an effect multiple times will cancel the previously started
- * effect and replace it with the new effect. The [effect] method also allows configuring whether or not the
+ * effect and replace it with the new effect. The [effect] method also allows configuring whether the
  * effect should be cancelled when the Bloc is disposed or not.
  *
  * [initialState] The initial state of a Bloc.
  *
- * [persistStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
- * disposed. If true, the Bloc's state will persist until the Bloc is garbage collected.
+ * [retainStateOnDispose] If false, the internal state will be reset to [initialState] when the bloc is
+ * disposed. If true, the Bloc's state will be retained until the Bloc is garbage collected.
  */
 abstract class Bloc<T : Any>(
     private val initialState: T,
-    private val persistStateOnDispose: Boolean = false,
+    private val retainStateOnDispose: Boolean = false,
+    private val dependencies: List<Bloc<*>> = emptyList(),
 ) {
-
-    private val _effectsLock = SynchronizedObject()
-    private val _dependentScopesLock = SynchronizedObject()
-
+    private val subscriptionCount = atomic(0)
+    private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
-    private val _effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
-    private val _dependentScopes = mutableListOf<CoroutineScope>()
-    private val _dependentCount = atomic(0)
+    private val effects: MutableMap<Any, CancellableEffect<*>> = mutableMapOf()
+    private val effectsLock = SynchronizedObject()
+    private val blocEffectScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Bloc's lifecycle. All [Job]s launched
      * in [blocScope] will be cancelled when the Bloc is disposed.
      */
-    val blocScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val blocScope = CoroutineScope(
+        defaultBlocDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
 
     /**
      * Returns the current status of the Bloc
      */
-    val status get() = if (_dependentCount.value > 0) BlocStatus.Started else BlocStatus.Idle
+    val status get() = if (subscriptionCount.value > 0) BlocStatus.Started else BlocStatus.Idle
 
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() = _state.value
+    val state get() =
+        if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
+
+    init {
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "New Bloc", initialState)
+    }
 
     /**
      * Returns the state as a stream/observable for observing updates. The latest state will be immediately emitted to
@@ -82,12 +88,14 @@ abstract class Bloc<T : Any>(
      *
      * [lifetimeScope] allows the bloc to only remove a subscription dependency when the scope has been cancelled.
      * This prevents premature Bloc disposal mainly during activity/fragment recreation due to configuration change.
-     * Typically viewModelScope is the most appropriate scope here.
+     * Typically, viewModelScope is the most appropriate scope here.
      */
-    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> =
-        _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
+    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> {
+        if (dependencies.isNotEmpty()) _state.value = computed(_state.value)
+        return _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
             if (lifetimeScope == null) handleUnsubscribe()
         }
+    }
 
     /**
      * Computes properties based on latest state for every update
@@ -127,26 +135,34 @@ abstract class Bloc<T : Any>(
      *
      * [onDone] a block of synchronous code to be run when the effect finishes regardless of success or failure. This
      * can be used to update state regardless of if an effect is cancelled or not. NOTE: It is not guaranteed that
-     * [onDone] will run before disposal and resetting of state if [persistStateOnDispose === false] so be careful
+     * [onDone] will run before disposal and resetting of state if [retainStateOnDispose === false] so be careful
      * when updating state.
      */
     protected suspend fun <T> effect(
         id: Any,
         cancelOnDispose: Boolean = true,
-        context: CoroutineContext = Dispatchers.Default,
+        context: CoroutineContext = blocEffectScope.coroutineContext,
         onDone: ((result: Outcome<T>) -> Unit)? = null,
         block: suspend () -> Outcome<T>,
-    ): Outcome<T> = withContext(defaultBlocEffectDispatcher) {
+    ): Outcome<T> {
         cancelEffect(id)
+        var effect: CancellableEffect<T>? = null
 
-        try {
-            val effect = CancellableEffect(cancelOnDispose = cancelOnDispose, job = async { block() }, onDone = onDone)
-            synchronized(_effectsLock) { _effects[id] = effect }
-            val result = withContext(context) { effect.run() }
-            synchronized(_effectsLock) { if (_effects[id] == effect) _effects.remove(id) }
-            result
-        } catch (e: CancellationException) {
+        return try {
+            withContext(context) {
+                val innerEffect = CancellableEffect(
+                    cancelOnDispose = cancelOnDispose,
+                    job = async { block() },
+                    onDone = onDone
+                ).apply { effect = this }
+
+                synchronized(effectsLock) { effects[id] = innerEffect }
+                innerEffect.run()
+            }
+        } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            synchronized(effectsLock) { if (effects[id] == effect) effects.remove(id) }
         }
     }
 
@@ -154,60 +170,59 @@ abstract class Bloc<T : Any>(
      * Returns the current status of an effect
      */
     fun effectStatus(id: Any): EffectStatus {
-        return if (this._effects.containsKey(id)) EffectStatus.Running else EffectStatus.Idle
+        return if (this.effects.containsKey(id)) EffectStatus.Running else EffectStatus.Idle
     }
 
     /**
      * Cancels an effect with the given [id].
      */
     protected fun cancelEffect(id: Any) {
-        _effects[id]?.cancel()
-        synchronized(_effectsLock) { _effects.remove(id) }
+        effects[id]?.cancel()
+        synchronized(effectsLock) { effects.remove(id) }
     }
 
     /**
      * Immutably update the state and notify all subscribers of the change.
      */
     protected fun update(state: T): T {
-        _state.value = computed(state)
+        val updated = computed(state)
+        _state.value = updated
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return _state.value
     }
 
     private fun handleSubscribe(lifetimeScope: CoroutineScope?) {
         checkShouldStart()
-
-        if (lifetimeScope != null) {
-            synchronized(_dependentScopesLock) {
-                if (_dependentScopes.contains(lifetimeScope)) return
-                _dependentScopes.add(lifetimeScope)
-            }
-
-            lifetimeScope.coroutineContext.job.invokeOnCompletion {
-                synchronized(_dependentScopesLock) { _dependentScopes.remove(lifetimeScope) }
-                CoroutineScope(Dispatchers.Default).launch { handleUnsubscribe() }
-            }
-        }
-        _dependentCount.incrementAndGet()
+        lifetimeScope?.coroutineContext?.job?.invokeOnCompletion { handleUnsubscribe() }
+        subscriptionCount.incrementAndGet()
     }
 
     private fun handleUnsubscribe() {
-        _dependentCount.decrementAndGet()
+        subscriptionCount.decrementAndGet()
         checkShouldDispose()
     }
 
     private fun checkShouldStart() {
-        if (_dependentCount.value > 0) return
+        if (subscriptionCount.value > 0) return
+
+        dependencies.forEach {
+            dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
+        }
+
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Start", _state.value)
         onStart()
     }
 
     private fun checkShouldDispose() {
-        if (_dependentCount.value > 0) return
+        if (subscriptionCount.value > 0) return
 
-        _effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
-        synchronized(_effectsLock) { _effects.clear() }
+        effects.values.forEach { if (it.cancelOnDispose) it.cancel() }
+        synchronized(effectsLock) { effects.clear() }
         blocScope.coroutineContext.cancelChildren()
-        synchronized(_dependentScopesLock) { _dependentScopes.clear() }
-        if (!persistStateOnDispose) _state.value = computed(initialState)
+        dependencySubscriptionScope.coroutineContext.cancelChildren()
+        if (!retainStateOnDispose) _state.value = computed(initialState)
+
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
     }
 }
@@ -238,16 +253,14 @@ internal data class CancellableEffect<T>(
 ) {
     fun cancel() = job.cancel()
 
-    suspend fun run(): Outcome<T> {
-        return try {
-            val result = job.await()
-            onDone?.invoke(result)
-            result
-        } catch (e: CancellationException) {
-            val result = Outcome.Error(e)
-            onDone?.invoke(result)
-            result
-        }
+    suspend fun run(): Outcome<T> = try {
+        val result = job.await()
+        onDone?.invoke(result)
+        result
+    } catch (e: CancellationException) {
+        val result = Outcome.Error(e)
+        onDone?.invoke(result)
+        result
     }
 }
 
@@ -259,4 +272,4 @@ fun <T> Outcome<T>.isCancelledJob(): Boolean = this is Outcome.Error && this.err
 /**
  * Allows implementers to change the default thread effect management is run on.
  */
-internal expect val defaultBlocEffectDispatcher: CoroutineDispatcher
+internal expect val defaultBlocDispatcher: CoroutineDispatcher

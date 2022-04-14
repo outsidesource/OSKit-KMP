@@ -35,9 +35,9 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
 
     AnimatedContent(currentRoute.value, transitionSpec = createRouteTransition()) { state ->
         CompositionLocalProvider(
-            LocalRouterProvider provides router,
-            LocalRouteProvider provides state,
-            LocalRouteScopeProvider provides routeScopeHolder.getOrPut(state.id) { createRouteScope() },
+            LocalRouter provides router,
+            LocalRoute provides state,
+            LocalRouteScope provides routeScopeHolder.getOrPut(state.id) { createRouteScope() },
         ) {
             DisposableEffect(Unit) {
                 router.setRouteViewStatus(state, RouteViewStatus.Visible)
@@ -53,9 +53,10 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
                 saveableStateHolder.removeState(state.id)
             }
             saveableStateHolder.SaveableStateProvider(state.id) {
-                Box(modifier = Modifier.fillMaxSize()
-                    // Prevent accidental routing via spamming of buttons by disabling all input while transitioning out
-                    .disablePointerInput(transition.targetState == EnterExitState.PostExit)
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        // Prevent accidental routing via spamming of buttons by disabling all input while transitioning out
+                        .disablePointerInput(transition.targetState == EnterExitState.PostExit)
                 ) {
                     content(state.route)
                 }
@@ -75,35 +76,17 @@ private fun createRouteTransition(): AnimatedContentScope<RouteStackEntry>.() ->
 
         if (route is IAnimatedRoute) {
             (if (isPopping) route.transition.popEnter else route.transition.enter)(density) with
-                    (if (isPopping) route.transition.popExit else route.transition.exit)(density)
+                (if (isPopping) route.transition.popExit else route.transition.exit)(density)
         } else {
             (if (isPopping) DefaultRouteTransition.popEnter else DefaultRouteTransition.enter)(density) with
-                    (if (isPopping) DefaultRouteTransition.popExit else DefaultRouteTransition.exit)(density)
+                (if (isPopping) DefaultRouteTransition.popExit else DefaultRouteTransition.exit)(density)
         }
     }
 }
 
-val LocalRouterProvider = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
-val LocalRouteProvider = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
-val LocalRouteScopeProvider = staticCompositionLocalOf { createRouteScope() }
-
-/**
- * [localRouter] returns the composition local [IRouter]
- */
-@Composable
-fun localRouter(): IRouter = LocalRouterProvider.current
-
-/**
- * [localRoute] returns the composition local [RouteStackEntry]
- */
-@Composable
-fun localRoute(): RouteStackEntry = LocalRouteProvider.current
-
-/**
- * [localRouteScope] return the composition local [CoroutineScope] attached to the route's lifecycle
- */
-@Composable
-fun localRouteScope(): CoroutineScope = LocalRouteScopeProvider.current
+val LocalRouter = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
+val LocalRoute = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
+val LocalRouteScope = staticCompositionLocalOf { createRouteScope() }
 
 /**
  * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
@@ -112,8 +95,8 @@ fun localRouteScope(): CoroutineScope = LocalRouteScopeProvider.current
 @Composable
 @NonRestartableComposable
 fun RouteDestroyedEffect(effect: () -> Unit) {
-    val router = localRouter()
-    val route = localRoute()
+    val router = LocalRouter.current
+    val route = LocalRoute.current
 
     return DisposableEffect(Unit) {
         if (router is Router) router.addRouteDestroyedListener(route, effect)

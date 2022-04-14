@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.concurrency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 
-class KotlinNativeFlowWrapper<T: Any>(private val flow: Flow<T>) {
+class KotlinNativeFlowWrapper<T : Any>(private val flow: Flow<T>) {
     fun subscribe(
         scope: CoroutineScope,
         onEach: (item: T) -> Unit,

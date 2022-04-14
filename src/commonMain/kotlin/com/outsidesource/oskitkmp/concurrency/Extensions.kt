@@ -4,8 +4,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 class FlowTimeoutCancellationException(timeout: Long) : CancellationException("Flow timed out after ${timeout}ms")

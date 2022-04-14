@@ -3,12 +3,24 @@ import java.io.FileInputStream
 import java.lang.System.getenv
 import java.util.*
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath(kotlin("gradle-plugin", Versions.Kotlin))
+    }
+}
+
 plugins {
     kotlin("multiplatform") version Versions.Kotlin
+    kotlin("plugin.serialization") version Versions.Kotlin
+    id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
     id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
     id("maven-publish")
 }
+
 apply(from = "versioning.gradle.kts")
 
 val versionProperty = Properties().apply {
@@ -29,7 +41,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "11"
+            kotlinOptions.jvmTarget = "17"
         }
         testRuns["test"].executionTask.configure {
             useJUnit()
@@ -50,11 +62,13 @@ kotlin {
             dependencies {
                 implementation(Dependencies.KotlinxAtomicFu)
                 implementation(Dependencies.KotlinxDateTime)
-                implementation(Dependencies.CoroutinesCore) {
-                    version {
-                        strictly(Versions.CoroutinesCore)
-                    }
-                }
+                implementation(Dependencies.CoroutinesCore)
+                implementation(Dependencies.KotlinxSerializationJson)
+                implementation(Dependencies.KtorServerCore)
+                implementation(Dependencies.KtorServerCIO)
+                implementation(Dependencies.KtorClientCore)
+                implementation(Dependencies.KtorClientCIO)
+                implementation(Dependencies.KtorWebsockets)
             }
         }
         val commonTest by getting {
@@ -108,11 +122,11 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdkVersion(31)
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdkVersion(24)
-        targetSdkVersion(30)
+        targetSdkVersion(31)
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -129,10 +143,23 @@ android {
     }
 }
 
+ktlint {
+    debug.set(true)
+    disabledRules.set(setOf("no-wildcard-imports", "filename"))
+
+    filter {
+        include("src/**/*.kt")
+        exclude("**/*.kts")
+        val excludedDirs = listOf("/generated/", "/commonTest/", "/androidTest/", "/iosTest/", "/jvmTest/")
+        exclude { tree -> excludedDirs.any { projectDir.toURI().relativize(tree.file.toURI()).path.contains(it) } }
+    }
+}
+tasks.getByName("preBuild").dependsOn("ktlintFormat")
+
 val packForXcode by tasks.creating(Sync::class) {
     group = "build"
-    val mode = System.getenv("CONFIGURATION") ?: "DEBUG"
-    val sdkName = System.getenv("SDK_NAME") ?: "iphonesimulator"
+    val mode = getenv("CONFIGURATION") ?: "DEBUG"
+    val sdkName = getenv("SDK_NAME") ?: "iphonesimulator"
     val targetName = "ios" + if (sdkName.startsWith("iphoneos")) "Arm64" else "X64"
     val framework = kotlin.targets.getByName<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>(targetName).binaries.getFramework(mode)
     inputs.property("mode", mode)
