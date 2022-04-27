@@ -92,6 +92,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [replace] replaces the current active route with the provided route
      */
     override fun replace(route: IRoute) {
+        if (routeStack.last().route == route) return
         val entry = RouteStackEntry(route)
         destroyTopStackEntry()
         routeStack += entry
