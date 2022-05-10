@@ -183,12 +183,27 @@ abstract class Bloc<T : Any>(
 
     /**
      * Immutably update the state and notify all subscribers of the change.
+     * Note: This version of `update` is susceptible to race conditions when being called concurrently
+     * from multiple threads.
      */
     protected fun update(state: T): T {
         val updated = computed(state)
         _state.value = updated
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
-        return _state.value
+        return updated
+    }
+
+    /**
+     * Immutably update the state and notify all subscribers of the change.
+     * Note: This version of `update` is safe from race conditions when called concurrently from different threads
+     * but may incur a performance penalty due to using `updateAndGet` under the hood which will recalculate if
+     * the state has been changed by another thread. In certain circumstances it may be more performant to use a
+     * Mutex or SynchronizedObject to concurrently update state.
+     */
+    protected fun update(function: (state: T) -> T): T {
+        val updated = _state.updateAndGet { function(computed(it)) }
+        OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
+        return updated
     }
 
     private fun handleSubscribe(lifetimeScope: CoroutineScope?) {
