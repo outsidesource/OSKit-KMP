@@ -201,7 +201,7 @@ abstract class Bloc<T : Any>(
      * Mutex or SynchronizedObject to concurrently update state.
      */
     protected fun update(function: (state: T) -> T): T {
-        val updated = _state.updateAndGet { function(computed(it)) }
+        val updated = _state.updateAndGet { computed(function(it)) }
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return updated
     }
