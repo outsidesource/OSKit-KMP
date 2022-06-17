@@ -11,6 +11,11 @@ import kotlinx.coroutines.flow.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
+interface IBlocObservable<T : Any> {
+    val state: T
+    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T>
+}
+
 /**
  * Bloc (Business Logic Component)
  * An isolated slice of safely mutable, observable state that encapsulates business logic pertaining to state
@@ -47,7 +52,7 @@ abstract class Bloc<T : Any>(
     private val initialState: T,
     private val retainStateOnDispose: Boolean = false,
     private val dependencies: List<Bloc<*>> = emptyList(),
-) {
+) : IBlocObservable<T> {
     private val subscriptionCount = atomic(0)
     private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
@@ -73,7 +78,7 @@ abstract class Bloc<T : Any>(
     /**
      * Retrieves the current state of the Bloc.
      */
-    val state get() =
+    override val state get() =
         if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     init {
@@ -90,7 +95,7 @@ abstract class Bloc<T : Any>(
      * This prevents premature Bloc disposal mainly during activity/fragment recreation due to configuration change.
      * Typically, viewModelScope is the most appropriate scope here.
      */
-    fun stream(lifetimeScope: CoroutineScope? = null): Flow<T> {
+    override fun stream(lifetimeScope: CoroutineScope?): Flow<T> {
         if (dependencies.isNotEmpty()) _state.value = computed(_state.value)
         return _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
             if (lifetimeScope == null) handleUnsubscribe()
