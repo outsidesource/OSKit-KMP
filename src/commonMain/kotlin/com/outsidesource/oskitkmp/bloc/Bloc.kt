@@ -96,7 +96,7 @@ abstract class Bloc<T : Any>(
      * Typically, viewModelScope is the most appropriate scope here.
      */
     override fun stream(lifetimeScope: CoroutineScope?): Flow<T> {
-        if (dependencies.isNotEmpty()) _state.value = computed(_state.value)
+        if (dependencies.isNotEmpty()) _state.update { computed(it) }
         return _state.onStart { handleSubscribe(lifetimeScope) }.onCompletion {
             if (lifetimeScope == null) handleUnsubscribe()
         }
@@ -191,9 +191,9 @@ abstract class Bloc<T : Any>(
      * Note: This version of `update` is susceptible to race conditions when being called concurrently
      * from multiple threads.
      */
+    @Deprecated("This version of update is susceptible to race conditions.", ReplaceWith("update { state -> }"))
     protected fun update(state: T): T {
-        val updated = computed(state)
-        _state.value = updated
+        val updated = _state.updateAndGet { computed(state) }
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return updated
     }
@@ -225,8 +225,12 @@ abstract class Bloc<T : Any>(
     private fun checkShouldStart() {
         if (subscriptionCount.value > 0) return
 
-        dependencies.forEach {
-            dependencySubscriptionScope.launch { it.stream().drop(1).collect { update(state) } }
+        dependencies.forEach { dependency ->
+            dependencySubscriptionScope.launch {
+                dependency.stream().drop(1).collect {
+                    _state.update { computed(it) }
+                }
+            }
         }
 
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Start", _state.value)
@@ -240,7 +244,7 @@ abstract class Bloc<T : Any>(
         synchronized(effectsLock) { effects.clear() }
         blocScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
-        if (!retainStateOnDispose) _state.value = computed(initialState)
+        if (!retainStateOnDispose) _state.update { computed(initialState) }
 
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()

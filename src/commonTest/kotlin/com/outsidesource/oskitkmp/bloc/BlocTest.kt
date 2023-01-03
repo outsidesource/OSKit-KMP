@@ -3,7 +3,8 @@ package com.outsidesource.oskitkmp.bloc
 import com.outsidesource.oskitkmp.concurrency.withDelay
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
