@@ -1,15 +1,10 @@
 package com.outsidesource.oskitkmp.interactor
 
 import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 
 internal actual val defaultInteractorDispatcher: CoroutineDispatcher = Dispatchers.Default
-
-internal class InteractorViewModel : ViewModel()
 
 /**
  * rememberInteractor will remember a Interactor and subscribe to its state for a given lifetime.
@@ -35,7 +30,7 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1) { it() } },
         interactorFactory = factory,
-        scope = scope,
+        lifetimeScope = scope,
     )
 }
 
@@ -54,12 +49,12 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1, key2) { it() } },
         interactorFactory = factory,
-        scope = scope,
+        lifetimeScope = scope,
     )
 }
 
 /**
- * rememberInteractor will remember a Interactor and subscribe to its state for the lifetime of the keys provided.
+ * rememberInteractor will remember an Interactor and subscribe to its state for the lifetime of the keys provided.
  */
 @Composable
 fun <B : IInteractorObservable<S>, S> rememberInteractor(
@@ -74,7 +69,7 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1, key2, key3) { it() } },
         interactorFactory = factory,
-        scope = scope
+        lifetimeScope = scope
     )
 }
 
@@ -85,9 +80,9 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
 private fun <B : IInteractorObservable<S>, S> rememberInteractor(
     rememberFactory: @Composable (@DisallowComposableCalls () -> Pair<B, Flow<S>>) -> Pair<B, Flow<S>>,
     interactorFactory: () -> B,
-    scope: CoroutineScope? = null,
+    lifetimeScope: CoroutineScope? = null,
 ): Pair<S, B> {
-    val streamScope = scope ?: viewModel<InteractorViewModel>().viewModelScope
+    val streamScope = lifetimeScope ?: rememberCoroutineScope()
 
     val (interactor, stream) = rememberFactory {
         val interactor = interactorFactory()

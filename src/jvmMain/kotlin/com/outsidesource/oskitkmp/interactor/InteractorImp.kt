@@ -32,7 +32,7 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1) { it() } },
         interactorFactory = factory,
-        scope = scope,
+        lifetimeScope = scope,
     )
 }
 
@@ -51,7 +51,7 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1, key2) { it() } },
         interactorFactory = factory,
-        scope = scope,
+        lifetimeScope = scope,
     )
 }
 
@@ -71,7 +71,7 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
     return rememberInteractor(
         rememberFactory = { remember(key1, key2, key3) { it() } },
         interactorFactory = factory,
-        scope = scope
+        lifetimeScope = scope
     )
 }
 
@@ -82,9 +82,9 @@ fun <B : IInteractorObservable<S>, S> rememberInteractor(
 private fun <B : IInteractorObservable<S>, S> rememberInteractor(
     rememberFactory: @Composable (@DisallowComposableCalls () -> Pair<B, Flow<S>>) -> Pair<B, Flow<S>>,
     interactorFactory: () -> B,
-    scope: CoroutineScope? = null,
+    lifetimeScope: CoroutineScope? = null,
 ): Pair<S, B> {
-    val streamScope = scope ?: run {
+    val streamScope = lifetimeScope ?: run {
         val routeScope = LocalRouteScope.current
         RouteDestroyedEffect { routeScope.cancel() }
         routeScope
