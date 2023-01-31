@@ -1,17 +1,17 @@
 object Versions {
-    const val Kotlin = "1.6.10"
-    const val ComposePlugin = "1.0.1"
-    const val KotlinCompilerExtension = "1.1.0-rc2"
+    const val Kotlin = "1.8.0"
+    const val ComposePlugin = "1.3.0"
+    const val KotlinCompilerExtension = "1.4.0"
     const val KtLintPlugin = "10.2.1"
 
     const val CoroutinesCore = "1.6.4"
-    const val AndroidXCore = "1.6.0"
-    const val AndroidXActivityCompose = "1.3.1"
-    const val AndroidXLifecycleViewModelCompose = "1.0.0-alpha07"
-    const val KotlinxDateTime = "0.3.0"
-    const val KotlinxAtomicFu = "0.17.0"
-    const val KotlinxSerializationJson = "1.3.2"
-    const val Ktor = "2.0.0"
+    const val AndroidXCore = "1.9.0"
+    const val AndroidXActivityCompose = "1.6.1"
+    const val AndroidXLifecycleViewModelCompose = "2.5.1"
+    const val KotlinxDateTime = "0.4.0"
+    const val KotlinxAtomicFu = "0.19.0"
+    const val KotlinxSerializationJson = "1.5.0-RC"
+    const val Ktor = "2.2.2"
 }
 
 object Dependencies {
