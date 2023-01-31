@@ -130,7 +130,7 @@ class InteractorTest {
         val interactor = TestInteractor()
         var jobCompleted = false
 
-        val jobFuture = interactor.interactorScope.launch {
+        val jobFuture = interactor.lifecycleScope.launch {
             delay(1000)
             jobCompleted = true
         }

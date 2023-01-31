@@ -47,7 +47,14 @@ abstract class Interactor<T : Any>(
 
     /**
      * Provides a mechanism to allow launching [Job]s externally that follow the Interactor's lifecycle. All [Job]s launched
-     * in [interactorScope] will be cancelled when the Interactor is disposed.
+     * in [lifecycleScope] will be cancelled when the Interactor is disposed.
+     */
+    val lifecycleScope = CoroutineScope(
+        defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+    )
+
+    /**
+     * Provides a standard coroutine scope for use int the interactor.
      */
     val interactorScope = CoroutineScope(
         defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
@@ -149,7 +156,7 @@ abstract class Interactor<T : Any>(
     private fun checkShouldDispose() {
         if (subscriptionCount.value > 0) return
 
-        interactorScope.coroutineContext.cancelChildren()
+        lifecycleScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
         if (!retainStateOnDispose) _state.update { computed(initialState) }
 
