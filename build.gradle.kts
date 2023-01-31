@@ -86,7 +86,7 @@ kotlin {
                 implementation(Dependencies.AndroidXLifecycleViewModelCompose)
             }
         }
-        val androidTest by getting {
+        val androidInstrumentedTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
             }
