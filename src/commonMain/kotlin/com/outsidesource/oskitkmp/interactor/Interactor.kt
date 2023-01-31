@@ -29,9 +29,10 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    dependencies: List<Interactor<*>> = emptyList(),
+    private val dependencies: List<Interactor<*>> = emptyList(),
 ) : IInteractorObservable<T> {
-    private val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val subscriptionCount = atomic(0)
+    internal val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
 
     /**
@@ -44,16 +45,11 @@ abstract class Interactor<T : Any>(
     /**
      * Retrieves the current state of the Interactor.
      */
-    override val state get() = _state.value
+    override val state get() =
+        if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
 
     init {
         OSDevTool.sendEvent(this::class.simpleName ?: "", "New Interactor", initialState)
-
-        dependencies.forEach { dependency ->
-            dependencySubscriptionScope.launch {
-                dependency.flow().drop(1).collect { _state.update { computed(it) } }
-            }
-        }
     }
 
     /**
@@ -62,7 +58,13 @@ abstract class Interactor<T : Any>(
      * Collecting the flow adds a subscription dependency to the Interactor which is removed when the Flow collector is
      * cancelled
      */
-    override fun flow(): Flow<T> = _state
+    override fun flow(): Flow<T> {
+        if (dependencies.isNotEmpty()) _state.update { computed(it) }
+
+        return _state
+            .onStart { handleSubscribe() }
+            .onCompletion { handleUnsubscribe() }
+    }
 
     /**
      * Computes properties based on latest state for every update
@@ -80,6 +82,27 @@ abstract class Interactor<T : Any>(
         val updated = _state.updateAndGet { computed(function(it)) }
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
         return updated
+    }
+
+    private fun handleSubscribe() {
+        if (subscriptionCount.value > 0) return
+
+        dependencies.forEach { dependency ->
+            dependencySubscriptionScope.launch {
+                dependency.flow().drop(1).collect {
+                    _state.update { computed(it) }
+                }
+            }
+        }
+
+        subscriptionCount.incrementAndGet()
+    }
+
+    private fun handleUnsubscribe() {
+        subscriptionCount.decrementAndGet()
+        if (subscriptionCount.value > 0) return
+
+        dependencySubscriptionScope.coroutineContext.cancelChildren()
     }
 }
 

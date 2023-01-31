@@ -92,7 +92,6 @@ class InteractorTest {
         testBloc.setString("dependency")
         testBloc.increment()
         val dependencyBloc = TestDependencyInteractor(testBloc)
-        delay(16) // Add delay because the dependency might take a few milliseconds to subscribe to
 
         // Test initial computed state without subscription
         assertTrue(dependencyBloc.state.dependentString == "dependency", "Computed initial dependent state was incorrect")
@@ -103,7 +102,6 @@ class InteractorTest {
 
         // Test updated dependency state with computed
         testBloc.setString("dependency3")
-        delay(16)
         assertTrue(dependencyBloc.state.dependentString == "dependency3", "Dependent state on state getter was incorrect after dependent update")
 
         // Test computed dependency state with subscription
@@ -133,6 +131,19 @@ class InteractorTest {
         testBloc.setString("distinctTest2")
         sub.cancelAndJoin()
         assertTrue(updateCount == 2, "Dependency emitted update with equal value")
+    }
+
+    @Test
+    fun testDependentInteractorDependencySubscriptionsCancelled() = runBlocking {
+        val testBloc = TestInteractor()
+        val dependencyBloc = TestDependencyInteractor(testBloc)
+        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 0, "Dependency subscription count should be 0")
+        val subscription = async { dependencyBloc.flow().collect {}}
+        delay(16)
+        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 1, "Dependency subscription count should be 1")
+        subscription.cancelAndJoin()
+        delay(16)
+        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 0, "Dependency subscription count should be 0 after unsubscribe")
     }
 
     @Test
