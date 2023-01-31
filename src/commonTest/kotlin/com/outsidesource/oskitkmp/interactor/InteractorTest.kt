@@ -109,23 +109,6 @@ class InteractorTest {
     }
 
     @Test
-    fun persistStateOnDispose() = runBlocking {
-        val interactor = TestInteractor(retainStateOnDispose = false)
-        interactor.increment()
-        interactor.increment()
-        assertTrue(interactor.state.testInt == 2, "State did not update")
-        interactor.flow().first()
-        assertTrue(interactor.state.testInt == 0, "State did not reset on dispose with persistStateOnDispose == false")
-
-        val interactor2 = TestInteractor(retainStateOnDispose = true)
-        interactor2.increment()
-        interactor2.increment()
-        assertTrue(interactor2.state.testInt == 2, "State did not update")
-        interactor2.flow().first()
-        assertTrue(interactor2.state.testInt == 2, "State reset on dispose with persistStateOnDispose == true")
-    }
-
-    @Test
     fun interactorScope() = runBlocking {
         val interactor = TestInteractor()
         var jobCompleted = false
@@ -173,13 +156,12 @@ class InteractorTest {
         interactor.increment()
         assertTrue(interactor.state.testComputedInt == 3, "Computed value not updated in update")
         subscription.cancelAndJoin()
-        assertTrue(interactor.state.testComputedInt == 2, "Computed value not updated after dispose")
     }
 
     @Test
     fun testDependency() = runBlocking {
         var testBlocDisposed = false
-        val testBloc = TestInteractor(retainStateOnDispose = true, onDisposeCallback = { testBlocDisposed = true })
+        val testBloc = TestInteractor(onDisposeCallback = { testBlocDisposed = true })
         testBloc.setString("dependency")
         testBloc.increment()
         val dependencyBloc = TestDependencyInteractor(testBloc)
@@ -227,7 +209,7 @@ class InteractorTest {
     @Test
     fun testDependencyComputedCalls() = runBlocking {
         var testBlocComputedCount = 0
-        val testBloc = TestInteractor(retainStateOnDispose = true, onComputedCallback = { testBlocComputedCount++ })
+        val testBloc = TestInteractor(onComputedCallback = { testBlocComputedCount++ })
 
         var dependencyBlocComputedCount = 0
         val dependencyBloc = TestDependencyInteractor(testBloc) { dependencyBlocComputedCount++ }
@@ -246,11 +228,10 @@ class InteractorTest {
 private data class TestState(val testString: String = "Test", val testInt: Int = 0, val testComputedInt: Int = 0)
 
 private class TestInteractor(
-    retainStateOnDispose: Boolean = false,
     private val onStartCallback: (() -> Unit)? = null,
     private val onDisposeCallback: (() -> Unit)? = null,
     private val onComputedCallback: (() -> Unit)? = null,
-) : Interactor<TestState>(TestState(), retainStateOnDispose = retainStateOnDispose) {
+) : Interactor<TestState>(TestState()) {
 
     override fun computed(state: TestState): TestState {
         onComputedCallback?.invoke()
@@ -270,7 +251,6 @@ private data class TestDependencyState(val count: Int = 0, val dependentString: 
 
 private class TestDependencyInteractor(private val testBloc: TestInteractor, private val onComputedCallback: (() -> Unit)? = null) : Interactor<TestDependencyState>(
     initialState = TestDependencyState(dependentString = "", dependentInt = 0, count = 0),
-    retainStateOnDispose = true,
     dependencies = listOf(testBloc)
 ) {
     override fun computed(state: TestDependencyState): TestDependencyState {

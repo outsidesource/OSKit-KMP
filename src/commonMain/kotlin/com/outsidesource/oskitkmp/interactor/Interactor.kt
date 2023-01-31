@@ -38,7 +38,6 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    private val retainStateOnDispose: Boolean = true,
     private val dependencies: List<Interactor<*>> = emptyList(),
 ) : IInteractorObservable<T> {
     private val subscriptionCount = atomic(0)
@@ -158,7 +157,6 @@ abstract class Interactor<T : Any>(
 
         lifecycleScope.coroutineContext.cancelChildren()
         dependencySubscriptionScope.coroutineContext.cancelChildren()
-        if (!retainStateOnDispose) _state.update { computed(initialState) }
 
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
