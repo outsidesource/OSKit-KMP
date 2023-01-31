@@ -60,11 +60,6 @@ abstract class Interactor<T : Any>(
     )
 
     /**
-     * Returns the current status of the Interactor
-     */
-    val status get() = if (subscriptionCount.value > 0) InteractorStatus.Started else InteractorStatus.Idle
-
-    /**
      * Retrieves the current state of the Interactor.
      */
     override val state get() =
@@ -161,16 +156,6 @@ abstract class Interactor<T : Any>(
         OSDevTool.sendEvent(this::class.simpleName ?: "", "Dispose", _state.value)
         onDispose()
     }
-}
-
-/**
- * InteractorStatus
- * The current status of a Interactor. Idle represents a Interactor that is in a disposed/unused state (there are no
- * active subscriptions). Once there is an active subscription, the Interactor is in a Started state.
- */
-enum class InteractorStatus {
-    Started,
-    Idle,
 }
 
 /**

@@ -137,17 +137,6 @@ class InteractorTest {
     }
 
     @Test
-    fun interactorStatus() = runBlocking {
-        val interactor = TestInteractor()
-        assertTrue(interactor.status == InteractorStatus.Idle, "Interactor Status was not Idle")
-        val subscription = launch { interactor.flow().collect { } }
-        delay(16)
-        assertTrue(interactor.status == InteractorStatus.Started, "Interactor Status was not Started")
-        subscription.cancelAndJoin()
-        assertTrue(interactor.status == InteractorStatus.Idle, "Interactor Status was not Idle after dispose")
-    }
-
-    @Test
     fun computedValue() = runBlocking {
         val interactor = TestInteractor()
         val subscription = launch { interactor.flow().collect { } }
