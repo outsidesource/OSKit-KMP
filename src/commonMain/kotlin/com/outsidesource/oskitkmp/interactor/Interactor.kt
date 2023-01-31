@@ -29,7 +29,7 @@ interface IInteractorObservable<T : Any> {
  * Updating Interactor State
  * The only way to update a Interactor's state is by calling the [update] method. Calling [update] will synchronously update
  * the internal state with a new copy of state and notify all observers of the change as long as the new state is
- * different than the previous state.
+ * different from the previous state.
  *
  * [initialState] The initial state of an Interactor.
  *
@@ -38,7 +38,7 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    private val retainStateOnDispose: Boolean = false,
+    private val retainStateOnDispose: Boolean = true,
     private val dependencies: List<Interactor<*>> = emptyList(),
 ) : IInteractorObservable<T> {
     private val subscriptionCount = atomic(0)
