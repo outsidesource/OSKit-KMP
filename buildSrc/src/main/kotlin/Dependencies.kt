@@ -12,6 +12,7 @@ object Versions {
     const val KotlinxAtomicFu = "0.19.0"
     const val KotlinxSerializationJson = "1.5.0-RC"
     const val Ktor = "2.2.2"
+    const val AndroidXComposeAnimations = "1.3.3"
 }
 
 object Dependencies {
@@ -19,6 +20,7 @@ object Dependencies {
     const val AndroidXCore = "androidx.core:core-ktx:${Versions.AndroidXCore}"
     const val AndroidXActivityCompose = "androidx.activity:activity-compose:${Versions.AndroidXActivityCompose}"
     const val AndroidXLifecycleViewModelCompose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidXLifecycleViewModelCompose}"
+    const val AndroidXComposeAnimations = "androidx.compose.animation:animation:${Versions.AndroidXComposeAnimations}"
     const val KotlinxDateTime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.KotlinxDateTime}"
     const val KotlinxAtomicFu = "org.jetbrains.kotlinx:atomicfu:${Versions.KotlinxAtomicFu}"
     const val KotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.KotlinxSerializationJson}"

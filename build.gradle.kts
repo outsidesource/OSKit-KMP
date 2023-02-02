@@ -84,6 +84,7 @@ kotlin {
                 implementation(Dependencies.AndroidXCore)
                 implementation(Dependencies.AndroidXActivityCompose)
                 implementation(Dependencies.AndroidXLifecycleViewModelCompose)
+                implementation(Dependencies.AndroidXComposeAnimations)
             }
         }
         val androidInstrumentedTest by getting {

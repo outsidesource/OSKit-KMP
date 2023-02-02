@@ -1,6 +1,6 @@
 package com.outsidesource.oskitkmp.ext
 
-fun <K, V> MutableMap<K, V>.putIfAbsent(key: K, value: V): V {
+inline fun <K, V> MutableMap<K, V>.putIfAbsent(key: K, value: V): V {
     val v = get(key)
     if (v == null) {
         put(key, value)

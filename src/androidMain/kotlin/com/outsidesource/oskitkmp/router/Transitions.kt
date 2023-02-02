@@ -1,41 +1,11 @@
 package com.outsidesource.oskitkmp.router
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-
-/**
- * [IAnimatedRoute] defines a route transition on an [IRoute]. For ease of use, the delegate function [routeTransition]
- * may be used.
- *
- * ```
- * sealed class Route : IRoute {
- *     data class Home : Route(), IAnimatedRoute by routeTransition(SlideRouteTransition)
- * }
- * ```
- */
-@OptIn(ExperimentalAnimationApi::class)
-interface IAnimatedRoute {
-    val transition: RouteTransition
-}
-
-/**
- * [routeTransition] is a convenience delegate function to help implement [IAnimatedRoute]
- *
- * ```
- * sealed class Route : IRoute {
- *     data class Home : Route(), IAnimatedRoute by routeTransition(SlideRouteTransition)
- * }
- * ```
- */
-@OptIn(ExperimentalAnimationApi::class)
-fun routeTransition(transition: RouteTransition): IAnimatedRoute {
-    return object : IAnimatedRoute {
-        override val transition = transition
-    }
-}
 
 /**
  * [RouteTransition] defines a route transition
@@ -51,7 +21,9 @@ data class RouteTransition(
     val exit: AnimatedContentScope<RouteStackEntry>.(density: Density) -> ExitTransition,
     val popEnter: AnimatedContentScope<RouteStackEntry>.(density: Density) -> EnterTransition,
     val popExit: AnimatedContentScope<RouteStackEntry>.(density: Density) -> ExitTransition,
-)
+) : IRouteTransition
+
+private val easeIn = CubicBezierEasing(.17f, .67f, .83f, .67f)
 
 /**
  * [DefaultRouteTransition] the default transition used if no other transition is supplied.
@@ -72,10 +44,10 @@ val DefaultRouteTransition = RouteTransition(
 
 @ExperimentalAnimationApi
 val HorizontalSlideRouteTransition = RouteTransition(
-    enter = { slideInHorizontally(tween(400)) { it } + fadeIn(tween(400), .99f) },
-    exit = { slideOutHorizontally(tween(400)) { -it } + fadeOut(tween(400), .99f) },
-    popEnter = { slideInHorizontally(tween(400)) { -it } + fadeIn(tween(400), .99f) },
-    popExit = { slideOutHorizontally(tween(400)) { it } + fadeOut(tween(400), .99f) },
+    enter = { slideInHorizontally(tween(300)) { it } },
+    exit = { fadeOut(tween(300), targetAlpha = .5f) },
+    popEnter = { fadeIn(tween(300)) },
+    popExit = { slideOutHorizontally(tween(300, easing = easeIn)) { it } + fadeOut(tween(300), targetAlpha = .5f) },
 )
 
 @ExperimentalAnimationApi
