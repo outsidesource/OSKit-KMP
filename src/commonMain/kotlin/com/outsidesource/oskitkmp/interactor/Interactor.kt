@@ -38,7 +38,7 @@ abstract class Interactor<T : Any>(
     /**
      * Provides a standard coroutine scope for use int the interactor.
      */
-    val interactorScope = CoroutineScope(
+    protected val interactorScope = CoroutineScope(
         defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
     )
 

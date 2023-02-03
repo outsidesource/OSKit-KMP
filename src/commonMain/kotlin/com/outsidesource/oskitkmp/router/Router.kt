@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 /**
  * [Router] the primary implementation of IRouter
  */
-class Router(
+internal class Router(
     initialRoute: IRoute,
     private val defaultTransition: IRouteTransition = object : IRouteTransition {},
 ) : IRouter {
