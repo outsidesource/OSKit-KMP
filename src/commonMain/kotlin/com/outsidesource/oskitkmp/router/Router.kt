@@ -1,179 +1,109 @@
 package com.outsidesource.oskitkmp.router
 
-import com.outsidesource.oskitkmp.ext.putIfAbsent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.reflect.KClass
 
-private var routeUid: Int = 0
-
-private fun uid(): Int = routeUid++
-
 /**
- * [IRoute] the empty interface that defines a route. This must be unique and implement equals(). This is normally
- * a data class.
- */
-interface IRoute
-
-/**
- * [IRouter] the public navigation interface for use in composables
- */
-interface IRouter {
-    fun push(route: IRoute)
-    fun replace(route: IRoute)
-    fun pop()
-    fun popWhile(block: (entry: IRoute) -> Boolean)
-    fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean)
-    fun hasBackStack(): Boolean
-}
-
-/**
- * [RouteLifecycle] defines the current status of a route on the route stack.
- */
-enum class RouteLifecycle {
-    Active, // Visible in the current composition
-    Inactive, // Not visible in the current composition
-    Destroyed, // Popped off the route stack
-}
-
-enum class RouteViewStatus {
-    Visible, // View is visible in current composition
-    Disposed, // View was disposed in composition
-}
-
-/**
- * [RouteStackEntry] defines an entry in the route stack. It contains a unique id for the entry, the [IRoute] that
- * identifies the route, and its lifecycle
- */
-data class RouteStackEntry(
-    val route: IRoute,
-    var lifecycle: RouteLifecycle = RouteLifecycle.Active,
-    val id: Int = uid(),
-)
-
-/**
- * [RouteChangeListener] defines a listener for any route changes in the router
- */
-typealias RouteChangeListener = (route: RouteStackEntry) -> Unit
-
-/**
- * [Router] the primary routing framework. [Router] is **not** thread-safe and should only be manipulated from the main
- * thread.
+ * [Router] the primary implementation of IRouter
  */
 class Router(initialRoute: IRoute) : IRouter {
-    private val routeStack: MutableList<RouteStackEntry> = mutableListOf(RouteStackEntry(initialRoute))
-    private val listeners: MutableList<RouteChangeListener> = mutableListOf()
-    private val routeDestroyedListeners: MutableMap<Int, MutableList<() -> Unit>> = mutableMapOf()
-    private val routeViewStatus: MutableMap<Int, RouteViewStatus> = mutableMapOf()
-    val current get() = routeStack.last()
+    private val _routeStack: AtomicRef<List<RouteStackEntry>>
+    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
 
-    /**
-     * [subscribe] adds a [RouteChangeListener] subscription to the router to be notified of any route changes
-     */
-    fun subscribe(listener: RouteChangeListener) = listeners.add(listener)
+    override val routeFlow: MutableStateFlow<RouteStackEntry>
+    override val current get() = _routeStack.value.last()
+    override val routeStack: List<RouteStackEntry>
+        get() = _routeStack.value
 
-    /**
-     * [unsubscribe] removes the given [RouteChangeListener] from the router
-     */
-    fun unsubscribe(listener: RouteChangeListener) = listeners.remove(listener)
+    init {
+        val initialStackEntry = RouteStackEntry(initialRoute)
+        _routeStack = atomic(mutableListOf(initialStackEntry))
+        routeFlow = MutableStateFlow(initialStackEntry)
+    }
 
-    /**
-     * [push] navigates to the given route and moves the current active route to an inactive state
-     */
-    override fun push(route: IRoute) {
-        val entry = RouteStackEntry(route)
-        routeStack.last().lifecycle = RouteLifecycle.Inactive
-        routeStack += entry
+    override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
+        _routeStack.update { it + entry }
         notifyListeners()
     }
 
-    /**
-     * [replace] replaces the current active route with the provided route
-     */
-    override fun replace(route: IRoute) {
-        if (routeStack.last().route == route) return
-        val entry = RouteStackEntry(route)
+    override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (_routeStack.value.last().route == route) return
+        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
         destroyTopStackEntry()
-        routeStack += entry
+        _routeStack.update { it + entry }
         notifyListeners()
     }
 
-    /**
-     * [pop] pops the current active route off of the route stack and destroys it
-     */
-    override fun pop() {
-        if (routeStack.size <= 1) return
+    override fun pop(force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
-        routeStack.last().lifecycle = RouteLifecycle.Active
         notifyListeners()
     }
 
-    /**
-     * [popTo] pops to a specific [IRoute] in the route stack. If the route does not exist, the router will pop back
-     * to the initial route. Setting [inclusive] to `true` will also pop the passed in [to] parameter off of the state.
-     * [inclusive] default is `false`
-     */
-    override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean) {
-        if (routeStack.size <= 1) return
-        destroyTopStackEntry()
+    override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        var breakNext = false
 
-        while (routeStack.size > 1) {
-            val top = routeStack.last()
-            if (top.route::class == to) {
-                if (!inclusive) break
-                destroyTopStackEntry()
-                break
+        popWhile {
+            if (breakNext) {
+                return@popWhile false
+            } else if (it::class == to) {
+                if (!inclusive) return@popWhile false
+                breakNext = true
             }
 
-            destroyTopStackEntry()
+            return@popWhile true
         }
-        routeStack.last().lifecycle = RouteLifecycle.Active
-        notifyListeners()
     }
 
-    /**
-     * [popWhile] pops while the passed in [block] returns true
-     */
-    override fun popWhile(block: (route: IRoute) -> Boolean) {
-        if (routeStack.size <= 1) return
+    override fun popTo(to: IRoute, inclusive: Boolean, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        var breakNext = false
+
+        popWhile {
+            if (breakNext) {
+                return@popWhile false
+            } else if (it == to) {
+                if (!inclusive) return@popWhile false
+                breakNext = true
+            }
+
+            return@popWhile true
+        }
+    }
+
+    override fun popWhile(force: Boolean, block: (route: IRoute) -> Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
 
-        while (routeStack.size > 1) {
-            if (!block(routeStack.last().route)) break
+        while (_routeStack.value.size > 1) {
+            if (!block(_routeStack.value.last().route)) break
             destroyTopStackEntry()
         }
 
-        routeStack.last().lifecycle = RouteLifecycle.Active
         notifyListeners()
     }
 
-    /**
-     * [hasBackStack] returns `true` if there is a route to pop off of the route stack
-     */
-    override fun hasBackStack(): Boolean = routeStack.size > 1
+    override fun hasBackStack(): Boolean = _routeStack.value.size > 1
 
-    /**
-     * [setRouteViewStatus] is used to help track if a composable is active or disposed. This allows the router to
-     * accurately run `RouteDestroyedEffect` in circumstances where `pop` is called multiple times immediately.
-     * **This function should only be used if you are implementing your own [RouteSwitch]**
-     */
-    fun setRouteViewStatus(entry: RouteStackEntry, status: RouteViewStatus) = routeViewStatus.put(entry.id, status)
-
-    internal fun addRouteDestroyedListener(entry: RouteStackEntry, block: () -> Unit) {
-        routeDestroyedListeners.putIfAbsent(entry.id, mutableListOf())
-        routeDestroyedListeners[entry.id]?.add(block)
+    override fun markTransitionStatus(status: RouteTransitionStatus) {
+        transitionStatus = status
     }
 
     private fun destroyTopStackEntry() {
-        val top = routeStack.removeLast()
-        if (routeViewStatus[top.id] == RouteViewStatus.Disposed) routeDestroyedListeners[top.id]?.forEach { it() }
-        routeViewStatus.remove(top.id)
-        routeDestroyedListeners.remove(top.id)
-        top.lifecycle = RouteLifecycle.Destroyed
+        val top = _routeStack.value.last()
+        _routeStack.update { it.toMutableList().apply { remove(top) } }
     }
 
-    private fun notifyListeners() = listeners.forEach { it(routeStack.last()) }
+    private fun notifyListeners() {
+        routeFlow.value = _routeStack.value.last()
+    }
 }
-
-internal fun createRouteScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
