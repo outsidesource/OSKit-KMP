@@ -15,7 +15,7 @@ import kotlinx.atomicfu.locks.synchronized
  * @param [router] The [Router] to listen to.
  *
  * @param [content] The composable content to switch between routes. The current route to render is provided as the
- * parameter of the block. Route transitions are supported by the provided [IRoute] also implementing [IAnimatedRoute].
+ * parameter of the block.
  */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
