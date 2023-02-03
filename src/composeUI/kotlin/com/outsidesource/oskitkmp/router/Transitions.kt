@@ -72,3 +72,11 @@ val ScaleRouteTransition = RouteTransition(
     popEnter = { scaleIn(tween(300), initialScale = 1.1f) + fadeIn(tween(300), 0f) },
     popExit = { fadeOut(tween(300), .99f) },
 )
+
+@ExperimentalAnimationApi
+val NoRouteTransition = RouteTransition(
+    enter = { EnterTransition.None },
+    exit = { ExitTransition.None },
+    popEnter = { EnterTransition.None },
+    popExit = { ExitTransition.None },
+)

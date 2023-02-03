@@ -76,7 +76,22 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+        val composeUI by creating {
+            dependsOn(commonMain)
+
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                implementation(Dependencies.AndroidXCore)
+                implementation(Dependencies.AndroidXActivityCompose)
+                implementation(Dependencies.AndroidXLifecycleViewModelCompose)
+                implementation(Dependencies.AndroidXComposeAnimations)
+            }
+        }
         val androidMain by getting {
+            dependsOn(composeUI)
+
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -93,6 +108,8 @@ kotlin {
             }
         }
         val jvmMain by getting {
+            dependsOn(composeUI)
+
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -123,11 +140,11 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(33)
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
-        minSdkVersion(24)
-        targetSdkVersion(33)
+        minSdk = 24
+        targetSdk = 33
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

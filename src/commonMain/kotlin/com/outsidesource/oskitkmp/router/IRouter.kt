@@ -2,7 +2,6 @@ package com.outsidesource.oskitkmp.router
 
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
