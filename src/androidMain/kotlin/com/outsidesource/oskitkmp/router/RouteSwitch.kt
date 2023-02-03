@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import com.outsidesource.oskitkmp.coordinator.*
 
 /**
  * [RouteSwitch] is the primary means of using a [Router] in a composable. [RouteSwitch] will automatically subscribe
@@ -19,7 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 @Composable
 fun RouteSwitch(
     router: IRouter,
-    defaultTransition: RouteTransition = DefaultRouteTransition,
     content: @Composable (route: IRoute) -> Unit,
 ) {
     val saveableStateHolder = rememberSaveableStateHolder()
@@ -30,7 +30,7 @@ fun RouteSwitch(
 
     AnimatedContent(
         targetState = currentRoute,
-        transitionSpec = createRouteTransition(defaultTransition)
+        transitionSpec = createComposeRouteTransition()
     ) { state ->
         if (transition.currentState != transition.targetState) {
             router.markTransitionStatus(RouteTransitionStatus.Running)

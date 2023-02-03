@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 @Composable
 fun RouteSwitch(
     router: IRouter,
-    defaultTransition: RouteTransition = DefaultRouteTransition,
     content: @Composable (route: IRoute) -> Unit
 ) {
     val routeDestroyedEffectHolder = remember { RouteDestroyedEffectHolder() }
@@ -25,7 +24,7 @@ fun RouteSwitch(
 
     AnimatedContent(
         targetState = currentRoute,
-        transitionSpec = createRouteTransition(defaultTransition)
+        transitionSpec = createComposeRouteTransition()
     ) { state ->
         if (transition.currentState != transition.targetState) {
             router.markTransitionStatus(RouteTransitionStatus.Running)

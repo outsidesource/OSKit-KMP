@@ -9,7 +9,10 @@ import kotlin.reflect.KClass
 /**
  * [Router] the primary implementation of IRouter
  */
-class Router(initialRoute: IRoute) : IRouter {
+class Router(
+    initialRoute: IRoute,
+    private val defaultTransition: IRouteTransition = object : IRouteTransition {},
+) : IRouter {
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
     private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
 
@@ -26,7 +29,10 @@ class Router(initialRoute: IRoute) : IRouter {
 
     override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running) return
-        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
+        val entry = RouteStackEntry(
+            route = route,
+            transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition
+        )
         _routeStack.update { it + entry }
         notifyListeners()
     }
@@ -34,7 +40,10 @@ class Router(initialRoute: IRoute) : IRouter {
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running) return
         if (_routeStack.value.last().route == route) return
-        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
+        val entry = RouteStackEntry(
+            route = route,
+            transition = if (route is IAnimatedRoute) route.transition else defaultTransition
+        )
         destroyTopStackEntry()
         _routeStack.update { it + entry }
         notifyListeners()

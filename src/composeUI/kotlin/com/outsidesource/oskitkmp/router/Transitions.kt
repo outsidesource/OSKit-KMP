@@ -23,7 +23,7 @@ fun routeTransition(transition: IRouteTransition): IAnimatedRoute {
 }
 
 /**
- * [RouteTransition] defines a route transition
+ * [ComposeRouteTransition] defines a route transition
  *
  * @param [enter] The animation for incoming content during a push()
  * @param [exit] The animation for the outgoing content during a push()
@@ -31,7 +31,7 @@ fun routeTransition(transition: IRouteTransition): IAnimatedRoute {
  * @param [popExit] The animation for outgoing content during a pop()
  */
 @ExperimentalAnimationApi
-data class RouteTransition(
+data class ComposeRouteTransition(
     val enter: AnimatedContentScope<RouteStackEntry>.(density: Density) -> EnterTransition,
     val exit: AnimatedContentScope<RouteStackEntry>.(density: Density) -> ExitTransition,
     val popEnter: AnimatedContentScope<RouteStackEntry>.(density: Density) -> EnterTransition,
@@ -44,7 +44,7 @@ private val easeIn = CubicBezierEasing(.17f, .67f, .83f, .67f)
  * [DefaultRouteTransition] the default transition used if no other transition is supplied.
  */
 @ExperimentalAnimationApi
-val DefaultRouteTransition = RouteTransition(
+val DefaultRouteTransition = ComposeRouteTransition(
     enter = {
         val offsetY = with(it) { -25.dp.toPx() }.toInt()
         fadeIn(tween(300), 0f) + slideIn(tween(300)) { IntOffset(0, offsetY) }
@@ -58,7 +58,7 @@ val DefaultRouteTransition = RouteTransition(
 )
 
 @ExperimentalAnimationApi
-val HorizontalSlideRouteTransition = RouteTransition(
+val HorizontalSlideRouteTransition = ComposeRouteTransition(
     enter = { slideInHorizontally(tween(300)) { it } },
     exit = { fadeOut(tween(300), targetAlpha = .5f) },
     popEnter = { fadeIn(tween(300)) },
@@ -66,7 +66,7 @@ val HorizontalSlideRouteTransition = RouteTransition(
 )
 
 @ExperimentalAnimationApi
-val ScaleRouteTransition = RouteTransition(
+val ScaleRouteTransition = ComposeRouteTransition(
     enter = { fadeIn(tween(300), 0f) + scaleIn(tween(300), initialScale = .9f) },
     exit = { fadeOut(tween(300), 0f) },
     popEnter = { scaleIn(tween(300), initialScale = 1.1f) + fadeIn(tween(300), 0f) },
@@ -74,7 +74,7 @@ val ScaleRouteTransition = RouteTransition(
 )
 
 @ExperimentalAnimationApi
-val NoRouteTransition = RouteTransition(
+val NoRouteTransition = ComposeRouteTransition(
     enter = { EnterTransition.None },
     exit = { ExitTransition.None },
     popEnter = { EnterTransition.None },

@@ -6,26 +6,24 @@ import androidx.compose.ui.platform.LocalDensity
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 
+internal val localRouter = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
+internal val localRouteDestroyedEffectHolder = staticCompositionLocalOf { RouteDestroyedEffectHolder() }
+val LocalRoute = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-internal fun createRouteTransition(
-    defaultTransition: RouteTransition = NoRouteTransition
-): AnimatedContentScope<RouteStackEntry>.() -> ContentTransform {
+internal fun createComposeRouteTransition(): AnimatedContentScope<RouteStackEntry>.() -> ContentTransform {
     val density = LocalDensity.current
 
     return {
         val isPopping = targetState.id < initialState.id
         val route = if (isPopping) initialState else targetState
-        val transition = if (route.transition is RouteTransition) route.transition else defaultTransition
+        val transition = if (route.transition is ComposeRouteTransition) route.transition else NoRouteTransition
 
         (if (isPopping) transition.popEnter else transition.enter)(density) with
             (if (isPopping) transition.popExit else transition.exit)(density)
     }
 }
-
-internal val localRouter = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
-internal val localRouteDestroyedEffectHolder = staticCompositionLocalOf { RouteDestroyedEffectHolder() }
-val LocalRoute = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
 
 /**
  * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
