@@ -40,9 +40,6 @@ data class ComposeRouteTransition(
 
 private val easeIn = CubicBezierEasing(.17f, .67f, .83f, .67f)
 
-/**
- * [DefaultRouteTransition] the default transition used if no other transition is supplied.
- */
 @ExperimentalAnimationApi
 val DefaultRouteTransition = ComposeRouteTransition(
     enter = {
