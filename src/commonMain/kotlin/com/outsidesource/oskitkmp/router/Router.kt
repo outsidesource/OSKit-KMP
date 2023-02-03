@@ -26,7 +26,7 @@ class Router(initialRoute: IRoute) : IRouter {
 
     override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running) return
-        val entry = RouteStackEntry(route, transition)
+        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
         _routeStack.update { it + entry }
         notifyListeners()
     }
@@ -34,7 +34,7 @@ class Router(initialRoute: IRoute) : IRouter {
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running) return
         if (_routeStack.value.last().route == route) return
-        val entry = RouteStackEntry(route, transition)
+        val entry = RouteStackEntry(route, transition ?: if (route is IAnimatedRoute) route.transition else null)
         destroyTopStackEntry()
         _routeStack.update { it + entry }
         notifyListeners()

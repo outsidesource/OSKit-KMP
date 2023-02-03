@@ -7,21 +7,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
 /**
- * [IAnimatedRoute] defines a route transition on an [IRoute]. For ease of use, the delegate function [routeTransition]
- * may be used.
- *
- * ```
- * sealed class Route : IRoute {
- *     data class Home : Route(), IAnimatedRoute by routeTransition(SlideRouteTransition)
- * }
- * ```
- */
-@OptIn(ExperimentalAnimationApi::class)
-interface IAnimatedRoute {
-    val transition: RouteTransition
-}
-
-/**
  * [routeTransition] is a convenience delegate function to help implement [IAnimatedRoute]
  *
  * ```
@@ -30,8 +15,7 @@ interface IAnimatedRoute {
  * }
  * ```
  */
-@OptIn(ExperimentalAnimationApi::class)
-fun routeTransition(transition: RouteTransition): IAnimatedRoute {
+fun routeTransition(transition: IRouteTransition): IAnimatedRoute {
     return object : IAnimatedRoute {
         override val transition = transition
     }

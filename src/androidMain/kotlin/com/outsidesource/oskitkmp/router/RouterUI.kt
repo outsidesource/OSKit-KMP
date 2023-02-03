@@ -19,7 +19,7 @@ import kotlinx.atomicfu.locks.synchronized
  */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
+fun RouteSwitch(router: IRouter, content: @Composable (route: IRoute) -> Unit) {
     val saveableStateHolder = rememberSaveableStateHolder()
     val routeDestroyedEffectHolder = remember { RouterDestroyedEffectHolder() }
     val currentRoute by router.routeFlow.collectAsState()
@@ -64,8 +64,7 @@ private fun createRouteTransition(): AnimatedContentScope<RouteStackEntry>.() ->
             (if (isPopping) route.transition.popEnter else route.transition.enter)(density) with
                 (if (isPopping) route.transition.popExit else route.transition.exit)(density)
         } else {
-            (if (isPopping) DefaultRouteTransition.popEnter else DefaultRouteTransition.enter)(density) with
-                (if (isPopping) DefaultRouteTransition.popExit else DefaultRouteTransition.exit)(density)
+            EnterTransition.None with ExitTransition.None
         }
     }
 }

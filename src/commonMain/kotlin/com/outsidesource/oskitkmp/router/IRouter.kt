@@ -2,7 +2,8 @@ package com.outsidesource.oskitkmp.router
 
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
 private var routeUid: AtomicInt = atomic(0)
@@ -15,7 +16,16 @@ private fun uid(): Int = routeUid.incrementAndGet()
 interface IRoute
 
 /**
- * [IRouteTransition] the empty interface that defines a route transition.
+ * [IAnimatedRoute] the empty interface that defines an animated route. This must be unique and implement equals().
+ * This is normally a data class.
+ */
+interface IAnimatedRoute : IRoute {
+    val transition: IRouteTransition
+}
+
+/**
+ * [IRouteTransition] the abstract interface that defines a route transition. An IRouteTransition may define a transition
+ * however the UI needs.
  */
 interface IRouteTransition
 
@@ -46,7 +56,7 @@ data class RouteStackEntry(
 interface IRouter {
     val routeStack: List<RouteStackEntry>
     val current: RouteStackEntry
-    val routeFlow: Flow<RouteStackEntry>
+    val routeFlow: StateFlow<RouteStackEntry>
 
     /**
      * [push] navigates to the given route and moves the current active route to an inactive state
