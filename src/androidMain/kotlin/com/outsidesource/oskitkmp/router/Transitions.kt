@@ -32,13 +32,13 @@ private val easeIn = CubicBezierEasing(.17f, .67f, .83f, .67f)
 val DefaultRouteTransition = RouteTransition(
     enter = {
         val offsetY = with(it) { -25.dp.toPx() }.toInt()
-        fadeIn(tween(400), 0f) + slideIn(tween(400)) { IntOffset(0, offsetY) }
+        fadeIn(tween(300), 0f) + slideIn(tween(300)) { IntOffset(0, offsetY) }
     },
-    exit = { fadeOut(tween(400), 0f) },
-    popEnter = { fadeIn(tween(400), 0f) },
+    exit = { fadeOut(tween(300), 0f) },
+    popEnter = { fadeIn(tween(300), 0f) },
     popExit = {
         val offsetY = with(it) { -25.dp.toPx() }.toInt()
-        slideOut(tween(400)) { IntOffset(0, offsetY) } + fadeOut(tween(400), 0f)
+        slideOut(tween(300)) { IntOffset(0, offsetY) } + fadeOut(tween(300), 0f)
     },
 )
 

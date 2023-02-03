@@ -64,6 +64,7 @@ data class RouteStackEntry(
  */
 class Router(initialRoute: IRoute) : IRouter {
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
+    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
 
     override val routeFlow: MutableStateFlow<RouteStackEntry>
     override val current get() = _routeStack.value.last()
@@ -80,6 +81,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [push] navigates to the given route and moves the current active route to an inactive state
      */
     override fun push(route: IRoute) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         val entry = RouteStackEntry(route)
         _routeStack.update { it + entry }
         notifyListeners()
@@ -89,6 +91,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [replace] replaces the current active route with the provided route
      */
     override fun replace(route: IRoute) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         if (_routeStack.value.last().route == route) return
         val entry = RouteStackEntry(route)
         destroyTopStackEntry()
@@ -100,6 +103,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [pop] pops the current active route off of the route stack and destroys it
      */
     override fun pop() {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
         notifyListeners()
@@ -111,6 +115,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [inclusive] default is `false`
      */
     override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         var breakNext = false
 
         popWhile {
@@ -131,6 +136,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [inclusive] default is `false`
      */
     override fun popTo(to: IRoute, inclusive: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         var breakNext = false
 
         popWhile {
@@ -149,6 +155,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [popWhile] pops while the passed in [block] returns true
      */
     override fun popWhile(block: (route: IRoute) -> Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
 
@@ -169,6 +176,7 @@ class Router(initialRoute: IRoute) : IRouter {
      * [markTransitionStatus] allows the router to block spamming of push/pop operations if a transition is ongoing
      */
     override fun markTransitionStatus(status: RouteTransitionStatus) {
+        transitionStatus = status
     }
 
     private fun destroyTopStackEntry() {

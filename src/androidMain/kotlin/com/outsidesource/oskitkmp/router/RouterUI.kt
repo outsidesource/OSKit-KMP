@@ -30,15 +30,18 @@ fun RouteSwitch(router: Router, content: @Composable (route: IRoute) -> Unit) {
         targetState = currentRoute,
         transitionSpec = createRouteTransition()
     ) { state ->
-        // Implement marking transition with transition
+        if (transition.currentState != transition.targetState) {
+            router.markTransitionStatus(RouteTransitionStatus.Running)
+        } else {
+            router.markTransitionStatus(RouteTransitionStatus.Completed)
+        }
 
         CompositionLocalProvider(
             localRouteDestroyedEffectHolder provides routeDestroyedEffectHolder,
             localRouter provides router,
             LocalRoute provides state,
         ) {
-            RouteDestroyedEffect {
-                println("Destroyed ${state.id}")
+            RouteDestroyedEffect("com.outsidesource.oskitkmp.router.RouteSwitch") {
                 saveableStateHolder.removeState(state.id)
             }
             saveableStateHolder.SaveableStateProvider(state.id) {
@@ -74,16 +77,18 @@ val LocalRoute = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) 
 /**
  * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
  * attached to is currently visible in the composition, the effect will not be run until the composable has been disposed
+ *
+ * [effectId] Uniquely identifies the effect across for the route. [effectId] should be a unique constant.
  */
 @Composable
 @NonRestartableComposable
-fun RouteDestroyedEffect(effect: () -> Unit) {
+fun RouteDestroyedEffect(effectId: Any, effect: () -> Unit) {
     val destroyedEffectHolder = localRouteDestroyedEffectHolder.current
     val router = localRouter.current
     val route = LocalRoute.current
 
     return DisposableEffect(Unit) {
-        destroyedEffectHolder.add(route.id, effect)
+        destroyedEffectHolder.add(route.id, effectId, effect)
 
         onDispose {
             destroyedEffectHolder.invokeEffects(router.routeStack)
@@ -93,14 +98,11 @@ fun RouteDestroyedEffect(effect: () -> Unit) {
 
 private class RouterDestroyedEffectHolder {
     private val effectsLock = SynchronizedObject()
-    private val effects = mutableMapOf<Int, List<() -> Unit>>()
+    private val effects = mutableMapOf<Int, MutableMap<Any, () -> Unit>>()
 
-    private data class Effect(val id: Any, val block: List<() -> Unit>)
-
-    fun add(routeId: Int, effect: () -> Unit) {
+    fun add(routeId: Int, effectId: Any, effect: () -> Unit) {
         synchronized(effectsLock) {
-            // TODO: Need to not add the same effect when popping back to a route
-            effects[routeId] = (effects[routeId] ?: emptyList()) + effect
+            effects[routeId] = (effects[routeId] ?: mutableMapOf()).apply { put(effectId, effect) }
         }
     }
 
@@ -110,8 +112,7 @@ private class RouterDestroyedEffectHolder {
 
         effectMap.keys.sortedDescending().forEach { id ->
             if (activeRouteStack.find { it.id == id } != null) return@forEach
-
-            effectMap[id]?.forEach { it() }
+            effectMap[id]?.forEach { (_, v) -> v() }
             remove(id)
         }
     }
