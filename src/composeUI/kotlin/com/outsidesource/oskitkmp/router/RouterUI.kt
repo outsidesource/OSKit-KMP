@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.node.Ref
 import androidx.compose.ui.platform.LocalDensity
+import com.outsidesource.oskitkmp.tuples.Tup3
 
 internal val localRouteObjectStore = staticCompositionLocalOf { RouteObjectStore() }
 internal val localRouter = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
@@ -36,14 +37,23 @@ internal fun createComposeRouteTransition(): AnimatedContentScope<RouteStackEntr
 fun RouteDestroyedEffect(effectId: String, effect: () -> Unit) {
     val router = localRouter.current
 
-    val (storedEffect, isDestroyedRef) = rememberForRoute(Pair::class.java, effectId) {
+    val (storedEffect, isVisibleRef, isDestroyedRef) = rememberForRoute(Tup3::class.java, effectId) {
         val isDestroyedRef = Ref<Boolean>()
-        router.addRouteDestroyedListener { isDestroyedRef.value = true }
-        Pair(effect, isDestroyedRef)
-    } as Pair<() -> Unit, Ref<Boolean>>
+        val isVisibleRef = Ref<Boolean>()
+
+        router.addRouteDestroyedListener {
+            if (isVisibleRef.value == false) effect()
+            isDestroyedRef.value = true
+        }
+
+        Tup3(effect, isVisibleRef, isDestroyedRef)
+    } as Tup3<() -> Unit, Ref<Boolean>, Ref<Boolean>>
 
     return DisposableEffect(Unit) {
+        isVisibleRef.value = true
+
         onDispose {
+            isVisibleRef.value = false
             if (isDestroyedRef.value == true) storedEffect()
         }
     }
