@@ -20,7 +20,6 @@ fun RouteSwitch(
     coordinator: Coordinator,
     content: @Composable (route: IRoute) -> Unit
 ) {
-    val routeDestroyedEffectHolder = remember { RouteDestroyedEffectHolder() }
     val currentRoute by coordinator.router.routeFlow.collectAsState()
 
     AnimatedContent(
@@ -34,7 +33,6 @@ fun RouteSwitch(
         }
 
         CompositionLocalProvider(
-            localRouteDestroyedEffectHolder provides routeDestroyedEffectHolder,
             localRouter provides coordinator.router,
             LocalRoute provides state,
         ) {

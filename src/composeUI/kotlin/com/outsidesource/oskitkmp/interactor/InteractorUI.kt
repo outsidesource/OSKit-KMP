@@ -7,10 +7,7 @@ import kotlinx.coroutines.flow.Flow
  * [rememberInteractor] will remember an Interactor and subscribe to its state.
  */
 @Composable
-fun <S : Any> rememberInteractor(interactor: Interactor<S>): S {
-    val state by interactor.flow().collectAsState(interactor.state)
-    return state
-}
+fun <S : Any> Interactor<S>.collectAsState(): State<S> = flow().collectAsState(state)
 
 /**
  * [rememberInteractor] will remember an Interactor and subscribe to its state.

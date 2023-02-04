@@ -106,4 +106,9 @@ interface IRouter {
      * [markTransitionStatus] allows the router to block spamming of push/pop operations if a transition is ongoing
      */
     fun markTransitionStatus(status: RouteTransitionStatus)
+
+    /**
+     * [addRouteDestroyedListener] adds a listener to the current route when it is popped off of the route stack
+     */
+    fun addRouteDestroyedListener(block: () -> Unit)
 }

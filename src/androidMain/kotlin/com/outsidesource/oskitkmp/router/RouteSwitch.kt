@@ -23,7 +23,6 @@ fun RouteSwitch(
     content: @Composable (route: IRoute) -> Unit,
 ) {
     val saveableStateHolder = rememberSaveableStateHolder()
-    val routeDestroyedEffectHolder = remember { RouteDestroyedEffectHolder() }
     val currentRoute by coordinator.router.routeFlow.collectAsState()
 
     BackHandler(enabled = coordinator.router.hasBackStack()) { coordinator.router.pop() }
@@ -39,7 +38,6 @@ fun RouteSwitch(
         }
 
         CompositionLocalProvider(
-            localRouteDestroyedEffectHolder provides routeDestroyedEffectHolder,
             localRouter provides coordinator.router,
             LocalRoute provides state,
         ) {

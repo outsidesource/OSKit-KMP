@@ -2,12 +2,11 @@ package com.outsidesource.oskitkmp.router
 
 import androidx.compose.animation.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.node.Ref
 import androidx.compose.ui.platform.LocalDensity
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 
+internal val localRouteObjectStore = staticCompositionLocalOf { RouteObjectStore() }
 internal val localRouter = staticCompositionLocalOf<IRouter> { Router(object : IRoute {}) }
-internal val localRouteDestroyedEffectHolder = staticCompositionLocalOf { RouteDestroyedEffectHolder() }
 val LocalRoute = staticCompositionLocalOf { RouteStackEntry(object : IRoute {}) }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -29,48 +28,68 @@ internal fun createComposeRouteTransition(): AnimatedContentScope<RouteStackEntr
  * [RouteDestroyedEffect] runs only once when the [IRoute] is popped off the backstack. If the route the effect is
  * attached to is currently visible in the composition, the effect will not be run until the composable has been disposed
  *
- * [effectId] Uniquely identifies the effect across for the route. [effectId] should be a unique constant.
+ * [effectId] Uniquely identifies the effect for a given route. [effectId] should be a unique constant.
  */
 @Composable
 @NonRestartableComposable
-fun RouteDestroyedEffect(effectId: Any, effect: () -> Unit) {
-    val destroyedEffectHolder = localRouteDestroyedEffectHolder.current
+@Suppress("UNCHECKED_CAST")
+fun RouteDestroyedEffect(effectId: String, effect: () -> Unit) {
     val router = localRouter.current
-    val route = LocalRoute.current
+
+    val (storedEffect, isDestroyedRef) = rememberForRoute(Pair::class.java, effectId) {
+        val isDestroyedRef = Ref<Boolean>()
+        router.addRouteDestroyedListener { isDestroyedRef.value = true }
+        Pair(effect, isDestroyedRef)
+    } as Pair<() -> Unit, Ref<Boolean>>
 
     return DisposableEffect(Unit) {
-        destroyedEffectHolder.add(route.id, effectId, effect)
-
         onDispose {
-            destroyedEffectHolder.invokeEffects(router.routeStack)
+            if (isDestroyedRef.value == true) storedEffect()
         }
     }
 }
 
-internal class RouteDestroyedEffectHolder {
-    private val effectsLock = SynchronizedObject()
-    private val effects = mutableMapOf<Int, MutableMap<Any, () -> Unit>>()
+/**
+ * [rememberForRoute] Remembers a given object for the lifetime of the route. There may only be one instance of
+ * a given class for a given route. Additional instances may be created if a constant and unique [key] is provided.
+ */
+@Composable
+inline fun <reified T : Any> rememberForRoute(key: String? = null, noinline factory: () -> T): T =
+    rememberForRoute(T::class.java, key, factory)
 
-    fun add(routeId: Int, effectId: Any, effect: () -> Unit) {
-        synchronized(effectsLock) {
-            effects[routeId] = (effects[routeId] ?: mutableMapOf()).apply { put(effectId, effect) }
+/**
+ * [rememberForRoute] Remembers a given object for the lifetime of the route. There may only be one instance of
+ * a given class for a given route. Additional instances may be created if a constant and unique [key] is provided.
+ */
+@Composable
+@Suppress("UNCHECKED_CAST")
+fun <T : Any> rememberForRoute(objectType: Class<T>, key: String? = null, factory: () -> T): T {
+    val objectStore = localRouteObjectStore.current
+    val route = LocalRoute.current
+    val router = localRouter.current
+
+    val storedObject = objectStore[route.id, key, objectType]
+
+    return if (storedObject != null && storedObject::class.java == objectType) storedObject as T else factory().apply {
+        objectStore[route.id, key, objectType] = this
+        router.addRouteDestroyedListener {
+            objectStore.remove(route.id, key, objectType)
         }
     }
+}
 
-    // Run all RouteDestroyedEffects that are missing from routeStack
-    fun invokeEffects(activeRouteStack: List<RouteStackEntry>) {
-        val effectMap = synchronized(effectsLock) { effects.toMap() }
+class RouteObjectStore {
+    private val objects = mutableMapOf<String, Any>()
 
-        effectMap.keys.sortedDescending().forEach { id ->
-            if (activeRouteStack.find { it.id == id } != null) return@forEach
-            effectMap[id]?.forEach { (_, v) -> v() }
-            remove(id)
-        }
+    operator fun <T> get(routeId: Int, key: String?, objectType: Class<T>): Any? {
+        return objects["$routeId:${objectType.canonicalName}:${key ?: ""}"]
     }
 
-    private fun remove(routeId: Int) {
-        synchronized(effectsLock) {
-            effects.remove(routeId)
-        }
+    operator fun <T> set(routeId: Int, key: String?, objectType: Class<T>, value: T) {
+        objects["$routeId:${objectType.canonicalName}:${key ?: ""}"] = value as Any
+    }
+
+    fun <T> remove(routeId: Int, key: String?, objectType: Class<T>) {
+        objects.remove("$routeId:${objectType.canonicalName}:${key ?: ""}")
     }
 }

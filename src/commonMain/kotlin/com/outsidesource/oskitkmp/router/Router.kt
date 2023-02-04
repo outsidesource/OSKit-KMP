@@ -14,6 +14,7 @@ internal class Router(
     private val defaultTransition: IRouteTransition = object : IRouteTransition {},
 ) : IRouter {
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
+    private val routeDestroyedListeners = atomic(mapOf<Int, List<() -> Unit>>())
     private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
 
     override val routeFlow: MutableStateFlow<RouteStackEntry>
@@ -23,7 +24,7 @@ internal class Router(
 
     init {
         val initialStackEntry = RouteStackEntry(initialRoute)
-        _routeStack = atomic(mutableListOf(initialStackEntry))
+        _routeStack = atomic(listOf(initialStackEntry))
         routeFlow = MutableStateFlow(initialStackEntry)
     }
 
@@ -110,9 +111,20 @@ internal class Router(
     private fun destroyTopStackEntry() {
         val top = _routeStack.value.last()
         _routeStack.update { it.toMutableList().apply { remove(top) } }
+        routeDestroyedListeners.value[top.id]?.forEach { it() }
+        routeDestroyedListeners.update { it.toMutableMap().apply { remove(top.id) } }
     }
 
     private fun notifyListeners() {
         routeFlow.value = _routeStack.value.last()
+    }
+
+    override fun addRouteDestroyedListener(block: () -> Unit) {
+        val route = current
+        routeDestroyedListeners.update {
+            it.toMutableMap().apply {
+                put(route.id, (this[route.id] ?: emptyList()) + block)
+            }
+        }
     }
 }

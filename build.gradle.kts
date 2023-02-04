@@ -153,15 +153,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.KotlinCompilerExtension
-        kotlinCompilerVersion = Versions.Kotlin
-    }
-
     publishing {
         singleVariant("release") {
             withSourcesJar()
