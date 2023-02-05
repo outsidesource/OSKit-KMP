@@ -1,11 +1,11 @@
 package com.outsidesource.oskitkmp.router
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import com.outsidesource.oskitkmp.coordinator.*
+import com.outsidesource.oskitkmp.lib.KMPBackHandler
 
 /**
  * [RouteSwitch] is the primary means of using a [Coordinator] in a composable. [RouteSwitch] will automatically subscribe
@@ -25,7 +25,7 @@ fun RouteSwitch(
     val saveableStateHolder = rememberSaveableStateHolder()
     val currentRoute by coordinator.router.routeFlow.collectAsState()
 
-    BackHandler(enabled = coordinator.router.hasBackStack()) { coordinator.router.pop() }
+    KMPBackHandler(enabled = coordinator.router.hasBackStack()) { coordinator.router.pop() }
 
     AnimatedContent(
         targetState = currentRoute,
