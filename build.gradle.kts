@@ -50,13 +50,13 @@ kotlin {
     android {
         publishLibraryVariants("release", "debug")
     }
-    ios {
-        binaries {
-            framework {
-                baseName = "oskitkmp"
-            }
-        }
-    }
+//    ios {
+//        binaries {
+//            framework {
+//                baseName = "oskitkmp"
+//            }
+//        }
+//    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -76,7 +76,9 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting {
+        val composeUI by creating {
+            dependsOn(commonMain)
+
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -84,14 +86,30 @@ kotlin {
                 implementation(Dependencies.AndroidXCore)
                 implementation(Dependencies.AndroidXActivityCompose)
                 implementation(Dependencies.AndroidXLifecycleViewModelCompose)
+                implementation(Dependencies.AndroidXComposeAnimations)
             }
         }
-        val androidTest by getting {
+        val androidMain by getting {
+            dependsOn(composeUI)
+
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material)
+                implementation(Dependencies.AndroidXCore)
+                implementation(Dependencies.AndroidXActivityCompose)
+                implementation(Dependencies.AndroidXLifecycleViewModelCompose)
+                implementation(Dependencies.AndroidXComposeAnimations)
+            }
+        }
+        val androidInstrumentedTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
             }
         }
         val jvmMain by getting {
+            dependsOn(composeUI)
+
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
@@ -99,8 +117,8 @@ kotlin {
             }
         }
         val jvmTest by getting
-        val iosMain by getting
-        val iosTest by getting
+//        val iosMain by getting
+//        val iosTest by getting
     }
 
     afterEvaluate {
@@ -122,24 +140,24 @@ kotlin {
 }
 
 android {
-    compileSdkVersion(31)
+    compileSdk = 33
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+
     defaultConfig {
-        minSdkVersion(24)
-        targetSdkVersion(31)
+        minSdk = 24
+        targetSdk = 33
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = Versions.KotlinCompilerExtension
-        kotlinCompilerVersion = Versions.Kotlin
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
 
@@ -154,19 +172,5 @@ ktlint {
         exclude { tree -> excludedDirs.any { projectDir.toURI().relativize(tree.file.toURI()).path.contains(it) } }
     }
 }
+
 tasks.getByName("preBuild").dependsOn("ktlintFormat")
-
-val packForXcode by tasks.creating(Sync::class) {
-    group = "build"
-    val mode = getenv("CONFIGURATION") ?: "DEBUG"
-    val sdkName = getenv("SDK_NAME") ?: "iphonesimulator"
-    val targetName = "ios" + if (sdkName.startsWith("iphoneos")) "Arm64" else "X64"
-    val framework = kotlin.targets.getByName<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>(targetName).binaries.getFramework(mode)
-    inputs.property("mode", mode)
-    dependsOn(framework.linkTask)
-    val targetDir = File(buildDir, "xcode-frameworks")
-    from({ framework.outputDirectory })
-    into(targetDir)
-}
-
-tasks.getByName("build").dependsOn(packForXcode)
