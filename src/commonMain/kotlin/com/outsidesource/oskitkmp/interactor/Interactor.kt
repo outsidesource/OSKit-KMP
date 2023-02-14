@@ -12,20 +12,23 @@ interface IInteractorObservable<T : Any> {
 }
 
 /**
- * Interactor (Business Logic Component)
+ * [Interactor]
  * An isolated slice of safely mutable, observable state that encapsulates business logic pertaining to state
  * manipulation.
  *
  * Observing State
- * When an observer subscribes to state it will immediately receive the latest state as the first emit. Afterwards,
- * only changes to the state will be emitted to observers.
+ * When an observer subscribes to state via the [flow] method it will immediately receive the latest state as the first
+ * emit. Afterwards, only changes to the state will be emitted to observers.
  *
- * Updating Interactor State
- * The only way to update an Interactor's state is by calling the [update] method. Calling [update] will synchronously update
+ * Updating State
+ * The only way to update an [Interactor]'s state is by calling the [update] method. Calling [update] will synchronously update
  * the internal state with a new copy of state and notify all observers of the change as long as the new state is
  * different from the previous state.
  *
  * [initialState] The initial state of an Interactor.
+ *
+ * [dependencies] A list of [Interactor]s this [Interactor] is dependent on. When any dependent [Interactor] is updated,
+ * the [computed] function is called and the resulting state is emitted to all subscribers of this [Interactor].
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
@@ -36,7 +39,7 @@ abstract class Interactor<T : Any>(
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
 
     /**
-     * Provides a standard coroutine scope for use int the interactor.
+     * Provides a standard coroutine scope for use in the Interactor.
      */
     protected val interactorScope = CoroutineScope(
         defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
@@ -53,10 +56,8 @@ abstract class Interactor<T : Any>(
     }
 
     /**
-     * Returns the state as a flow for observing updates. The latest state will be immediately emitted to
-     * a new subscriber.
-     * Collecting the flow adds a subscription dependency to the Interactor which is removed when the Flow collector is
-     * cancelled
+     * Returns the state as a flow for observing updates. The latest state will be immediately emitted to a new
+     * subscriber.
      */
     override fun flow(): Flow<T> {
         if (dependencies.isNotEmpty()) _state.update { computed(it) }
@@ -73,10 +74,6 @@ abstract class Interactor<T : Any>(
 
     /**
      * Immutably update the state and notify all subscribers of the change.
-     * Note: This version of `update` is safe from race conditions when called concurrently from different threads
-     * but may incur a performance penalty due to using `updateAndGet` under the hood which will recalculate if
-     * the state has been changed by another thread. In certain circumstances it may be more performant to use a
-     * Mutex or SynchronizedObject to concurrently update state.
      */
     protected fun update(function: (state: T) -> T): T {
         val updated = _state.updateAndGet { computed(function(it)) }
