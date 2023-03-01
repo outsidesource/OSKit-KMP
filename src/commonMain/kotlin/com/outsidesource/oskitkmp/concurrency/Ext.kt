@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
@@ -42,3 +42,7 @@ suspend fun withDelay(delayInMillis: Long, block: suspend () -> Any) = coroutine
         block()
     }
 }
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified R> Flow<*>.filterIsInstance(crossinline predicate: suspend (R) -> Boolean): Flow<R> =
+    filter { it is R && predicate(it) } as Flow<R>

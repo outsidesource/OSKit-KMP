@@ -1,8 +1,7 @@
 package com.outsidesource.oskitkmp.coordinator
 
-import com.outsidesource.oskitkmp.router.IRoute
-import com.outsidesource.oskitkmp.router.IRouteTransition
-import com.outsidesource.oskitkmp.router.Router
+import com.outsidesource.oskitkmp.router.*
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
 abstract class Coordinator(
@@ -31,4 +30,27 @@ abstract class Coordinator(
 
     protected fun popTo(to: IRoute, inclusive: Boolean = false, force: Boolean = false) =
         router.popTo(to, inclusive, force)
+}
+
+fun createCoordinatorObserver(coordinator: Coordinator): ICoordinatorObserver =
+    object : ICoordinatorObserver {
+        override fun hasBackStack() = coordinator.router.hasBackStack()
+
+        override fun pop() = coordinator.router.pop()
+
+        override val routeFlow: StateFlow<RouteStackEntry> = coordinator.router.routeFlow
+
+        override fun markTransitionStatus(status: RouteTransitionStatus) =
+            coordinator.router.markTransitionStatus(status)
+
+        override fun addRouteDestroyedListener(block: () -> Unit) =
+            coordinator.router.addRouteDestroyedListener(block)
+    }
+
+interface ICoordinatorObserver {
+    fun hasBackStack(): Boolean
+    fun pop()
+    val routeFlow: StateFlow<RouteStackEntry>
+    fun markTransitionStatus(status: RouteTransitionStatus)
+    fun addRouteDestroyedListener(block: () -> Unit)
 }

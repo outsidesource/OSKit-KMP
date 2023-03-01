@@ -16,7 +16,6 @@ plugins {
     kotlin("multiplatform") version Versions.Kotlin
     kotlin("plugin.serialization") version Versions.Kotlin
     id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
-    id("org.jetbrains.compose") version Versions.ComposePlugin
     id("com.android.library")
     id("maven-publish")
 }
@@ -34,7 +33,6 @@ repositories {
     google()
     gradlePluginPortal()
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     maven("https://plugins.gradle.org/m2/")
 }
 
@@ -76,31 +74,8 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val composeUI by creating {
-            dependsOn(commonMain)
-
-            dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                implementation(Dependencies.AndroidXCore)
-                implementation(Dependencies.AndroidXActivityCompose)
-                implementation(Dependencies.AndroidXLifecycleViewModelCompose)
-                implementation(Dependencies.AndroidXComposeAnimations)
-            }
-        }
         val androidMain by getting {
-            dependsOn(composeUI)
-
-            dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-                implementation(Dependencies.AndroidXCore)
-                implementation(Dependencies.AndroidXActivityCompose)
-                implementation(Dependencies.AndroidXLifecycleViewModelCompose)
-                implementation(Dependencies.AndroidXComposeAnimations)
-            }
+            dependencies {}
         }
         val androidInstrumentedTest by getting {
             dependencies {
@@ -108,13 +83,7 @@ kotlin {
             }
         }
         val jvmMain by getting {
-            dependsOn(composeUI)
-
-            dependencies {
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.material)
-            }
+            dependencies {}
         }
         val jvmTest by getting
 //        val iosMain by getting

@@ -44,8 +44,8 @@ jobs:
 
     - name: Tag Release
       run: |
-        git config --local user.email osddeveloper@outsidesource.com
-        git config --local user.name "OSD Developer"
+        git config --local user.email developer@outsidesource.com
+        git config --local user.name "OS Developer"
         git tag v${{ steps.read_property.outputs.value }}
         git push --tags
 

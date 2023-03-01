@@ -27,8 +27,8 @@ jobs:
 
     - name: Commit changes
       run: |
-        git config --local user.email osddeveloper@outsidesource.com
-        git config --local user.name "OSD Developer"
+        git config --local user.email developer@outsidesource.com
+        git config --local user.name "OS Developer"
         git commit -am "[skip ci] version patch bump to v${{steps.read_property.outputs.value}}"
 
     - name: Push Changes
