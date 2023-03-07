@@ -43,7 +43,7 @@ class Router(
         if (_routeStack.value.last().route == route) return
         val entry = RouteStackEntry(
             route = route,
-            transition = if (route is IAnimatedRoute) route.transition else defaultTransition
+            transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition
         )
         destroyTopStackEntry()
         _routeStack.update { it + entry }
