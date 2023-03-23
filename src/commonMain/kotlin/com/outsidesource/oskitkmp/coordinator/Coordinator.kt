@@ -10,8 +10,10 @@ abstract class Coordinator(
 ) {
     internal val router = Router(initialRoute, defaultTransition)
 
-    protected val routeStack = router.routeStack
-    protected val current = router.current
+    protected val routeStack
+        get() = router.routeStack
+    protected val current
+        get() = router.current
     protected fun hasBackStack() = router.hasBackStack()
 
     protected fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
