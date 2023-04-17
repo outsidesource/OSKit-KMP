@@ -29,7 +29,7 @@ class Router(
     }
 
     override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         val entry = RouteStackEntry(
             route = route,
             transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition
@@ -39,7 +39,7 @@ class Router(
     }
 
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         if (_routeStack.value.last().route == route) return
         val entry = RouteStackEntry(
             route = route,
@@ -51,14 +51,14 @@ class Router(
     }
 
     override fun pop(force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
         notifyListeners()
     }
 
     override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         var breakNext = false
 
         popWhile {
@@ -74,7 +74,7 @@ class Router(
     }
 
     override fun popTo(to: IRoute, inclusive: Boolean, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         var breakNext = false
 
         popWhile {
@@ -90,7 +90,7 @@ class Router(
     }
 
     override fun popWhile(force: Boolean, block: (route: IRoute) -> Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running) return
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
 
