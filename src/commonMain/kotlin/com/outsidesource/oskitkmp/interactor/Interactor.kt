@@ -34,7 +34,7 @@ abstract class Interactor<T : Any>(
     private val initialState: T,
     private val dependencies: List<Interactor<*>> = emptyList(),
 ) : IInteractorObservable<T> {
-    private val subscriptionCount = atomic(0)
+    internal val subscriptionCount = atomic(0)
     internal val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
 
@@ -82,7 +82,10 @@ abstract class Interactor<T : Any>(
     }
 
     private fun handleSubscribe() {
-        if (subscriptionCount.value > 0) return
+        if (subscriptionCount.value > 0) {
+            subscriptionCount.incrementAndGet()
+            return
+        }
 
         dependencies.forEach { dependency ->
             dependencySubscriptionScope.launch {

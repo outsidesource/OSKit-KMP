@@ -137,13 +137,21 @@ class InteractorTest {
     fun testDependentInteractorDependencySubscriptionsCancelled() = runBlocking {
         val testBloc = TestInteractor()
         val dependencyBloc = TestDependencyInteractor(testBloc)
+        assertTrue(dependencyBloc.subscriptionCount.value == 0, "Dependency subscription count should be 0")
         assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 0, "Dependency subscription count should be 0")
         val subscription = async { dependencyBloc.flow().collect {}}
         delay(16)
+        assertTrue(dependencyBloc.subscriptionCount.value == 1, "Dependency subscription count should be 1")
         assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 1, "Dependency subscription count should be 1")
-        subscription.cancelAndJoin()
+        val subscription2 = async { dependencyBloc.flow().collect {}}
         delay(16)
-        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 0, "Dependency subscription count should be 0 after unsubscribe")
+        assertTrue(dependencyBloc.subscriptionCount.value == 2, "Dependency subscription count should be 2")
+        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 1, "Dependency subscription count should be 1") // Only one because only one coroutine is launched for n subscriptions
+        subscription.cancelAndJoin()
+        subscription2.cancelAndJoin()
+        delay(16)
+        assertTrue(dependencyBloc.subscriptionCount.value == 0, "Dependency subscription count should be 0 after unsubscribe")
+        assertTrue(dependencyBloc.dependencySubscriptionScope.coroutineContext.job.children.count() == 0, "Dependency subscription count should be 0")
     }
 
     @Test
