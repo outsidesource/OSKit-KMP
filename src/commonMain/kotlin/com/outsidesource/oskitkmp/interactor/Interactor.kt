@@ -59,13 +59,9 @@ abstract class Interactor<T : Any>(
      * Returns the state as a flow for observing updates. The latest state will be immediately emitted to a new
      * subscriber.
      */
-    override fun flow(): Flow<T> {
-        if (dependencies.isNotEmpty()) _state.update { computed(it) }
-
-        return _state
-            .onStart { handleSubscribe() }
-            .onCompletion { handleUnsubscribe() }
-    }
+    override fun flow(): Flow<T> = _state
+        .onSubscription { handleSubscribe() }
+        .onCompletion { handleUnsubscribe() }
 
     /**
      * Computes properties based on latest state for every update
@@ -94,6 +90,10 @@ abstract class Interactor<T : Any>(
                 }
             }
         }
+
+        // This fixes a race condition of dependent state updating before the dependency
+        // subscriptions have started collecting
+        if (dependencies.isNotEmpty()) _state.update { computed(it) }
 
         subscriptionCount.incrementAndGet()
     }
