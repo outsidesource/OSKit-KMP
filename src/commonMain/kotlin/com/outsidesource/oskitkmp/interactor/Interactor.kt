@@ -3,8 +3,24 @@ package com.outsidesource.oskitkmp.interactor
 import com.outsidesource.oskitkmp.devTool.OSDevTool
 import com.outsidesource.oskitkmp.devTool.sendEvent
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.launch
 
 interface IInteractorObservable<T : Any> {
     val state: T
@@ -77,23 +93,30 @@ abstract class Interactor<T : Any>(
         return updated
     }
 
-    private fun handleSubscribe() {
+    private suspend fun handleSubscribe() {
         if (subscriptionCount.value > 0) {
             subscriptionCount.incrementAndGet()
             return
         }
 
+        val allDependenciesSubscribedFlow = MutableSharedFlow<Unit>(dependencies.size)
+
         dependencies.forEach { dependency ->
             dependencySubscriptionScope.launch {
-                dependency.flow().drop(1).collect {
-                    _state.update { computed(it) }
-                }
+                dependency
+                    .flow()
+                    .drop(1)
+                    .onStart { allDependenciesSubscribedFlow.emit(Unit) }
+                    .collect { _state.update { computed(it) } }
             }
         }
 
         // This fixes a race condition of dependent state updating before the dependency
         // subscriptions have started collecting
-        if (dependencies.isNotEmpty()) _state.update { computed(it) }
+        if (dependencies.isNotEmpty()) {
+            allDependenciesSubscribedFlow.take(dependencies.size).collect() // Wait for all dependencies to start collection
+            _state.update { computed(it) }
+        }
 
         subscriptionCount.incrementAndGet()
     }
