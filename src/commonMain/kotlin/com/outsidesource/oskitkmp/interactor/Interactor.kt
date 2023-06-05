@@ -114,7 +114,8 @@ abstract class Interactor<T : Any>(
         // This fixes a race condition of dependent state updating before the dependency
         // subscriptions have started collecting
         if (dependencies.isNotEmpty()) {
-            allDependenciesSubscribedFlow.take(dependencies.size).collect() // Wait for all dependencies to start collection
+            // Wait for all dependencies to start collection
+            allDependenciesSubscribedFlow.take(dependencies.size).collect()
             _state.update { computed(it) }
         }
 
