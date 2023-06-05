@@ -63,6 +63,28 @@ interface IRouter {
      * [force] indicates if [push] should ignore the current transition status
      */
     fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false)
+    fun push(
+        route: IRoute,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
+        popWhile: (entry: IRoute) -> Boolean
+    )
+
+    fun push(
+        route: IRoute,
+        popTo: IRoute,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false
+    )
+
+    fun <T : IRoute> push(
+        route: IRoute,
+        popTo: KClass<T>,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false
+    )
 
     /**
      * [replace] replaces the current active route with the provided route
@@ -70,6 +92,28 @@ interface IRouter {
      * [force] indicates if [push] should ignore the current transition status
      */
     fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false)
+    fun replace(
+        route: IRoute,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
+        popWhile: (entry: IRoute) -> Boolean
+    )
+
+    fun replace(
+        route: IRoute,
+        popTo: IRoute,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false
+    )
+
+    fun <T : IRoute> replace(
+        route: IRoute,
+        popTo: KClass<T>,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false
+    )
 
     /**
      * [pop] pops the current active route off of the route stack and destroys it
