@@ -48,7 +48,7 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    private val dependencies: List<Interactor<*>> = emptyList(),
+    private val dependencies: List<IInteractorObservable<*>> = emptyList(),
 ) : IInteractorObservable<T> {
     internal val subscriptionCount = atomic(0)
     internal val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
