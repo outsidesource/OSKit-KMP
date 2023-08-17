@@ -20,8 +20,54 @@ abstract class Coordinator(
     protected fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
         router.push(route, transition, force)
 
+    protected fun push(
+        route: IRoute,
+        popTo: IRoute,
+        popToInclusive: Boolean,
+        transition: IRouteTransition?,
+        force: Boolean
+    ) = router.push(route, popTo, popToInclusive, transition, force)
+
+    protected fun <T : IRoute> push(
+        route: IRoute,
+        popTo: KClass<T>,
+        popToInclusive: Boolean,
+        transition: IRouteTransition?,
+        force: Boolean
+    ) = router.push(route, popTo, popToInclusive, transition, force)
+
+    protected fun push(
+        route: IRoute,
+        transition: IRouteTransition?,
+        force: Boolean,
+        popWhile: (entry: IRoute) -> Boolean
+    ) = router.push(route, transition, force, popWhile)
+
     protected fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
         router.replace(route, transition, force)
+
+    protected fun replace(
+        route: IRoute,
+        transition: IRouteTransition?,
+        force: Boolean,
+        popWhile: (entry: IRoute) -> Boolean
+    ) = router.replace(route, transition, force, popWhile)
+
+    protected fun replace(
+        route: IRoute,
+        popTo: IRoute,
+        popToInclusive: Boolean,
+        transition: IRouteTransition?,
+        force: Boolean
+    ) = router.replace(route, popTo, popToInclusive, transition, force)
+
+    protected fun <T : IRoute> replace(
+        route: IRoute,
+        popTo: KClass<T>,
+        popToInclusive: Boolean,
+        transition: IRouteTransition?,
+        force: Boolean
+    ) = router.replace(route, popTo, popToInclusive, transition, force)
 
     fun pop(force: Boolean = false) = router.pop(force)
 
