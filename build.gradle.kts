@@ -48,13 +48,13 @@ kotlin {
     android {
         publishLibraryVariants("release", "debug")
     }
-//    ios {
-//        binaries {
-//            framework {
-//                baseName = "oskitkmp"
-//            }
-//        }
-//    }
+    ios {
+        binaries {
+            framework {
+                baseName = "oskitkmp"
+            }
+        }
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -86,8 +86,8 @@ kotlin {
             dependencies {}
         }
         val jvmTest by getting
-//        val iosMain by getting
-//        val iosTest by getting
+        val iosMain by getting
+        val iosTest by getting
     }
 
     afterEvaluate {
