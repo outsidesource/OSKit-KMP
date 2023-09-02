@@ -152,7 +152,33 @@ interface IRouter {
     fun markTransitionStatus(status: RouteTransitionStatus)
 
     /**
-     * [addRouteDestroyedListener] adds a listener to the current route when it is popped off of the route stack
+     * [addRouteLifecycleListener] adds a lifecycle listener to the current route. onRouteStarted() is called immediately
      */
-    fun addRouteDestroyedListener(block: () -> Unit)
+    fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
+}
+
+/**
+ * [IRouteLifecycleListener]
+ */
+interface IRouteLifecycleListener {
+    /**
+     * [onRouteDestroyed] called when the route is popped off the stack
+     */
+    fun onRouteDestroyed()
+
+    /**
+     * [onRouteStarted] called immediately after adding a listener and when a route returns to the foreground after being
+     * in the back stack
+     */
+    fun onRouteStarted() {}
+
+    /**
+     * [onRouteDestroyed] called when the route is placed in the back stack
+     */
+    fun onRouteStopped() {}
+
+    /**
+     * [onRouteDestroyed] called when the route's enter transition is complete
+     */
+    fun onRouteEnterTransitionComplete() {}
 }

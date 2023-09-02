@@ -80,6 +80,8 @@ abstract class Coordinator(
     protected fun popTo(to: IRoute, inclusive: Boolean = false, force: Boolean = false) =
         router.popTo(to, inclusive, force)
 
+    fun addRouteLifecycleListener(listener: IRouteLifecycleListener) = router.addRouteLifecycleListener(listener)
+
     companion object {
         fun createObserver(coordinator: Coordinator): ICoordinatorObserver =
             object : ICoordinatorObserver {
@@ -92,8 +94,8 @@ abstract class Coordinator(
                 override fun markTransitionStatus(status: RouteTransitionStatus) =
                     coordinator.router.markTransitionStatus(status)
 
-                override fun addRouteDestroyedListener(block: () -> Unit) =
-                    coordinator.router.addRouteDestroyedListener(block)
+                override fun addRouteLifecycleListener(listener: IRouteLifecycleListener) =
+                    coordinator.router.addRouteLifecycleListener(listener)
             }
     }
 }
@@ -103,5 +105,5 @@ interface ICoordinatorObserver {
     fun pop()
     val routeFlow: StateFlow<RouteStackEntry>
     fun markTransitionStatus(status: RouteTransitionStatus)
-    fun addRouteDestroyedListener(block: () -> Unit)
+    fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
 }
