@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 
-interface IInteractorObservable<T : Any> {
+interface IInteractor<T : Any> {
     val state: T
     fun flow(): Flow<T>
 }
@@ -34,7 +34,7 @@ interface IInteractorObservable<T : Any> {
  *
  * Observing State
  * When an observer subscribes to state via the [flow] method it will immediately receive the latest state as the first
- * emit. Afterwards, only changes to the state will be emitted to observers.
+ * emit. Afterward, only changes to the state will be emitted to observers.
  *
  * Updating State
  * The only way to update an [Interactor]'s state is by calling the [update] method. Calling [update] will synchronously update
@@ -48,8 +48,8 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    private val dependencies: List<IInteractorObservable<*>> = emptyList(),
-) : IInteractorObservable<T> {
+    private val dependencies: List<IInteractor<*>> = emptyList(),
+) : IInteractor<T> {
     internal val subscriptionCount = atomic(0)
     internal val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
