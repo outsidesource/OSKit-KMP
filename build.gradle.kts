@@ -71,6 +71,7 @@ kotlin {
                 implementation(Dependencies.KtorClientCore)
                 implementation(Dependencies.KtorClientCIO)
                 implementation(Dependencies.KtorWebsockets)
+                implementation(Dependencies.OkIO)
             }
         }
         val commonTest by getting {
@@ -78,17 +79,13 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting {
-            dependencies {}
-        }
+        val androidMain by getting
         val androidInstrumentedTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
             }
         }
-        val jvmMain by getting {
-            dependencies {}
-        }
+        val jvmMain by getting
         val jvmTest by getting
 
         val iosX64Main by getting
