@@ -2,7 +2,7 @@ package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
 
 import com.outsidesource.oskitkmp.router.IRoute
 import com.outsidesource.oskitkmp.router.Router
-import org.junit.Test
+import kotlin.test.Test
 
 class RouterTest {
     @Test
@@ -87,8 +87,8 @@ class RouterTest {
 }
 
 private sealed class Route: IRoute {
-    object Home: Route()
-    object Route1: Route()
-    object Route2: Route()
+    data object Home: Route()
+    data object Route1: Route()
+    data object Route2: Route()
     data class Test(val test: Int): Route()
 }

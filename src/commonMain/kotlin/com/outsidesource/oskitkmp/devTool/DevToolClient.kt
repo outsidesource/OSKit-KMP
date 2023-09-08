@@ -44,11 +44,11 @@ suspend fun DevToolClientEvent.Companion.deserialize(event: String): DevToolClie
 
 @Serializable
 sealed class DevToolClientError(override val message: String = "") : Throwable(message = message) {
-    object ServerClosed : DevToolClientError("Server was closed")
-    object InvalidHost : DevToolClientError("Invalid host")
-    object Unknown : DevToolClientError("Unknown")
-    object UnknownEvent : DevToolClientError("Received unknown event")
-    object Uninitialized : DevToolClientError()
+    data object ServerClosed : DevToolClientError("Server was closed")
+    data object InvalidHost : DevToolClientError("Invalid host")
+    data object Unknown : DevToolClientError("Unknown")
+    data object UnknownEvent : DevToolClientError("Received unknown event")
+    data object Uninitialized : DevToolClientError()
 }
 
 expect class OSDevToolClient {
