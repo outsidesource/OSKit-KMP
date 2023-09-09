@@ -195,7 +195,7 @@ class Router(
 
         while (_routeStack.value.size > 1) {
             if (!block(_routeStack.value.last().route)) break
-            destroyTopStackEntry()
+            destroyTopStackEntry(callOnStop = false)
         }
     }
 
@@ -221,10 +221,13 @@ class Router(
         }
     }
 
-    private fun destroyTopStackEntry() {
+    private fun destroyTopStackEntry(callOnStop: Boolean = true) {
         val top = _routeStack.value.last()
         _routeStack.update { it.toMutableList().apply { remove(top) } }
-        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteDestroyed() }
+        routeLifecycleListeners.value[top.id]?.forEach {
+            if (callOnStop) it.onRouteStopped()
+            it.onRouteDestroyed()
+        }
         routeLifecycleListeners.update { it.toMutableMap().apply { remove(top.id) } }
     }
 

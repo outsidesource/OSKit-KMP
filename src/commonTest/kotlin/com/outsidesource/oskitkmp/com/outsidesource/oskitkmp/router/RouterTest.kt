@@ -3,6 +3,8 @@ package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
 import com.outsidesource.oskitkmp.router.IRoute
 import com.outsidesource.oskitkmp.router.Router
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class RouterTest {
     @Test
@@ -12,15 +14,15 @@ class RouterTest {
         router.push(Route.Route1)
         router.push(Route.Route1)
         router.push(Route.Route1)
-        assert(router.routeStack.size == 5)
+        assertTrue(router.routeStack.size == 5)
 
         router.push(route = Route.Route2, popTo = Route.Home)
-        assert(router.routeStack.size == 2 && router.routeStack[0].route == Route.Home)
+        assertTrue(router.routeStack.size == 2 && router.routeStack[0].route == Route.Home)
 
         router.push(route = Route.Route2, popTo = Route.Home, popToInclusive = true)
         // Shouldn't be able to inclusive the Home
-        assert(router.routeStack.size == 2 && router.routeStack[0].route == Route.Home)
-        assert(router.routeFlow.value.route == Route.Route2)
+        assertTrue(router.routeStack.size == 2 && router.routeStack[0].route == Route.Home)
+        assertEquals(router.routeFlow.value.route, Route.Route2)
     }
 
     @Test
@@ -28,11 +30,11 @@ class RouterTest {
         val router = Router(Route.Home)
         router.push(Route.Route1)
         router.replace(Route.Route2)
-        assert(router.routeStack.size == 2)
+        assertTrue(router.routeStack.size == 2)
 
         router.replace(route = Route.Route2, popTo = Route.Home)
-        assert(router.routeStack.size == 1 && router.routeStack[0].route == Route.Route2)
-        assert(router.routeFlow.value.route == Route.Route2)
+        assertTrue(router.routeStack.size == 1 && router.routeStack[0].route == Route.Route2)
+        assertEquals(router.routeFlow.value.route, Route.Route2)
     }
 
     @Test
@@ -41,12 +43,12 @@ class RouterTest {
         router.push(Route.Route1)
         router.push(Route.Route2)
         router.pop()
-        assert(router.routeStack.size == 2)
+        assertTrue(router.routeStack.size == 2)
         router.pop()
-        assert(router.routeStack.size == 1)
+        assertTrue(router.routeStack.size == 1)
         router.pop()
-        assert(router.routeStack.size == 1)
-        assert(router.routeFlow.value.route == Route.Home)
+        assertTrue(router.routeStack.size == 1)
+        assertEquals(router.routeFlow.value.route, Route.Home)
     }
 
     @Test
@@ -55,16 +57,16 @@ class RouterTest {
         router.push(Route.Route1)
         router.push(Route.Route2)
         router.popTo(Route.Route1::class)
-        assert(router.routeStack.size == 2)
+        assertTrue(router.routeStack.size == 2)
         router.push(Route.Route2)
         router.popTo(Route.Route1::class, inclusive = true)
-        assert(router.routeStack.size == 1)
+        assertTrue(router.routeStack.size == 1)
 
         router.push(Route.Route1)
         router.push(Route.Route2)
         router.popTo(Route.Route1)
-        assert(router.routeStack.size == 2)
-        assert(router.routeFlow.value.route == Route.Route1)
+        assertTrue(router.routeStack.size == 2)
+        assertEquals(router.routeFlow.value.route, Route.Route1)
     }
 
     @Test
@@ -77,12 +79,11 @@ class RouterTest {
         router.push(Route.Test(5))
 
         router.popWhile {
-            if (it is Route.Test && it.test != 2) return@popWhile true
-            return@popWhile false
+            return@popWhile it is Route.Test && it.test != 2
         }
 
-        assert(router.routeStack.size == 3)
-        assert(router.routeFlow.value.route == Route.Test(2))
+        assertTrue(router.routeStack.size == 3)
+        assertEquals(router.routeFlow.value.route, Route.Test(2))
     }
 }
 
