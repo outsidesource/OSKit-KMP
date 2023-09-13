@@ -45,7 +45,7 @@ kotlin {
             useJUnit()
         }
     }
-    android {
+    androidTarget {
         publishLibraryVariants("release", "debug")
     }
 
@@ -79,7 +79,12 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting
+        val androidMain by getting {
+            dependencies {
+                implementation("androidx.activity:activity-compose:1.7.2")
+                implementation("androidx.documentfile:documentfile:1.0.1")
+            }
+        }
         val androidInstrumentedTest by getting {
             dependencies {
                 implementation("junit:junit:4.13.2")
