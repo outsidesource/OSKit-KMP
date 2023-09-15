@@ -14,7 +14,7 @@ class Router(
     private val defaultTransition: IRouteTransition = object : IRouteTransition {},
 ) : IRouter {
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
-    private val routeDestroyedListeners = atomic(mapOf<Int, List<() -> Unit>>())
+    private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
     private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
 
     override val routeFlow: MutableStateFlow<RouteStackEntry>
@@ -35,6 +35,7 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean
     ) {
+        notifyRouteStopped()
         popToInternal(popTo, popToInclusive, force)
         push(route = route, transition = transition, force = force)
     }
@@ -46,13 +47,15 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean
     ) {
+        notifyRouteStopped()
         popToInternal(popTo, popToInclusive, force)
         push(route = route, transition = transition, force = force)
     }
 
     override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
+        notifyRouteStopped()
         pushInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     override fun push(
@@ -61,9 +64,10 @@ class Router(
         force: Boolean,
         popWhile: (entry: IRoute) -> Boolean
     ) {
+        notifyRouteStopped()
         popWhileInternal(force, popWhile)
         pushInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     private fun pushInternal(route: IRoute, transition: IRouteTransition?, force: Boolean) {
@@ -77,7 +81,7 @@ class Router(
 
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         replaceInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     override fun replace(
@@ -88,7 +92,7 @@ class Router(
     ) {
         popWhileInternal(force, popWhile)
         replaceInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     override fun replace(
@@ -100,7 +104,7 @@ class Router(
     ) {
         popToInternal(popTo, popToInclusive, force)
         replaceInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     override fun <T : IRoute> replace(
@@ -112,7 +116,7 @@ class Router(
     ) {
         popToInternal(popTo, popToInclusive, force)
         replaceInternal(route, transition, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
     }
 
     private fun replaceInternal(route: IRoute, transition: IRouteTransition?, force: Boolean) {
@@ -130,17 +134,20 @@ class Router(
         if (transitionStatus == RouteTransitionStatus.Running && !force) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
-        notifyListeners()
+        notifyRouteFlowListeners()
+        notifyRouteStarted()
     }
 
     override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean, force: Boolean) {
         popToInternal(to, inclusive, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
+        notifyRouteStarted()
     }
 
     override fun popTo(to: IRoute, inclusive: Boolean, force: Boolean) {
         popToInternal(to, inclusive, force)
-        notifyListeners()
+        notifyRouteFlowListeners()
+        notifyRouteStarted()
     }
 
     private fun <T : IRoute> popToInternal(to: KClass<T>, inclusive: Boolean, force: Boolean) {
@@ -177,7 +184,8 @@ class Router(
 
     override fun popWhile(force: Boolean, block: (route: IRoute) -> Boolean) {
         popWhileInternal(force, block)
-        notifyListeners()
+        notifyRouteFlowListeners()
+        notifyRouteStarted()
     }
 
     private fun popWhileInternal(force: Boolean = false, block: (route: IRoute) -> Boolean) {
@@ -187,33 +195,53 @@ class Router(
 
         while (_routeStack.value.size > 1) {
             if (!block(_routeStack.value.last().route)) break
-            destroyTopStackEntry()
+            destroyTopStackEntry(callOnStop = false)
         }
     }
 
     override fun hasBackStack(): Boolean = _routeStack.value.size > 1
 
     override fun markTransitionStatus(status: RouteTransitionStatus) {
+        val previousStatus = transitionStatus
         transitionStatus = status
+
+        if (status == RouteTransitionStatus.Completed && previousStatus != status) {
+            val top = _routeStack.value.last()
+            routeLifecycleListeners.value[top.id]?.forEach { it.onRouteEnterTransitionComplete() }
+        }
     }
 
-    override fun addRouteDestroyedListener(block: () -> Unit) {
+    override fun addRouteLifecycleListener(listener: IRouteLifecycleListener) {
         val route = current
-        routeDestroyedListeners.update {
+        listener.onRouteStarted()
+        routeLifecycleListeners.update {
             it.toMutableMap().apply {
-                put(route.id, (this[route.id] ?: emptyList()) + block)
+                put(route.id, (this[route.id] ?: emptyList()) + listener)
             }
         }
     }
 
-    private fun destroyTopStackEntry() {
+    private fun destroyTopStackEntry(callOnStop: Boolean = true) {
         val top = _routeStack.value.last()
         _routeStack.update { it.toMutableList().apply { remove(top) } }
-        routeDestroyedListeners.value[top.id]?.forEach { it() }
-        routeDestroyedListeners.update { it.toMutableMap().apply { remove(top.id) } }
+        routeLifecycleListeners.value[top.id]?.forEach {
+            if (callOnStop) it.onRouteStopped()
+            it.onRouteDestroyed()
+        }
+        routeLifecycleListeners.update { it.toMutableMap().apply { remove(top.id) } }
     }
 
-    private fun notifyListeners() {
+    private fun notifyRouteFlowListeners() {
         routeFlow.value = _routeStack.value.last()
+    }
+
+    private fun notifyRouteStopped() {
+        val top = _routeStack.value.last()
+        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStopped() }
+    }
+
+    private fun notifyRouteStarted() {
+        val top = _routeStack.value.last()
+        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStarted() }
     }
 }

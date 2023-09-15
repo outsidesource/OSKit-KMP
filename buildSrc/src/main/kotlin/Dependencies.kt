@@ -1,5 +1,5 @@
 object Versions {
-    const val Kotlin = "1.8.0"
+    const val Kotlin = "1.9.0"
     const val KtLintPlugin = "10.2.1"
 
     const val CoroutinesCore = "1.7.1"
@@ -7,6 +7,7 @@ object Versions {
     const val KotlinxAtomicFu = "0.20.2"
     const val KotlinxSerializationJson = "1.5.1"
     const val Ktor = "2.3.1"
+    const val OkIO = "3.5.0"
 }
 
 object Dependencies {
@@ -19,4 +20,5 @@ object Dependencies {
     const val KtorServerCIO = "io.ktor:ktor-server-cio:${Versions.Ktor}"
     const val KtorClientCore = "io.ktor:ktor-client-core:${Versions.Ktor}"
     const val KtorClientCIO = "io.ktor:ktor-client-cio:${Versions.Ktor}"
+    const val OkIO = "com.squareup.okio:okio:${Versions.OkIO}"
 }
