@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import okio.FileMetadata
 
 expect class KMPFileHandlerContext
 
@@ -39,7 +38,7 @@ interface IKMPFileHandler {
     suspend fun rename(file: KMPFileURI, name: String): Outcome<KMPFileURI, Exception>
     suspend fun delete(file: KMPFileURI, isRecursive: Boolean = false): Outcome<Unit, Exception>
     suspend fun list(dir: KMPFileURI, isRecursive: Boolean = false): Outcome<List<KMPFileURI>, Exception>
-    suspend fun readMetadata(file: KMPFileURI): Outcome<FileMetadata, Exception>
+    suspend fun readMetadata(file: KMPFileURI): Outcome<KMPFileMetadata, Exception>
     suspend fun exists(file: KMPFileURI): Boolean
 
     /**
@@ -76,7 +75,7 @@ interface IKMPFileHandler {
         }
     }
 
-    suspend fun readMetadata(dir: KMPFileURI, name: String): Outcome<FileMetadata, Exception> {
+    suspend fun readMetadata(dir: KMPFileURI, name: String): Outcome<KMPFileMetadata, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
@@ -91,16 +90,21 @@ interface IKMPFileHandler {
     }
 }
 
-class NotInitializedException : Exception("KMPFileHandler has not been initialized")
-class FileOpenException : Exception("KMPFileHandler could not open the specified file")
-class FileCreateException : Exception("KMPFileHandler could not create the specified file")
-class FileRenameException : Exception("KMPFileHandler could not rename the specified file")
-class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
-class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
-
 typealias KMPFileFilter = List<KMPFileFilterType>
 
 data class KMPFileFilterType(
     val extension: String,
     val mimeType: String,
 )
+
+data class KMPFileMetadata(
+    val size: Long,
+)
+
+class NotInitializedException : Exception("KMPFileHandler has not been initialized")
+class FileOpenException : Exception("KMPFileHandler could not open the specified file")
+class FileCreateException : Exception("KMPFileHandler could not create the specified file")
+class FileRenameException : Exception("KMPFileHandler could not rename the specified file")
+class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
+class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
+class FileMetadataException : Exception("KMPFileHandler could not fetch metadata for the specified file")

@@ -3,6 +3,7 @@ package com.outsidesource.oskitkmp.file
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,7 +19,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import okio.FileMetadata
 import okio.Path.Companion.toPath
 import okio.Sink
 import okio.Source
@@ -73,7 +73,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
 
-            Outcome.Ok(KMPFileURI(uri = uri.path.toString(), isDirectory = false, name = name))
+            Outcome.Ok(KMPFileURI(uri = uri.toString(), isDirectory = false, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -213,9 +213,26 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun readMetadata(file: KMPFileURI): Outcome<FileMetadata, Exception> {
+    override suspend fun readMetadata(file: KMPFileURI): Outcome<KMPFileMetadata, Exception> {
         return try {
-            return Outcome.Ok(fileSystem.metadata(file.uri.toPath()))
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val size: Long
+
+            val cursor = context.applicationContext.contentResolver.query(
+                file.uri.toUri(),
+                null,
+                null,
+                null,
+                null
+            ) ?: return Outcome.Error(FileMetadataException())
+
+            cursor.use {
+                val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)
+                it.moveToFirst()
+                size = it.getLong(sizeIndex)
+            }
+
+            Outcome.Ok(KMPFileMetadata(size = size))
         } catch (e: Exception) {
             Outcome.Error(e)
         }

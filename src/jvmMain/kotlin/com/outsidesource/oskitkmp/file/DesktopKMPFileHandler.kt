@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import okio.FileMetadata
 import okio.Sink
 import okio.Source
 
@@ -53,7 +52,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         TODO("Not yet implemented")
     }
 
-    override suspend fun readMetadata(file: KMPFileURI): Outcome<FileMetadata, Exception> {
+    override suspend fun readMetadata(file: KMPFileURI): Outcome<KMPFileMetadata, Exception> {
         TODO("Not yet implemented")
     }
 
