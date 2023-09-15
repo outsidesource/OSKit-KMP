@@ -10,6 +10,7 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.outsidesource.oskitkmp.lib.fileSystem
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.getOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -59,9 +60,9 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     }
 
     override suspend fun pickFile(
-        startingDir: KMPFile?,
+        startingDir: KMPFileURI?,
         filter: KMPFileFilter?
-    ): Outcome<KMPFile?, Exception> {
+    ): Outcome<KMPFileURI?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val fileResultLauncher = openFileResultLauncher ?: return Outcome.Error(NotInitializedException())
@@ -70,84 +71,174 @@ class AndroidKMPFileHandler : IKMPFileHandler {
             val uri = openFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
-                ?: return Outcome.Error(UnableToOpenFileException())
+                ?: return Outcome.Error(FileOpenException())
 
-            Outcome.Ok(KMPFile(path = uri.path.toString(), isDirectory = false, name = name))
+            Outcome.Ok(KMPFileURI(uri = uri.path.toString(), isDirectory = false, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    override suspend fun pickFolder(startingDir: KMPFile?): Outcome<KMPFile?, Exception> {
+    override suspend fun pickFolder(startingDir: KMPFileURI?): Outcome<KMPFileURI?, Exception> {
         return try {
             val folderResultLauncher = openFolderResultLauncher ?: return Outcome.Error(NotInitializedException())
             val context = context ?: return Outcome.Error(NotInitializedException())
 
-            folderResultLauncher.launch(startingDir?.path?.toUri())
+            folderResultLauncher.launch(startingDir?.uri?.toUri())
             val uri = openFolderResultFlow.firstOrNull() ?: return Outcome.Ok(null)
             val name = DocumentFile.fromTreeUri(context.applicationContext, uri)?.name
-                ?: return Outcome.Error(UnableToOpenFileException())
+                ?: return Outcome.Error(FileOpenException())
 
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KMPFile(path = uri.toString(), isDirectory = true, name = name))
+            Outcome.Ok(KMPFileURI(uri = uri.toString(), isDirectory = true, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    /**
-     * Note: ACTION_CREATE_DOCUMENT cannot overwrite an existing file. If your app tries to save a file with the
-     * same name, the system appends a number in parentheses at the end of the file name.
-     *
-     * For example, if your app tries to save a file called confirmation.pdf in a directory that already has a file
-     * with that name, the system saves the new file with the name confirmation(1).pdf.
-     */
-    override suspend fun openFile(dir: KMPFile, name: String, mustCreate: Boolean): Outcome<KMPFile, Exception> {
-        TODO("Not yet implemented")
+    override suspend fun resolveFile(
+        dir: KMPFileURI,
+        name: String,
+        mustCreate: Boolean
+    ): Outcome<KMPFileURI, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.uri.toUri())
+                ?: return Outcome.Error(FileOpenException())
+            val file = parentUri.findFile(name)
+            if (file == null && !mustCreate) return Outcome.Error(FileNotFoundException())
+            val createdFile = file ?: parentUri.createFile("", name)
+                ?: return Outcome.Error(FileCreateException())
+
+            Outcome.Ok(KMPFileURI(uri = createdFile.uri.toString(), name = name, isDirectory = false))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun createDirectory(dir: KMPFile, name: String): Outcome<KMPFile, Exception> {
-        TODO("Not yet implemented")
+    override suspend fun resolveDirectory(
+        dir: KMPFileURI,
+        name: String,
+        mustCreate: Boolean
+    ): Outcome<KMPFileURI, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.uri.toUri())
+                ?: return Outcome.Error(FileOpenException())
+            val file = parentUri.findFile(name)
+            if (file == null && !mustCreate) return Outcome.Error(FileNotFoundException())
+            if (file != null && file.isDirectory) return Outcome.Error(FileCreateException())
+            val createdFile = file ?: parentUri.createFile("", name)
+                ?: return Outcome.Error(FileCreateException())
+
+            Outcome.Ok(KMPFileURI(uri = createdFile.uri.toString(), name = name, isDirectory = true))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun rename(file: KMPFile, name: String): Outcome<KMPFile, Exception> {
-        TODO("Not yet implemented")
+    // TODO: Test renaming the root directory and see if references are still valid
+    // TODO: Test renaming directory and file
+    override suspend fun rename(file: KMPFileURI, name: String): Outcome<KMPFileURI, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val documentFile = if (file.isDirectory) {
+                DocumentFile.fromTreeUri(context.applicationContext, file.uri.toUri())
+                    ?: return Outcome.Error(FileOpenException())
+            } else {
+                DocumentFile.fromSingleUri(context.applicationContext, file.uri.toUri())
+                    ?: return Outcome.Error(FileOpenException())
+            }
+
+            if (!documentFile.renameTo(name)) return Outcome.Error(FileRenameException())
+
+            return Outcome.Ok(file.copy(uri = documentFile.uri.toString(), name = name))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun delete(file: KMPFile, isRecursive: Boolean): Outcome<Unit, Exception> {
-        TODO("Not yet implemented")
+    override suspend fun delete(file: KMPFileURI, isRecursive: Boolean): Outcome<Unit, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val documentFile = if (file.isDirectory) {
+                DocumentFile.fromTreeUri(context.applicationContext, file.uri.toUri())
+                    ?: return Outcome.Error(FileOpenException())
+            } else {
+                DocumentFile.fromSingleUri(context.applicationContext, file.uri.toUri())
+                    ?: return Outcome.Error(FileOpenException())
+            }
+
+            if (!documentFile.delete()) return Outcome.Error(FileDeleteException())
+
+            return Outcome.Ok(Unit)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun list(dir: KMPFile, isRecursive: Boolean): Outcome<List<KMPFile>, Exception> {
-        TODO("Not yet implemented")
+    // TODO: Test recursive
+    override suspend fun list(dir: KMPFileURI, isRecursive: Boolean): Outcome<List<KMPFileURI>, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            if (!dir.isDirectory) return Outcome.Ok(emptyList())
+
+            val documentFile = DocumentFile.fromTreeUri(context.applicationContext, dir.uri.toUri())
+                ?: return Outcome.Error(FileOpenException())
+            if (!isRecursive) {
+                val list = documentFile.listFiles().map {
+                    KMPFileURI(uri = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
+                }
+                return Outcome.Ok(list)
+            }
+
+            val list = documentFile.listFiles().flatMap {
+                buildList {
+                    val file = KMPFileURI(uri = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
+                    add(file)
+
+                    if (it.isDirectory) {
+                        addAll(list(file).getOrNull() ?: emptyList())
+                    }
+                }
+            }
+
+            return Outcome.Ok(list)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun readMetadata(file: KMPFile): Outcome<FileMetadata, Exception> {
-        TODO("Not yet implemented")
+    override suspend fun readMetadata(file: KMPFileURI): Outcome<FileMetadata, Exception> {
+        return try {
+            return Outcome.Ok(fileSystem.metadata(file.uri.toPath()))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
-    override suspend fun exists(file: KMPFile): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun exists(file: KMPFileURI): Boolean {
+        return fileSystem.exists(file.uri.toPath())
     }
 }
 
-actual fun KMPFile.source(): Outcome<Source, Exception> {
+actual fun KMPFileURI.source(): Outcome<Source, Exception> {
     return try {
-        Outcome.Ok(fileSystem.source(path.toPath()))
+        Outcome.Ok(fileSystem.source(uri.toPath()))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
 }
 
-actual fun KMPFile.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual fun KMPFileURI.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         val sink = when (mode) {
-            KMPFileWriteMode.Append -> fileSystem.appendingSink(path.toPath(), mustExist = true)
-            KMPFileWriteMode.Overwrite -> fileSystem.sink(path.toPath(), mustCreate = false)
+            KMPFileWriteMode.Append -> fileSystem.appendingSink(uri.toPath(), mustExist = true)
+            KMPFileWriteMode.Overwrite -> fileSystem.sink(uri.toPath(), mustCreate = false)
         }
         Outcome.Ok(sink)
     } catch (e: Exception) {

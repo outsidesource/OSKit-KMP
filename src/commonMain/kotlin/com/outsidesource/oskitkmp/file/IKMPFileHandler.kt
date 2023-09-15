@@ -18,53 +18,73 @@ expect class KMPFileHandlerContext
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
     suspend fun pickFile(
-        startingDir: KMPFile? = null,
+        startingDir: KMPFileURI? = null,
         filter: KMPFileFilter? = null
-    ): Outcome<KMPFile?, Exception>
-    suspend fun pickFolder(startingDir: KMPFile? = null): Outcome<KMPFile?, Exception>
-    suspend fun openFile(dir: KMPFile, name: String, mustCreate: Boolean = false): Outcome<KMPFile, Exception>
-    suspend fun createDirectory(dir: KMPFile, name: String): Outcome<KMPFile, Exception>
-    suspend fun rename(file: KMPFile, name: String): Outcome<KMPFile, Exception>
-    suspend fun delete(file: KMPFile, isRecursive: Boolean = false): Outcome<Unit, Exception>
-    suspend fun list(dir: KMPFile, isRecursive: Boolean = false): Outcome<List<KMPFile>, Exception>
-    suspend fun readMetadata(file: KMPFile): Outcome<FileMetadata, Exception>
-    suspend fun exists(file: KMPFile): Boolean
+    ): Outcome<KMPFileURI?, Exception>
+    suspend fun pickFolder(startingDir: KMPFileURI? = null): Outcome<KMPFileURI?, Exception>
+
+    /**
+     * [mustCreate] Creates the file if it does not exist
+     */
+    suspend fun resolveFile(dir: KMPFileURI, name: String, mustCreate: Boolean = false): Outcome<KMPFileURI, Exception>
+
+    /**
+     * [mustCreate] Creates the directory if it does not exist
+     */
+    suspend fun resolveDirectory(
+        dir: KMPFileURI,
+        name: String,
+        mustCreate: Boolean = false
+    ): Outcome<KMPFileURI, Exception>
+    suspend fun rename(file: KMPFileURI, name: String): Outcome<KMPFileURI, Exception>
+    suspend fun delete(file: KMPFileURI, isRecursive: Boolean = false): Outcome<Unit, Exception>
+    suspend fun list(dir: KMPFileURI, isRecursive: Boolean = false): Outcome<List<KMPFileURI>, Exception>
+    suspend fun readMetadata(file: KMPFileURI): Outcome<FileMetadata, Exception>
+    suspend fun exists(file: KMPFileURI): Boolean
 
     /**
      * Convenience functions
      */
-    suspend fun openFile(
-        dir: KMPFile,
+    suspend fun resolveFile(
+        dir: KMPFileURI,
         segments: List<String>,
         mustCreate: Boolean = false
-    ): Outcome<KMPFile, Exception> {
+    ): Outcome<KMPFileURI, Exception> {
         TODO()
     }
 
-    suspend fun move(from: KMPFile, to: KMPFile): Outcome<Unit, Exception> {
+    suspend fun resolveDirectory(
+        dir: KMPFileURI,
+        segments: List<String>,
+        mustCreate: Boolean = false
+    ): Outcome<KMPFileURI, Exception> {
         TODO()
     }
 
-    suspend fun copy(from: KMPFile, to: KMPFile): Outcome<Unit, Exception> {
+    suspend fun move(from: KMPFileURI, to: KMPFileURI): Outcome<Unit, Exception> {
         TODO()
     }
 
-    suspend fun exists(dir: KMPFile, name: String): Boolean {
-        return when (val outcome = openFile(dir, name)) {
+    suspend fun copy(from: KMPFileURI, to: KMPFileURI): Outcome<Unit, Exception> {
+        TODO()
+    }
+
+    suspend fun exists(dir: KMPFileURI, name: String): Boolean {
+        return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return exists(outcome.value)
             is Outcome.Error -> false
         }
     }
 
-    suspend fun readMetadata(dir: KMPFile, name: String): Outcome<FileMetadata, Exception> {
-        return when (val outcome = openFile(dir, name)) {
+    suspend fun readMetadata(dir: KMPFileURI, name: String): Outcome<FileMetadata, Exception> {
+        return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
         }
     }
 
-    suspend fun delete(dir: KMPFile, name: String): Outcome<Unit, Exception> {
-        return when (val outcome = openFile(dir, name)) {
+    suspend fun delete(dir: KMPFileURI, name: String): Outcome<Unit, Exception> {
+        return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return delete(outcome.value)
             is Outcome.Error -> outcome
         }
@@ -72,7 +92,11 @@ interface IKMPFileHandler {
 }
 
 class NotInitializedException : Exception("KMPFileHandler has not been initialized")
-class UnableToOpenFileException : Exception("KMPFileHandler could not open the specified file")
+class FileOpenException : Exception("KMPFileHandler could not open the specified file")
+class FileCreateException : Exception("KMPFileHandler could not create the specified file")
+class FileRenameException : Exception("KMPFileHandler could not rename the specified file")
+class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
+class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
 
 typealias KMPFileFilter = List<KMPFileFilterType>
 
