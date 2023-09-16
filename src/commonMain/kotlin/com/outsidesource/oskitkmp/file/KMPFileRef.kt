@@ -4,8 +4,8 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import okio.Sink
 import okio.Source
 
-data class KMPFileURI internal constructor(
-    internal val uri: String,
+data class KMPFileRef internal constructor(
+    internal val ref: String,
     val name: String,
     val isDirectory: Boolean,
 ) {
@@ -14,14 +14,14 @@ data class KMPFileURI internal constructor(
     }
 
     companion object {
-        fun fromPersistableString(): KMPFileURI {
+        fun fromPersistableString(): KMPFileRef {
             TODO()
         }
     }
 }
 
-expect fun KMPFileURI.source(): Outcome<Source, Exception>
-expect fun KMPFileURI.sink(mode: KMPFileWriteMode = KMPFileWriteMode.Overwrite): Outcome<Sink, Exception>
+expect fun KMPFileRef.source(): Outcome<Source, Exception>
+expect fun KMPFileRef.sink(mode: KMPFileWriteMode = KMPFileWriteMode.Overwrite): Outcome<Sink, Exception>
 
 enum class KMPFileWriteMode {
     Append,

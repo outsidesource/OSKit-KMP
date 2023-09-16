@@ -1,6 +1,8 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import okio.buffer
+import okio.use
 
 expect class KMPFileHandlerContext
 
@@ -17,72 +19,110 @@ expect class KMPFileHandlerContext
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
     suspend fun pickFile(
-        startingDir: KMPFileURI? = null,
+        startingDir: KMPFileRef? = null,
         filter: KMPFileFilter? = null
-    ): Outcome<KMPFileURI?, Exception>
-    suspend fun pickFolder(startingDir: KMPFileURI? = null): Outcome<KMPFileURI?, Exception>
+    ): Outcome<KMPFileRef?, Exception>
+    suspend fun pickFolder(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
 
     /**
-     * [mustCreate] Creates the file if it does not exist
+     * [create] Creates the file if it does not exist
      */
-    suspend fun resolveFile(dir: KMPFileURI, name: String, mustCreate: Boolean = false): Outcome<KMPFileURI, Exception>
+    suspend fun resolveFile(dir: KMPFileRef, name: String, create: Boolean = false): Outcome<KMPFileRef, Exception>
 
     /**
-     * [mustCreate] Creates the directory if it does not exist
+     * [create] Creates the directory if it does not exist
      */
     suspend fun resolveDirectory(
-        dir: KMPFileURI,
+        dir: KMPFileRef,
         name: String,
-        mustCreate: Boolean = false
-    ): Outcome<KMPFileURI, Exception>
-    suspend fun rename(file: KMPFileURI, name: String): Outcome<KMPFileURI, Exception>
-    suspend fun delete(file: KMPFileURI, isRecursive: Boolean = false): Outcome<Unit, Exception>
-    suspend fun list(dir: KMPFileURI, isRecursive: Boolean = false): Outcome<List<KMPFileURI>, Exception>
-    suspend fun readMetadata(file: KMPFileURI): Outcome<KMPFileMetadata, Exception>
-    suspend fun exists(file: KMPFileURI): Boolean
+        create: Boolean = false
+    ): Outcome<KMPFileRef, Exception>
+    suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception>
+    suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
+    suspend fun list(dir: KMPFileRef, isRecursive: Boolean = false): Outcome<List<KMPFileRef>, Exception>
+    suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception>
+    suspend fun exists(ref: KMPFileRef): Boolean
 
     /**
      * Convenience functions
      */
     suspend fun resolveFile(
-        dir: KMPFileURI,
+        dir: KMPFileRef,
         segments: List<String>,
-        mustCreate: Boolean = false
-    ): Outcome<KMPFileURI, Exception> {
+        create: Boolean = false
+    ): Outcome<KMPFileRef, Exception> {
         TODO()
     }
 
     suspend fun resolveDirectory(
-        dir: KMPFileURI,
+        dir: KMPFileRef,
         segments: List<String>,
-        mustCreate: Boolean = false
-    ): Outcome<KMPFileURI, Exception> {
+        create: Boolean = false
+    ): Outcome<KMPFileRef, Exception> {
         TODO()
     }
 
-    suspend fun move(from: KMPFileURI, to: KMPFileURI): Outcome<Unit, Exception> {
-        TODO()
+    suspend fun move(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
+        val source = when (val outcome = from.source()) {
+            is Outcome.Ok -> outcome.value
+            is Outcome.Error -> return outcome
+        }
+        val sink = when (val outcome = to.sink()) {
+            is Outcome.Ok -> outcome.value
+            is Outcome.Error -> return outcome
+        }
+
+        try {
+            sink.buffer().writeAll(source)
+        } catch (e: Exception) {
+            return Outcome.Error(e)
+        }
+
+        return when (val outcome = delete(from)) {
+            is Outcome.Ok -> Outcome.Ok(Unit)
+            is Outcome.Error -> outcome
+        }
     }
 
-    suspend fun copy(from: KMPFileURI, to: KMPFileURI): Outcome<Unit, Exception> {
-        TODO()
+    suspend fun copy(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
+        val source = when (val outcome = from.source()) {
+            is Outcome.Ok -> outcome.value
+            is Outcome.Error -> return outcome
+        }
+        val sink = when (val outcome = to.sink()) {
+            is Outcome.Ok -> outcome.value
+            is Outcome.Error -> return outcome
+        }
+
+        try {
+            sink.buffer().use {
+                it.writeAll(source)
+            }
+        } catch (e: Exception) {
+            return Outcome.Error(e)
+        }
+
+        return when (val outcome = delete(from)) {
+            is Outcome.Ok -> Outcome.Ok(Unit)
+            is Outcome.Error -> outcome
+        }
     }
 
-    suspend fun exists(dir: KMPFileURI, name: String): Boolean {
+    suspend fun exists(dir: KMPFileRef, name: String): Boolean {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return exists(outcome.value)
             is Outcome.Error -> false
         }
     }
 
-    suspend fun readMetadata(dir: KMPFileURI, name: String): Outcome<KMPFileMetadata, Exception> {
+    suspend fun readMetadata(dir: KMPFileRef, name: String): Outcome<KMPFileMetadata, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
         }
     }
 
-    suspend fun delete(dir: KMPFileURI, name: String): Outcome<Unit, Exception> {
+    suspend fun delete(dir: KMPFileRef, name: String): Outcome<Unit, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return delete(outcome.value)
             is Outcome.Error -> outcome

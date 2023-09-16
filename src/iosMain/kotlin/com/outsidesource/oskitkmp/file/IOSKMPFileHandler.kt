@@ -17,57 +17,57 @@ class IOSKMPFileHandler : IKMPFileHandler {
     }
 
     override suspend fun pickFile(
-        startingDir: KMPFileURI?,
+        startingDir: KMPFileRef?,
         filter: KMPFileFilter?
-    ): Outcome<KMPFileURI?, Exception> {
+    ): Outcome<KMPFileRef?, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun pickFolder(startingDir: KMPFileURI?): Outcome<KMPFileURI?, Exception> {
+    override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         TODO("Not yet implemented")
     }
 
     override suspend fun resolveFile(
-        dir: KMPFileURI,
+        dir: KMPFileRef,
         name: String,
-        mustCreate: Boolean
-    ): Outcome<KMPFileURI, Exception> {
+        create: Boolean
+    ): Outcome<KMPFileRef, Exception> {
         TODO("Not yet implemented")
     }
 
     override suspend fun resolveDirectory(
-        dir: KMPFileURI,
+        dir: KMPFileRef,
         name: String,
-        mustCreate: Boolean
-    ): Outcome<KMPFileURI, Exception> {
+        create: Boolean
+    ): Outcome<KMPFileRef, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun rename(file: KMPFileURI, name: String): Outcome<KMPFileURI, Exception> {
+    override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun delete(file: KMPFileURI, isRecursive: Boolean): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun list(dir: KMPFileURI, isRecursive: Boolean): Outcome<List<KMPFileURI>, Exception> {
+    override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun readMetadata(file: KMPFileURI): Outcome<KMPFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun exists(file: KMPFileURI): Boolean {
+    override suspend fun exists(ref: KMPFileRef): Boolean {
         TODO("Not yet implemented")
     }
 }
 
-actual fun KMPFileURI.source(): Outcome<Source, Exception> {
+actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     TODO()
 }
 
-actual fun KMPFileURI.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     TODO()
 }
