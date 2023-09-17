@@ -20,6 +20,10 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         TODO("Not yet implemented")
     }
 
+    override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
+        TODO()
+    }
+
     override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         TODO("Not yet implemented")
     }

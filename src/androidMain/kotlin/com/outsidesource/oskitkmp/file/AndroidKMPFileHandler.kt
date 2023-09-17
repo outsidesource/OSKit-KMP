@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.file
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -34,9 +35,15 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     private var openFileResultLauncher: ActivityResultLauncher<Array<String>>? = null
     private val openFileResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    private var saveFileResultLauncher: ActivityResultLauncher<String?>? = null
+    private val saveFileResultFlow =
+        MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
     private var openFolderResultLauncher: ActivityResultLauncher<Uri?>? = null
     private val openFolderResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -49,6 +56,14 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         ) { data ->
             coroutineScope.launch {
                 openFileResultFlow.emit(data)
+            }
+        }
+
+        saveFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+            ActivityResultContracts.CreateDocument("*/*")
+        ) { data ->
+            coroutineScope.launch {
+                saveFileResultFlow.emit(data)
             }
         }
 
@@ -71,6 +86,28 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
             fileResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
             val uri = openFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+
+            val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
+                ?: return Outcome.Error(FileOpenException())
+
+            val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+            context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
+
+            Outcome.Ok(KMPFileRef(ref = uri.toString(), isDirectory = false, name = name))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
+    override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val fileResultLauncher = saveFileResultLauncher ?: return Outcome.Error(NotInitializedException())
+
+            fileResultLauncher.launch(defaultName ?: "Untitled")
+            val uri = saveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
@@ -148,19 +185,13 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    // TODO: Renaming only works on directories created within the app. I can't seem to rename a file either
-    // TODO: Test renaming the root directory and see if references are still valid
-    // TODO: Test renaming directory and file
     override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
-            val documentFile = if (ref.isDirectory) {
-                DocumentFile.fromTreeUri(context.applicationContext, ref.ref.toUri())
-                    ?: return Outcome.Error(FileOpenException())
-            } else {
-                DocumentFile.fromSingleUri(context.applicationContext, ref.ref.toUri())
-                    ?: return Outcome.Error(FileOpenException())
-            }
+            if (!ref.isDirectory) return Outcome.Error(FileRenameNotSupportedOnAndroidException())
+
+            val documentFile = DocumentFile.fromTreeUri(context.applicationContext, ref.ref.toUri())
+                ?: return Outcome.Error(FileOpenException())
 
             if (!documentFile.renameTo(name)) return Outcome.Error(FileRenameException())
 
@@ -259,6 +290,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     }
 }
 
+@SuppressLint("Recycle")
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     return try {
         val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
@@ -270,6 +302,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     }
 }
 
+@SuppressLint("Recycle")
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
@@ -285,3 +318,6 @@ actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
         Outcome.Error(e)
     }
 }
+
+class FileRenameNotSupportedOnAndroidException :
+    Exception("KMPFileHandler cannot rename files because Android DocumentFile does not support rename on single files")

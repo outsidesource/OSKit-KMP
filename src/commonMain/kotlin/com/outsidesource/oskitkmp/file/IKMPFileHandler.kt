@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.unwrapOrElse
 import okio.buffer
 import okio.use
 
@@ -10,11 +11,11 @@ expect class KMPFileHandlerContext
 // TODO: Allow Multiple selection of files/folders
 
 /**
- * Provides multiplatform filesystem interactions for content outside of application sandboxes in iOS and Android.
- * All files/folders created are user accessible.
+ * Provides limited multiplatform filesystem interactions for content outside of application sandboxes in
+ * iOS and Android. All files/folders created are user accessible from outside the application.
  *
- * In order to access any file a user must call [pickFolder] to gain permissions to a root folder. The user may then
- * take any action within that folder.
+ * In order to access any file a user must call [pickFolder] or [pickFile]. Use [pickFolder] to gain permissions to a
+ * root folder. The user may then take any action within that folder.
  */
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
@@ -22,7 +23,10 @@ interface IKMPFileHandler {
         startingDir: KMPFileRef? = null,
         filter: KMPFileFilter? = null
     ): Outcome<KMPFileRef?, Exception>
+
     suspend fun pickFolder(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
+
+    suspend fun pickSaveFile(defaultName: String? = null): Outcome<KMPFileRef?, Exception>
 
     /**
      * [create] Creates the file if it does not exist
@@ -37,6 +41,12 @@ interface IKMPFileHandler {
         name: String,
         create: Boolean = false
     ): Outcome<KMPFileRef, Exception>
+
+    /**
+     * Renames a file or folder.
+     *
+     * Android does not support renaming of files. A similar effect can be achieved by using [move] with [pickSaveFile].
+     */
     suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception>
     suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
     suspend fun list(dir: KMPFileRef, isRecursive: Boolean = false): Outcome<List<KMPFileRef>, Exception>
@@ -63,49 +73,31 @@ interface IKMPFileHandler {
     }
 
     suspend fun move(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
-        val source = when (val outcome = from.source()) {
-            is Outcome.Ok -> outcome.value
-            is Outcome.Error -> return outcome
-        }
-        val sink = when (val outcome = to.sink()) {
-            is Outcome.Ok -> outcome.value
-            is Outcome.Error -> return outcome
-        }
+        val source = from.source().unwrapOrElse { return this }
+        val sink = to.sink().unwrapOrElse { return this }
 
         try {
-            sink.buffer().writeAll(source)
+            sink.buffer().use { it.writeAll(source) }
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
 
-        return when (val outcome = delete(from)) {
-            is Outcome.Ok -> Outcome.Ok(Unit)
-            is Outcome.Error -> outcome
-        }
+        delete(from).unwrapOrElse { return this }
+
+        return Outcome.Ok(Unit)
     }
 
     suspend fun copy(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
-        val source = when (val outcome = from.source()) {
-            is Outcome.Ok -> outcome.value
-            is Outcome.Error -> return outcome
-        }
-        val sink = when (val outcome = to.sink()) {
-            is Outcome.Ok -> outcome.value
-            is Outcome.Error -> return outcome
-        }
+        val source = from.source().unwrapOrElse { return this }
+        val sink = to.sink().unwrapOrElse { return this }
 
         try {
-            sink.buffer().use {
-                it.writeAll(source)
-            }
+            sink.buffer().use { it.writeAll(source) }
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
 
-        return when (val outcome = delete(from)) {
-            is Outcome.Ok -> Outcome.Ok(Unit)
-            is Outcome.Error -> outcome
-        }
+        return Outcome.Ok(Unit)
     }
 
     suspend fun exists(dir: KMPFileRef, name: String): Boolean {
@@ -130,9 +122,9 @@ interface IKMPFileHandler {
     }
 }
 
-typealias KMPFileFilter = List<KMPFileFilterType>
+typealias KMPFileFilter = List<KMPFileMimeType>
 
-data class KMPFileFilterType(
+data class KMPFileMimeType(
     val extension: String,
     val mimeType: String,
 )
