@@ -7,9 +7,6 @@ import okio.use
 
 expect class KMPFileHandlerContext
 
-// TODO: Test removing permissions after giving access and then trying to open file
-// TODO: Allow Multiple selection of files/folders
-
 /**
  * Provides limited multiplatform filesystem interactions for content outside of application sandboxes in
  * iOS and Android. All files/folders created are user accessible from outside the application.
@@ -19,6 +16,7 @@ expect class KMPFileHandlerContext
  */
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
+
     suspend fun pickFile(
         startingDir: KMPFileRef? = null,
         filter: KMPFileFilter? = null

@@ -36,42 +36,42 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private var openFileResultLauncher: ActivityResultLauncher<Array<String>>? = null
-    private val openFileResultFlow =
+    private var pickFileResultLauncher: ActivityResultLauncher<Array<String>>? = null
+    private val pickFileResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    private var saveFileResultLauncher: ActivityResultLauncher<String?>? = null
-    private val saveFileResultFlow =
+    private var pickSaveFileResultLauncher: ActivityResultLauncher<String?>? = null
+    private val pickSaveFileResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    private var openFolderResultLauncher: ActivityResultLauncher<Uri?>? = null
-    private val openFolderResultFlow =
+    private var pickFolderResultLauncher: ActivityResultLauncher<Uri?>? = null
+    private val pickFolderResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     override fun init(fileHandlerContext: KMPFileHandlerContext) {
         context = fileHandlerContext
 
-        openFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
             ActivityResultContracts.OpenDocument()
         ) { data ->
             coroutineScope.launch {
-                openFileResultFlow.emit(data)
+                pickFileResultFlow.emit(data)
             }
         }
 
-        saveFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickSaveFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
             ActivityResultContracts.CreateDocument("*/*")
         ) { data ->
             coroutineScope.launch {
-                saveFileResultFlow.emit(data)
+                pickSaveFileResultFlow.emit(data)
             }
         }
 
-        openFolderResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickFolderResultLauncher = fileHandlerContext.activity.registerForActivityResult(
             ActivityResultContracts.OpenDocumentTree(),
         ) { data ->
             coroutineScope.launch {
-                openFolderResultFlow.emit(data)
+                pickFolderResultFlow.emit(data)
             }
         }
     }
@@ -82,10 +82,10 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     ): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
-            val fileResultLauncher = openFileResultLauncher ?: return Outcome.Error(NotInitializedException())
+            val fileResultLauncher = pickFileResultLauncher ?: return Outcome.Error(NotInitializedException())
 
             fileResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
-            val uri = openFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val uri = pickFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
@@ -104,10 +104,10 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
-            val fileResultLauncher = saveFileResultLauncher ?: return Outcome.Error(NotInitializedException())
+            val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(NotInitializedException())
 
             fileResultLauncher.launch(defaultName ?: "Untitled")
-            val uri = saveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val uri = pickSaveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
@@ -125,11 +125,11 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
-            val folderResultLauncher = openFolderResultLauncher ?: return Outcome.Error(NotInitializedException())
+            val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(NotInitializedException())
             val context = context ?: return Outcome.Error(NotInitializedException())
 
             folderResultLauncher.launch(startingDir?.ref?.toUri())
-            val uri = openFolderResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val uri = pickFolderResultFlow.firstOrNull() ?: return Outcome.Ok(null)
             val name = DocumentFile.fromTreeUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
 

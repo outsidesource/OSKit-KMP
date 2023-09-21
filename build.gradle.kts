@@ -38,14 +38,13 @@ repositories {
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "17"
-        }
+        jvmToolchain(17)
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
     }
     androidTarget {
+        jvmToolchain(11)
         publishLibraryVariants("release", "debug")
     }
 
