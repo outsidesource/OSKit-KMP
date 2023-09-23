@@ -65,6 +65,7 @@ kotlin {
                 implementation(Dependencies.KotlinxDateTime)
                 implementation(Dependencies.CoroutinesCore)
                 implementation(Dependencies.KotlinxSerializationJson)
+                implementation(Dependencies.KotlinxSerializationCBOR)
                 implementation(Dependencies.KtorServerCore)
                 implementation(Dependencies.KtorServerCIO)
                 implementation(Dependencies.KtorClientCore)

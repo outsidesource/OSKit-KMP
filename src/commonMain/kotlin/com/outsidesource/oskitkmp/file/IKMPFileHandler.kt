@@ -138,3 +138,4 @@ class FileRenameException : Exception("KMPFileHandler could not rename the speci
 class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
 class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
 class FileMetadataException : Exception("KMPFileHandler could not fetch metadata for the specified file")
+class FileListException : Exception("KMPFileHandler could not list directory contents for the specified directory")

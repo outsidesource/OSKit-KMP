@@ -1,6 +1,8 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.unwrapOrNull
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,54 +52,62 @@ class IOSKMPFileHandler : IKMPFileHandler {
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?
     ): Outcome<KMPFileRef?, Exception> {
-        val context = context ?: return Outcome.Error(NotInitializedException())
+        try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
 
-        withContext(Dispatchers.Main) {
-            context.rootController.presentViewController(
-                viewControllerToPresent = documentPickerViewController,
-                animated = true,
-                completion = null
+            withContext(Dispatchers.Main) {
+                context.rootController.presentViewController(
+                    viewControllerToPresent = documentPickerViewController,
+                    animated = true,
+                    completion = null
+                )
+            }
+
+            val url = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val ref = KMPFileRef(
+                ref = url.path ?: "",
+                name = url.path?.split("/")?.lastOrNull() ?: "",
+                isDirectory = false
             )
+
+            return Outcome.Ok(ref)
+        } catch (e: Exception) {
+            return Outcome.Error(e)
         }
-
-        val url = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
-        val ref = KMPFileRef(
-            ref = url.path ?: "",
-            name = url.path?.split("/")?.lastOrNull() ?: "",
-            isDirectory = false
-        )
-
-        return Outcome.Ok(ref)
     }
 
     override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
-        val context = context ?: return Outcome.Error(NotInitializedException())
+        try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
 
-        // TODO: Need to be able to close this view controller since it doesn't look like it's cancellable
-        withContext(Dispatchers.Main) {
-            context.rootController.presentViewController(
-                viewControllerToPresent = createFilePickerViewController,
-                animated = true,
-                completion = null,
-            )
-        }
+            // TODO: Need to be able to close this view controller since it doesn't look like it's cancellable
+            withContext(Dispatchers.Main) {
+                context.rootController.presentViewController(
+                    viewControllerToPresent = createFilePickerViewController,
+                    animated = true,
+                    completion = null,
+                )
+            }
 //        createFilePickerViewController.dismissViewControllerAnimated(true) {}
 
-        return Outcome.Ok(null)
+            return Outcome.Ok(null)
+        } catch (e: Exception) {
+            return Outcome.Error(e)
+        }
     }
 
     override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
-        val context = context ?: return Outcome.Error(NotInitializedException())
-
-        withContext(Dispatchers.Main) {
-            context.rootController.presentViewController(
-                viewControllerToPresent = directoryPickerViewController,
-                animated = true,
-                completion = null
-            )
-        }
-
         try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+
+            withContext(Dispatchers.Main) {
+                context.rootController.presentViewController(
+                    viewControllerToPresent = directoryPickerViewController,
+                    animated = true,
+                    completion = null
+                )
+            }
+
             val url = directoryPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
             val ref = KMPFileRef(
                 ref = url.path ?: "",
@@ -142,32 +152,147 @@ class IOSKMPFileHandler : IKMPFileHandler {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
         create: Boolean
     ): Outcome<KMPFileRef, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val url = NSURL(fileURLWithPath = "${dir.ref}/$name")
+            val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
+
+            if (!exists && !create) return Outcome.Error(FileNotFoundException())
+            if (!exists && create) {
+                val created = NSFileManager.defaultManager.createDirectoryAtPath(
+                    path = url.path ?: "",
+                    withIntermediateDirectories = false,
+                    attributes = null,
+                    error = null,
+                )
+                if (!created) return Outcome.Error(FileCreateException())
+            }
+
+            val ref = KMPFileRef(
+                ref = url.path ?: "",
+                name = name,
+                isDirectory = false,
+            )
+
+            Outcome.Ok(ref)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val parentUrl = NSURL(fileURLWithPath = ref.ref).URLByDeletingLastPathComponent
+                ?: return Outcome.Error(FileRenameException())
+            val newUrl = NSURL(fileURLWithPath = "${parentUrl.path}/$name")
+
+            val renameSuccess = memScoped {
+                val error = alloc<ObjCObjectVar<NSError?>>()
+                NSFileManager.defaultManager.moveItemAtPath(
+                    srcPath = ref.ref,
+                    toPath = newUrl.path ?: "",
+                    error = error.ptr
+                )
+            }
+
+            if (!renameSuccess) return Outcome.Error(FileRenameException())
+
+            Outcome.Ok(ref.copy(ref = newUrl.path ?: "", name = name))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val deleteSuccess = memScoped {
+                val error = alloc<ObjCObjectVar<NSError?>>()
+                NSFileManager.defaultManager.removeItemAtPath(ref.ref, error.ptr)
+            }
+
+            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(FileDeleteException())
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val list = memScoped {
+                val error = alloc<ObjCObjectVar<NSError?>>()
+                val paths = NSFileManager.defaultManager.contentsOfDirectoryAtPath(dir.ref, error.ptr)
+                    ?: return Outcome.Error(FileListException())
+
+                if (!isRecursive) {
+                    val list = paths.mapNotNull {
+                        val path = it as? String ?: return@mapNotNull null
+                        val url = NSURL(fileURLWithPath = "${dir.ref}/$path")
+
+                        KMPFileRef(
+                            ref = url.path ?: "",
+                            name = url.path?.split("/")?.lastOrNull() ?: "",
+                            isDirectory = url.hasDirectoryPath,
+                        )
+                    }
+                    return Outcome.Ok(list)
+                }
+
+                paths.flatMap {
+                    val path = it as? String ?: return@flatMap emptyList()
+                    val url = NSURL(fileURLWithPath = "${dir.ref}/$path")
+
+                    buildList {
+                        val file = KMPFileRef(
+                            ref = url.path ?: "",
+                            name = url.path?.split("/")?.lastOrNull() ?: "",
+                            isDirectory = url.hasDirectoryPath,
+                        )
+                        add(file)
+
+                        if (url.hasDirectoryPath) {
+                            addAll(list(file).unwrapOrNull() ?: emptyList())
+                        }
+                    }
+                }
+            }
+
+            Outcome.Ok(list)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
-        TODO("Not yet implemented")
+        try {
+            val attributes = memScoped {
+                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                NSFileManager.defaultManager.attributesOfItemAtPath(ref.ref, errorPtr.ptr)
+                    ?: return Outcome.Error(FileMetadataException())
+            }
+
+            val size = attributes[NSFileSize] ?: return Outcome.Error(FileMetadataException())
+
+            return Outcome.Ok(KMPFileMetadata(size = size as Long))
+        } catch (e: Exception) {
+            return Outcome.Error(e)
+        }
     }
 
     override suspend fun exists(ref: KMPFileRef): Boolean {
-        TODO("Not yet implemented")
+        return try {
+            NSFileManager.defaultManager.fileExistsAtPath(ref.ref)
+        } catch (e: Exception) {
+            false
+        }
     }
 }
 
@@ -220,16 +345,13 @@ private class IOSDocumentBrowserDelegate : NSObject(), UIDocumentBrowserViewCont
         controller: UIDocumentBrowserViewController,
         didRequestDocumentCreationWithHandler: (NSURL?, UIDocumentBrowserImportMode) -> Unit
     ) {
-        println("Document Creation")
-        val path = NSURL(fileURLWithPath = "${NSFileManager.defaultManager.temporaryDirectory}/test.tmp")
-        val file = UIDocument(fileURL = path)
-        file.saveToURL(path, UIDocumentSaveOperation.UIDocumentSaveForCreating) {
-            println("Created")
-            didRequestDocumentCreationWithHandler(
-                file.fileURL,
-                UIDocumentBrowserImportMode.UIDocumentBrowserImportModeMove
-            )
-        }
+        val url = NSURL(fileURLWithPath = "${NSFileManager.defaultManager.temporaryDirectory.path}/test.tmp")
+        NSFileManager.defaultManager.createFileAtPath(url.path ?: "", null, null)
+
+        didRequestDocumentCreationWithHandler(
+            url,
+            UIDocumentBrowserImportMode.UIDocumentBrowserImportModeMove
+        )
     }
 
     override fun documentBrowser(
@@ -247,4 +369,9 @@ private class IOSDocumentBrowserDelegate : NSObject(), UIDocumentBrowserViewCont
     ) {
         println("Failed to import")
     }
+
+// //    @Suppress("CONFLICTING_OVERLOADS", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+//    override fun documentBrowser(controller: UIDocumentBrowserViewController, didPickDocumentsAtURLs: List<*>) {
+//        println("picked")
+//    }
 }
