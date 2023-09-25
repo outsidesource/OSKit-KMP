@@ -44,7 +44,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         TODO("Not yet implemented")
     }
 
-    override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
+    override suspend fun renameDirectory(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
         TODO("Not yet implemented")
     }
 

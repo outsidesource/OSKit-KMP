@@ -185,22 +185,6 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
-        return try {
-            val context = context ?: return Outcome.Error(NotInitializedException())
-            if (!ref.isDirectory) return Outcome.Error(FileRenameNotSupportedOnAndroidException())
-
-            val documentFile = DocumentFile.fromTreeUri(context.applicationContext, ref.ref.toUri())
-                ?: return Outcome.Error(FileOpenException())
-
-            if (!documentFile.renameTo(name)) return Outcome.Error(FileRenameException())
-
-            return Outcome.Ok(ref.copy(ref = documentFile.uri.toString(), name = name))
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
-    }
-
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -318,6 +302,3 @@ actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
         Outcome.Error(e)
     }
 }
-
-class FileRenameNotSupportedOnAndroidException :
-    Exception("KMPFileHandler cannot rename files because Android DocumentFile does not support rename on single files")

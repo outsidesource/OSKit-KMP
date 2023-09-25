@@ -57,6 +57,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
             withContext(Dispatchers.Main) {
+                documentPickerViewController.directoryURL = startingDir?.toNSURL()
                 context.rootController.presentViewController(
                     viewControllerToPresent = documentPickerViewController,
                     animated = true,
@@ -96,10 +97,11 @@ class IOSKMPFileHandler : IKMPFileHandler {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
             withContext(Dispatchers.Main) {
+                directoryPickerViewController.directoryURL = startingDir?.toNSURL()
                 context.rootController.presentViewController(
                     viewControllerToPresent = directoryPickerViewController,
                     animated = true,
-                    completion = null
+                    completion = null,
                 )
             }
 
@@ -159,31 +161,6 @@ class IOSKMPFileHandler : IKMPFileHandler {
             }
 
             Outcome.Ok(url.toKMPFileRef())
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    override suspend fun rename(ref: KMPFileRef, name: String): Outcome<KMPFileRef, Exception> {
-        return try {
-            val url = ref.toNSURL()
-            val parentUrl = url.URLByDeletingLastPathComponent
-                ?: return Outcome.Error(FileRenameException())
-            val newUrl = parentUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(FileRenameException())
-
-            val renameSuccess = memScoped {
-                val error = alloc<ObjCObjectVar<NSError?>>()
-                NSFileManager.defaultManager.moveItemAtPath(
-                    srcPath = url.path ?: "",
-                    toPath = newUrl.path ?: "",
-                    error = error.ptr
-                )
-            }
-
-            if (!renameSuccess) return Outcome.Error(FileRenameException())
-
-            Outcome.Ok(newUrl.toKMPFileRef())
         } catch (e: Exception) {
             Outcome.Error(e)
         }
