@@ -8,8 +8,8 @@ import okio.use
 expect class KMPFileHandlerContext
 
 /**
- * Provides limited multiplatform filesystem interactions for content outside of application sandboxes in
- * iOS and Android. All files/folders created are user accessible from outside the application.
+ * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
+ * application sandboxes in iOS and Android. All files/folders created are user accessible from outside the application.
  *
  * In order to access any file a user must call [pickFolder] or [pickFile]. Use [pickFolder] to gain permissions to a
  * root folder. The user may then take any action within that folder.
@@ -17,7 +17,7 @@ expect class KMPFileHandlerContext
  * In order to rename files, use [moveFile] command.
  *
  * [resolveFile] and [resolveDirectory] will return a file or directory reference if it exists with an optional
- * parameter to create
+ * parameter to create.
  */
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
@@ -45,19 +45,6 @@ interface IKMPFileHandler {
         create: Boolean = false
     ): Outcome<KMPFileRef, Exception>
 
-    /**
-     * It is difficult to create a common API for Moving/renaming a directory. Each platform handles things differently.
-     * iOS can move an item to anywhere as long as permission is granted for the destination URL meaning the user
-     * needs a valid KMPFileRef for both the source and the destination. However, the destination directory cannot exist
-     * or iOS will cancel the move operation.
-     * Android can only rename directories and cannot move them.
-     * The current API is hierarchy agnostic so there is no way to make this a simple rename function because the API
-     * can't determine if a common parent directory is being used for src and dst KMPFileRef.
-     *
-     * This functionality could be manually achieved by recursively listing and moving files. However, it would
-     * perform poorly because each file is copied individually byte-for-byte instead of a direct filesystem command.
-     */
-//    suspend fun renameDirectory(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception>
     suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
     suspend fun list(dir: KMPFileRef, isRecursive: Boolean = false): Outcome<List<KMPFileRef>, Exception>
     suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception>
@@ -66,22 +53,6 @@ interface IKMPFileHandler {
     /**
      * Convenience functions
      */
-    suspend fun resolveFile(
-        dir: KMPFileRef,
-        segments: List<String>,
-        create: Boolean = false
-    ): Outcome<KMPFileRef, Exception> {
-        TODO()
-    }
-
-    suspend fun resolveDirectory(
-        dir: KMPFileRef,
-        segments: List<String>,
-        create: Boolean = false
-    ): Outcome<KMPFileRef, Exception> {
-        TODO()
-    }
-
     suspend fun moveFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveException())
         val source = from.source().unwrapOrElse { return this }
@@ -132,6 +103,41 @@ interface IKMPFileHandler {
             is Outcome.Error -> outcome
         }
     }
+
+    /**
+     * Roadmap
+     *
+     * 1. renameDirectory
+     * 2. Multiple file selection
+     * 3. hasAccess() to show if access to the ref was lost due to permission change
+     * 4. resolve with file segments for deeply nested file ref resolution
+     */
+
+    /**
+     * It is difficult to create a common API for Moving/renaming a directory. Each platform handles things differently.
+     * iOS can move an item to anywhere as long as permission is granted for the destination URL meaning the user
+     * needs a valid KMPFileRef for both the source and the destination. However, the destination directory cannot exist
+     * or iOS will cancel the move operation.
+     * Android can only rename directories and cannot move them.
+     * The current API is hierarchy agnostic so there is no way to make this a simple rename function because the API
+     * can't determine if the src and dst are siblings.
+     *
+     * This functionality could be manually achieved by recursively listing and moving files. However, it would
+     * perform poorly because each file is copied individually byte-for-byte instead of a direct filesystem command.
+     */
+//    suspend fun renameDirectory(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception>
+
+//    suspend fun resolveFile(
+//        dir: KMPFileRef,
+//        segments: List<String>,
+//        create: Boolean = false
+//    ): Outcome<KMPFileRef, Exception> {}
+//
+//    suspend fun resolveDirectory(
+//        dir: KMPFileRef,
+//        segments: List<String>,
+//        create: Boolean = false
+//    ): Outcome<KMPFileRef, Exception> {}
 }
 
 typealias KMPFileFilter = List<KMPFileMimeType>
@@ -148,7 +154,6 @@ data class KMPFileMetadata(
 class NotInitializedException : Exception("KMPFileHandler has not been initialized")
 class FileOpenException : Exception("KMPFileHandler could not open the specified file")
 class FileCreateException : Exception("KMPFileHandler could not create the specified file")
-class FileRenameException : Exception("KMPFileHandler could not rename the specified file")
 class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
 class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
 class FileMetadataException : Exception("KMPFileHandler could not fetch metadata for the specified file")
