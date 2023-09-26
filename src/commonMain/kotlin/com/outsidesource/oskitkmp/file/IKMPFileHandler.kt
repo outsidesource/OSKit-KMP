@@ -11,7 +11,7 @@ expect class KMPFileHandlerContext
  * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
  * application sandboxes in iOS and Android. All files/folders created are user accessible from outside the application.
  *
- * In order to access any file a user must call [pickFolder] or [pickFile]. Use [pickFolder] to gain permissions to a
+ * In order to access any file a user must call [pickDirectory] or [pickFile]. Use [pickDirectory] to gain permissions to a
  * root folder. The user may then take any action within that folder.
  *
  * In order to rename files, use [moveFile] command.
@@ -27,9 +27,14 @@ interface IKMPFileHandler {
         filter: KMPFileFilter? = null
     ): Outcome<KMPFileRef?, Exception>
 
-    suspend fun pickFolder(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
+    suspend fun pickDirectory(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
 
-    suspend fun pickSaveFile(defaultName: String? = null): Outcome<KMPFileRef?, Exception>
+    /**
+     * [pickSaveFile] opens a picker for saving a new file. Android and Desktop allow the user to specify the name.
+     * iOS does not have a native save dialog and will instead show a directory picker to save the file. The newly
+     * created file ref is returned unless the dialog is cancelled.
+     */
+    suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception>
 
     /**
      * [create] Creates the file if it does not exist

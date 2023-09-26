@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.unwrapOrElse
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import io.ktor.util.*
 import kotlinx.cinterop.*
@@ -11,7 +12,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import okio.Sink
 import okio.Source
 import platform.Foundation.*
-import platform.UIKit.*
+import platform.UIKit.UIDocumentPickerDelegateProtocol
+import platform.UIKit.UIDocumentPickerViewController
+import platform.UIKit.UIViewController
 import platform.UniformTypeIdentifiers.UTTypeFolder
 import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.darwin.NSObject
@@ -35,14 +38,6 @@ class IOSKMPFileHandler : IKMPFileHandler {
     ).apply {
         delegate = directoryPickerDelegate
         allowsMultipleSelection = false
-    }
-
-    private val createFileDelegate = IOSDocumentBrowserDelegate()
-    private val createFilePickerViewController = UIDocumentBrowserViewController(
-        forOpeningContentTypes = listOf(UTTypeItem)
-    ).apply {
-        delegate = createFileDelegate
-        allowsDocumentCreation = true
     }
 
     override fun init(fileHandlerContext: KMPFileHandlerContext) {
@@ -72,27 +67,12 @@ class IOSKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
-        try {
-            val context = context ?: return Outcome.Error(NotInitializedException())
-
-            // TODO: Need to be able to close this view controller since it doesn't look like it's cancellable
-            withContext(Dispatchers.Main) {
-                context.rootController.presentViewController(
-                    viewControllerToPresent = createFilePickerViewController,
-                    animated = true,
-                    completion = null,
-                )
-            }
-//        createFilePickerViewController.dismissViewControllerAnimated(true) {}
-
-            return Outcome.Ok(null)
-        } catch (e: Exception) {
-            return Outcome.Error(e)
-        }
+    override suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception> {
+        val directory = pickDirectory().unwrapOrElse { return this } ?: return Outcome.Ok(null)
+        return resolveFile(directory, fileName, create = true)
     }
 
-    override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
@@ -273,43 +253,6 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
             resultFlow.emit(didPickDocumentsAtURLs.firstOrNull() as NSURL)
         }
     }
-}
-
-private class IOSDocumentBrowserDelegate : NSObject(), UIDocumentBrowserViewControllerDelegateProtocol {
-
-    override fun documentBrowser(
-        controller: UIDocumentBrowserViewController,
-        didRequestDocumentCreationWithHandler: (NSURL?, UIDocumentBrowserImportMode) -> Unit
-    ) {
-        val url = NSURL(fileURLWithPath = "${NSFileManager.defaultManager.temporaryDirectory.path}/test.tmp")
-        NSFileManager.defaultManager.createFileAtPath(url.path ?: "", null, null)
-
-        didRequestDocumentCreationWithHandler(
-            url,
-            UIDocumentBrowserImportMode.UIDocumentBrowserImportModeMove
-        )
-    }
-
-    override fun documentBrowser(
-        controller: UIDocumentBrowserViewController,
-        didImportDocumentAtURL: NSURL,
-        toDestinationURL: NSURL
-    ) {
-        println("Imported")
-    }
-
-    override fun documentBrowser(
-        controller: UIDocumentBrowserViewController,
-        failedToImportDocumentAtURL: NSURL,
-        error: NSError?
-    ) {
-        println("Failed to import")
-    }
-
-// //    @Suppress("CONFLICTING_OVERLOADS", "PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-//    override fun documentBrowser(controller: UIDocumentBrowserViewController, didPickDocumentsAtURLs: List<*>) {
-//        println("picked")
-//    }
 }
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {

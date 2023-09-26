@@ -101,12 +101,12 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickSaveFile(defaultName: String?): Outcome<KMPFileRef?, Exception> {
+    override suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(NotInitializedException())
 
-            fileResultLauncher.launch(defaultName ?: "Untitled")
+            fileResultLauncher.launch(fileName)
             val uri = pickSaveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
@@ -123,7 +123,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickFolder(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
             val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(NotInitializedException())
             val context = context ?: return Outcome.Error(NotInitializedException())
