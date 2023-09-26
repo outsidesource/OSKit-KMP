@@ -34,7 +34,7 @@ interface IKMPFileHandler {
      * iOS does not have a native save dialog and will instead show a directory picker to save the file. The newly
      * created file ref is returned unless the dialog is cancelled.
      */
-    suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception>
+    suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
 
     /**
      * [create] Creates the file if it does not exist
@@ -57,6 +57,10 @@ interface IKMPFileHandler {
 
     /**
      * Convenience functions
+     */
+
+    /**
+     * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
      */
     suspend fun moveFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveException())

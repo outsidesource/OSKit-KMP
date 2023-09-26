@@ -101,7 +101,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception> {
+    override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(NotInitializedException())

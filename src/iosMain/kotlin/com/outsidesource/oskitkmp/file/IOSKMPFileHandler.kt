@@ -30,6 +30,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
     ).apply {
         delegate = documentPickerDelegate
         allowsMultipleSelection = false
+        shouldShowFileExtensions = true
     }
 
     private val directoryPickerDelegate = IOSPickerDelegate()
@@ -48,11 +49,13 @@ class IOSKMPFileHandler : IKMPFileHandler {
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?
     ): Outcome<KMPFileRef?, Exception> {
+        // TODO: Implement filter
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
             withContext(Dispatchers.Main) {
                 documentPickerViewController.directoryURL = startingDir?.toNSURL()
+
                 context.rootController.presentViewController(
                     viewControllerToPresent = documentPickerViewController,
                     animated = true,
@@ -61,14 +64,14 @@ class IOSKMPFileHandler : IKMPFileHandler {
             }
 
             val url = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
-            return Outcome.Ok(url.toKMPFileRef())
+            return Outcome.Ok(url.toKMPFileRef(isDirectory = false))
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
     }
 
-    override suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception> {
-        val directory = pickDirectory().unwrapOrElse { return this } ?: return Outcome.Ok(null)
+    override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+        val directory = pickDirectory(startingDir).unwrapOrElse { return this } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 
@@ -86,7 +89,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
             }
 
             val url = directoryPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
-            return Outcome.Ok(url.toKMPFileRef())
+            return Outcome.Ok(url.toKMPFileRef(isDirectory = true))
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
@@ -112,7 +115,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 if (!created) return Outcome.Error(FileCreateException())
             }
 
-            Outcome.Ok(url.toKMPFileRef())
+            Outcome.Ok(url.toKMPFileRef(isDirectory = false))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -140,7 +143,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 if (!created) return Outcome.Error(FileCreateException())
             }
 
-            Outcome.Ok(url.toKMPFileRef())
+            Outcome.Ok(url.toKMPFileRef(isDirectory = true))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -173,7 +176,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 if (!isRecursive) {
                     val list = paths.mapNotNull {
                         val path = it as? String ?: return@mapNotNull null
-                        directoryUrl.URLByAppendingPathComponent(path)?.toKMPFileRef()
+                        directoryUrl.URLByAppendingPathComponent(path)?.toKMPFileRef(isDirectory = false)
                     }
                     return Outcome.Ok(list)
                 }
@@ -183,7 +186,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                     val url = directoryUrl.URLByAppendingPathComponent(path) ?: return@flatMap emptyList()
 
                     buildList {
-                        val file = url.toKMPFileRef()
+                        val file = url.toKMPFileRef(isDirectory = false)
                         add(file)
 
                         if (url.hasDirectoryPath) {
@@ -274,7 +277,7 @@ actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun NSURL.toKMPFileRef(): KMPFileRef {
+private fun NSURL.toKMPFileRef(isDirectory: Boolean): KMPFileRef {
     startAccessingSecurityScopedResource()
 
     val ref = memScoped {
@@ -293,7 +296,7 @@ private fun NSURL.toKMPFileRef(): KMPFileRef {
     return KMPFileRef(
         ref = ref ?: "",
         name = path?.split("/")?.lastOrNull() ?: "",
-        isDirectory = hasDirectoryPath,
+        isDirectory = isDirectory,
     )
 }
 

@@ -1,10 +1,16 @@
 package com.outsidesource.oskitkmp.file
 
+import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import okio.Sink
 import okio.Source
+import org.lwjgl.util.tinyfd.TinyFileDialogs
+import java.awt.FileDialog
+import java.awt.Frame
 
-actual class KMPFileHandlerContext
+actual class KMPFileHandlerContext(val window: Frame)
 
 class DesktopKMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
@@ -17,15 +23,65 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?
     ): Outcome<KMPFileRef?, Exception> {
-        TODO("Not yet implemented")
-    }
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
+            dialog.directory = startingDir?.ref?.toPath()?.pathString
+            if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
+            dialog.isVisible = true
 
-    override suspend fun pickSaveFile(fileName: String): Outcome<KMPFileRef?, Exception> {
-        TODO()
+            if (dialog.file == null) return Outcome.Ok(null)
+
+            val ref = KMPFileRef(
+                ref = "${dialog.directory}${dialog.file}",
+                name = dialog.file,
+                isDirectory = false,
+            )
+
+            Outcome.Ok(ref)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
+                ?: return Outcome.Ok(null)
+            val ref = KMPFileRef(
+                ref = directory,
+                name = directory.toPath().name,
+                isDirectory = true,
+            )
+
+            Outcome.Ok(ref)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
+    override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val dialog = FileDialog(context.window, "Save File", FileDialog.SAVE)
+            dialog.directory = startingDir?.ref?.toPath()?.pathString
+            dialog.file = fileName
+            dialog.isVisible = true
+
+            if (dialog.file == null) return Outcome.Ok(null)
+
+            val ref = KMPFileRef(
+                ref = "${dialog.directory}${dialog.file}",
+                name = dialog.file,
+                isDirectory = false,
+            )
+
+            FileSystem.SYSTEM.sink(ref.ref.toPath(), mustCreate = true)
+
+            Outcome.Ok(ref)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun resolveFile(
@@ -33,7 +89,17 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         name: String,
         create: Boolean
     ): Outcome<KMPFileRef, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val path = "${dir.ref}$name".toPath()
+            val exists = FileSystem.SYSTEM.exists(path)
+
+            if (!exists && !create) return Outcome.Error(FileNotFoundException())
+            if (create) FileSystem.SYSTEM.sink(path, mustCreate = true)
+
+            return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = false))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun resolveDirectory(
@@ -41,30 +107,89 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         name: String,
         create: Boolean
     ): Outcome<KMPFileRef, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val path = "${dir.ref}$name".toPath()
+            val exists = FileSystem.SYSTEM.exists(path)
+
+            if (!exists && !create) return Outcome.Error(FileNotFoundException())
+            if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = true)
+
+            return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = true))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            FileSystem.SYSTEM.delete(ref.ref.toPath())
+            Outcome.Ok(Unit)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            if (!dir.isDirectory) return Outcome.Ok(emptyList())
+            val path = dir.ref.toPath()
+
+            val list = if (isRecursive) {
+                FileSystem.SYSTEM.listRecursively(path).toList()
+            } else {
+                FileSystem.SYSTEM.list(path)
+            }.mapNotNull {
+                val metadata = FileSystem.SYSTEM.metadataOrNull(it) ?: return@mapNotNull null
+
+                KMPFileRef(
+                    ref = it.pathString,
+                    name = it.name,
+                    isDirectory = metadata.isDirectory,
+                )
+            }
+
+            return Outcome.Ok(list)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
-        TODO("Not yet implemented")
+        return try {
+            val path = ref.ref.toPath()
+            val metadata = FileSystem.SYSTEM.metadata(path)
+            val size = metadata.size ?: return Outcome.Error(FileMetadataException())
+            Outcome.Ok(KMPFileMetadata(size = size))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
     }
 
     override suspend fun exists(ref: KMPFileRef): Boolean {
-        TODO("Not yet implemented")
+        return try {
+            FileSystem.SYSTEM.exists(ref.ref.toPath())
+        } catch (e: Exception) {
+            false
+        }
     }
 }
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
-    TODO()
+    return try {
+        Outcome.Ok(FileSystem.SYSTEM.source(ref.toPath()))
+    } catch (e: Exception) {
+        Outcome.Error(e)
+    }
 }
 
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
-    TODO()
+    return try {
+        if (mode == KMPFileWriteMode.Append) {
+            Outcome.Ok(FileSystem.SYSTEM.appendingSink(ref.toPath()))
+        } else {
+            Outcome.Ok(FileSystem.SYSTEM.sink(ref.toPath()))
+        }
+    } catch (e: Exception) {
+        Outcome.Error(e)
+    }
 }
