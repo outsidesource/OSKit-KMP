@@ -15,6 +15,7 @@ import platform.Foundation.*
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIViewController
+import platform.UniformTypeIdentifiers.UTType
 import platform.UniformTypeIdentifiers.UTTypeFolder
 import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.darwin.NSObject
@@ -25,13 +26,6 @@ class IOSKMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
 
     private val documentPickerDelegate = IOSPickerDelegate()
-    private val documentPickerViewController = UIDocumentPickerViewController(
-        forOpeningContentTypes = listOf(UTTypeItem)
-    ).apply {
-        delegate = documentPickerDelegate
-        allowsMultipleSelection = false
-        shouldShowFileExtensions = true
-    }
 
     private val directoryPickerDelegate = IOSPickerDelegate()
     private val directoryPickerViewController = UIDocumentPickerViewController(
@@ -49,15 +43,23 @@ class IOSKMPFileHandler : IKMPFileHandler {
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?
     ): Outcome<KMPFileRef?, Exception> {
-        // TODO: Implement filter
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
             withContext(Dispatchers.Main) {
-                documentPickerViewController.directoryURL = startingDir?.toNSURL()
+                val openFilePicker = UIDocumentPickerViewController(
+                    forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
+                        ?: listOf(UTTypeItem)
+                ).apply {
+                    delegate = documentPickerDelegate
+                    allowsMultipleSelection = false
+                    shouldShowFileExtensions = true
+                }
+
+                openFilePicker.directoryURL = startingDir?.toNSURL()
 
                 context.rootController.presentViewController(
-                    viewControllerToPresent = documentPickerViewController,
+                    viewControllerToPresent = openFilePicker,
                     animated = true,
                     completion = null
                 )

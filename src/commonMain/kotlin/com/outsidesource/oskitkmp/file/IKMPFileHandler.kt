@@ -151,6 +151,10 @@ interface IKMPFileHandler {
 
 typealias KMPFileFilter = List<KMPFileMimeType>
 
+/**
+ * [extension] defines the file extension used i.e. "txt", "png", "jpg"
+ * [mimeType] defined the mimetype used i.e. "text/plain", "image/png", "image/jpeg"
+ */
 data class KMPFileMimeType(
     val extension: String,
     val mimeType: String,
