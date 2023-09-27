@@ -289,6 +289,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 @SuppressLint("Recycle")
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SourceException())
         val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
             ?: return Outcome.Error(FileOpenException())
@@ -301,6 +302,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 @SuppressLint("Recycle")
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SinkException())
         val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val modeString = when (mode) {
             KMPFileWriteMode.Overwrite -> "wt"

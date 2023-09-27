@@ -2,7 +2,6 @@ package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrElse
 import okio.*
 import okio.Path.Companion.toPath
 import org.lwjgl.util.tinyfd.TinyFileDialogs
@@ -190,6 +189,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SourceException())
         Outcome.Ok(FileSystem.SYSTEM.source(ref.toPath()))
     } catch (e: Exception) {
         Outcome.Error(e)
@@ -198,6 +198,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SinkException())
         if (mode == KMPFileWriteMode.Append) {
             Outcome.Ok(FileSystem.SYSTEM.appendingSink(ref.toPath()))
         } else {

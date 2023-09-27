@@ -171,6 +171,8 @@ data class KMPFileMetadata(
     val size: Long,
 )
 
+class SourceException : Exception("Cannot read from file. It is a directory")
+class SinkException : Exception("Cannot write to file. It is a directory")
 class NotInitializedException : Exception("KMPFileHandler has not been initialized")
 class FileOpenException : Exception("KMPFileHandler could not open the specified file")
 class FileCreateException : Exception("KMPFileHandler could not create the specified file")

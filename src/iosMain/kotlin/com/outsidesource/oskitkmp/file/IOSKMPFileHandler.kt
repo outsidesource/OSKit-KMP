@@ -275,6 +275,7 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SourceException())
         val url = toNSURL()
         Outcome.Ok(NSInputStream(uRL = url).source())
     } catch (e: Exception) {
@@ -284,6 +285,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
+        if (isDirectory) return Outcome.Error(SinkException())
         val url = toNSURL()
         Outcome.Ok(NSOutputStream(uRL = url, append = mode == KMPFileWriteMode.Append).sink())
     } catch (e: Exception) {
