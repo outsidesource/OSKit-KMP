@@ -44,7 +44,7 @@ interface IKMPFileHandler {
     /**
      * [resolveRefFromPath] Attempts to create a KMPFileRef from the provided path string. This is not guaranteed to
      * work and will most likely fail on Android and iOS due to paths not being properly sandboxed. This method
-     * exists primarily for desktop where sandboxes are not an issue.
+     * exists primarily for desktop where sandboxes are not an issue. Android should use a Uri string for the path.
      */
     suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception>
 
