@@ -2,10 +2,9 @@ package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
-import okio.FileSystem
+import com.outsidesource.oskitkmp.outcome.unwrapOrElse
+import okio.*
 import okio.Path.Companion.toPath
-import okio.Sink
-import okio.Source
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
 import java.awt.Frame
@@ -115,6 +114,21 @@ class DesktopKMPFileHandler : IKMPFileHandler {
             if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = true)
 
             return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = true))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
+    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+        return try {
+            val localPath = path.toPath()
+            val exists = FileSystem.SYSTEM.exists(localPath)
+
+            if (!exists) return Outcome.Error(FileNotFoundException())
+            val metadata = FileSystem.SYSTEM.metadata(localPath)
+
+            val ref = KMPFileRef(ref = localPath.pathString, name = localPath.name, isDirectory = metadata.isDirectory)
+            return Outcome.Ok(ref)
         } catch (e: Exception) {
             Outcome.Error(e)
         }

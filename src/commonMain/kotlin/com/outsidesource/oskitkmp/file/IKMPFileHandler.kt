@@ -42,6 +42,13 @@ interface IKMPFileHandler {
     suspend fun resolveFile(dir: KMPFileRef, name: String, create: Boolean = false): Outcome<KMPFileRef, Exception>
 
     /**
+     * [resolveRefFromPath] Attempts to create a KMPFileRef from the provided path string. This is not guaranteed to
+     * work and will most likely fail on Android and iOS due to paths not being properly sandboxed. This method
+     * exists primarily for desktop where sandboxes are not an issue.
+     */
+    suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception>
+
+    /**
      * [create] Creates the directory if it does not exist
      */
     suspend fun resolveDirectory(

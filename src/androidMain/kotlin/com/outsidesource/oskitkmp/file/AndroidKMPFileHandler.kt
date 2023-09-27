@@ -185,6 +185,18 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
     }
 
+    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val file = DocumentFile.fromSingleUri(context.applicationContext, path.toUri())
+                ?: return Outcome.Error(FileOpenException())
+
+            Outcome.Ok(KMPFileRef(ref = file.uri.toString(), name = file.name ?: "", isDirectory = file.isDirectory))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())

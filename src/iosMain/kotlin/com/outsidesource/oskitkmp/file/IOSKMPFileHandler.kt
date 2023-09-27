@@ -151,6 +151,19 @@ class IOSKMPFileHandler : IKMPFileHandler {
         }
     }
 
+    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+        return try {
+            val url = NSURL(fileURLWithPath = path)
+            val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
+
+            if (!exists) return Outcome.Error(FileNotFoundException())
+
+            Outcome.Ok(url.toKMPFileRef(isDirectory = url.hasDirectoryPath))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
         return try {
@@ -272,7 +285,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         val url = toNSURL()
-        Outcome.Ok(NSOutputStream(uRL = url, mode == KMPFileWriteMode.Append).sink())
+        Outcome.Ok(NSOutputStream(uRL = url, append = mode == KMPFileWriteMode.Append).sink())
     } catch (e: Exception) {
         Outcome.Error(e)
     }
