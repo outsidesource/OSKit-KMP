@@ -213,6 +213,7 @@ class Router(
 
     override fun addRouteLifecycleListener(listener: IRouteLifecycleListener) {
         val route = current
+        listener.onRouteCreated()
         listener.onRouteStarted()
         routeLifecycleListeners.update {
             it.toMutableMap().apply {

@@ -168,6 +168,11 @@ interface IRouteLifecycleListener {
     fun onRouteDestroyed()
 
     /**
+     * [onRouteCreated] called immediately after adding a listener
+     */
+    fun onRouteCreated() {}
+
+    /**
      * [onRouteStarted] called immediately after adding a listener and when a route returns to the foreground after being
      * in the back stack
      */
