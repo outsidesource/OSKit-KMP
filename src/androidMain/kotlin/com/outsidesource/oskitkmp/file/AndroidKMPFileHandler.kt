@@ -37,8 +37,9 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private var pickFileResultLauncher: ActivityResultLauncher<Array<String>>? = null
+    private var pickFilesResultLauncher: ActivityResultLauncher<Array<String>>? = null
     private val pickFileResultFlow =
-        MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<List<Uri>?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private var pickSaveFileResultLauncher: ActivityResultLauncher<String?>? = null
     private val pickSaveFileResultFlow =
@@ -53,6 +54,14 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
         pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
             ActivityResultContracts.OpenDocument()
+        ) { data ->
+            coroutineScope.launch {
+                pickFileResultFlow.emit(if (data != null) listOf(data) else null)
+            }
+        }
+
+        pickFilesResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+            ActivityResultContracts.OpenMultipleDocuments()
         ) { data ->
             coroutineScope.launch {
                 pickFileResultFlow.emit(data)
@@ -85,7 +94,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
             val fileResultLauncher = pickFileResultLauncher ?: return Outcome.Error(NotInitializedException())
 
             fileResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
-            val uri = pickFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val uri = pickFileResultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
                 ?: return Outcome.Error(FileOpenException())
@@ -96,6 +105,35 @@ class AndroidKMPFileHandler : IKMPFileHandler {
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
             Outcome.Ok(KMPFileRef(ref = uri.toString(), isDirectory = false, name = name))
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
+    override suspend fun pickFiles(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?
+    ): Outcome<List<KMPFileRef>?, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val filesResultLauncher = pickFilesResultLauncher ?: return Outcome.Error(NotInitializedException())
+
+            filesResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
+            val uris = pickFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
+
+            val refs = uris.map { uri ->
+                val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
+                    ?: return Outcome.Error(FileOpenException())
+
+                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+                context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
+
+                KMPFileRef(ref = uri.toString(), isDirectory = false, name = name)
+            }
+
+            Outcome.Ok(refs)
         } catch (e: Exception) {
             Outcome.Error(e)
         }

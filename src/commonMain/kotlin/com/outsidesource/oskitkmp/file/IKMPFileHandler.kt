@@ -27,6 +27,11 @@ interface IKMPFileHandler {
         filter: KMPFileFilter? = null
     ): Outcome<KMPFileRef?, Exception>
 
+    suspend fun pickFiles(
+        startingDir: KMPFileRef? = null,
+        filter: KMPFileFilter? = null
+    ): Outcome<List<KMPFileRef>?, Exception>
+
     suspend fun pickDirectory(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
 
     /**
@@ -124,9 +129,8 @@ interface IKMPFileHandler {
      * Roadmap
      *
      * 1. renameDirectory
-     * 2. Multiple file selection
-     * 3. hasAccess() to show if access to the ref was lost due to permission change
-     * 4. resolve with file segments for deeply nested file ref resolution
+     * 2. hasAccess() to show if access to the ref was lost due to permission change
+     * 3. resolve with file segments for deeply nested file ref resolution
      */
 
     /**

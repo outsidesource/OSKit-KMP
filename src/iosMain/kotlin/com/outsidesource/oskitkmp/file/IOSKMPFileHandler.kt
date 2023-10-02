@@ -65,8 +65,43 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 )
             }
 
-            val url = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val url = documentPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
             return Outcome.Ok(url.toKMPFileRef(isDirectory = false))
+        } catch (e: Exception) {
+            return Outcome.Error(e)
+        }
+    }
+
+    override suspend fun pickFiles(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?
+    ): Outcome<List<KMPFileRef>?, Exception> {
+        try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+
+            withContext(Dispatchers.Main) {
+                val openFilePicker = UIDocumentPickerViewController(
+                    forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
+                        ?: listOf(UTTypeItem)
+                ).apply {
+                    delegate = documentPickerDelegate
+                    allowsMultipleSelection = true
+                    shouldShowFileExtensions = true
+                }
+
+                openFilePicker.directoryURL = startingDir?.toNSURL()
+
+                context.rootController.presentViewController(
+                    viewControllerToPresent = openFilePicker,
+                    animated = true,
+                    completion = null
+                )
+            }
+
+            val urls = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val refs = urls.map { it.toKMPFileRef(false) }
+
+            return Outcome.Ok(refs)
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
@@ -90,7 +125,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 )
             }
 
-            val url = directoryPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
+            val url = directoryPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
             return Outcome.Ok(url.toKMPFileRef(isDirectory = true))
         } catch (e: Exception) {
             return Outcome.Error(e)
@@ -248,14 +283,11 @@ class IOSKMPFileHandler : IKMPFileHandler {
 
 private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
 
-    val resultFlow = MutableSharedFlow<NSURL?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val resultFlow = MutableSharedFlow<List<NSURL>?>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-    override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentAtURL: NSURL) {
-        coroutineScope.launch {
-            resultFlow.emit(didPickDocumentAtURL)
-        }
-    }
 
     override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
         coroutineScope.launch {
@@ -263,12 +295,13 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun documentPicker(
         controller: UIDocumentPickerViewController,
         didPickDocumentsAtURLs: List<*>
     ) {
         coroutineScope.launch {
-            resultFlow.emit(didPickDocumentsAtURLs.firstOrNull() as NSURL)
+            resultFlow.emit(didPickDocumentsAtURLs as List<NSURL>)
         }
     }
 }

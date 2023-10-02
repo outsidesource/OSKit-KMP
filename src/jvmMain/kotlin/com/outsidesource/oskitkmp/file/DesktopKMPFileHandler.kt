@@ -42,6 +42,34 @@ class DesktopKMPFileHandler : IKMPFileHandler {
         }
     }
 
+    override suspend fun pickFiles(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?
+    ): Outcome<List<KMPFileRef>?, Exception> {
+        return try {
+            val context = context ?: return Outcome.Error(NotInitializedException())
+            val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
+            dialog.directory = startingDir?.ref?.toPath()?.pathString
+            dialog.isMultipleMode = true
+            if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
+            dialog.isVisible = true
+
+            if (dialog.files == null || dialog.files.isEmpty()) return Outcome.Ok(null)
+
+            val refs = dialog.files.map { file ->
+                KMPFileRef(
+                    ref = "${dialog.directory}${file.name}",
+                    name = file.name,
+                    isDirectory = false,
+                )
+            }
+
+            Outcome.Ok(refs)
+        } catch (e: Exception) {
+            Outcome.Error(e)
+        }
+    }
+
     override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
             val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
