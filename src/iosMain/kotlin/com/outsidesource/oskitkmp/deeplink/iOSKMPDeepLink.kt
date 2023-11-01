@@ -1,5 +1,3 @@
 package com.outsidesource.oskitkmp.deeplink
 
-actual sealed class KMPDeepLink {
-    sealed class iOS(val data: Any) : KMPDeepLink()
-}
+actual data class KMPDeepLink(val data: Any)

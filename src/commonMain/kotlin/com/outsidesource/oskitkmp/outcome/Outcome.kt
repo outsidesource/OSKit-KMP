@@ -14,12 +14,19 @@ sealed class Outcome<out V, out E> {
     }
 }
 
-fun <V, E> Outcome<V, E>.getOrElse(default: V): V = when (this) {
+fun <V, E> Outcome<V, E>.unwrapOrDefault(default: V): V = when (this) {
     is Outcome.Ok -> this.value
     else -> default
 }
 
-fun <V, E> Outcome<V, E>.getOrNull(): V? = when (this) {
+fun <V, E> Outcome<V, E>.unwrapOrNull(): V? = when (this) {
     is Outcome.Ok -> this.value
     else -> null
+}
+
+inline fun <reified T, reified E> Outcome<T, E>.unwrapOrElse(block: Outcome.Error<E>.() -> Nothing): T {
+    when (this) {
+        is Outcome.Ok -> return value
+        is Outcome.Error -> block(this)
+    }
 }
