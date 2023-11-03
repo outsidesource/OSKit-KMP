@@ -84,6 +84,8 @@ kotlin {
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -107,7 +109,7 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("androidx.activity:activity-compose:1.7.2")
+                implementation("androidx.activity:activity-compose:1.8.0")
                 implementation("androidx.documentfile:documentfile:1.0.1")
             }
         }
@@ -122,17 +124,6 @@ kotlin {
                 runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
                 runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
             }
-        }
-        val jvmTest by getting
-
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
         }
     }
 
