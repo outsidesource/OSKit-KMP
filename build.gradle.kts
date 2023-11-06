@@ -18,6 +18,7 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
     id("com.android.library")
     id("maven-publish")
+    id("org.jetbrains.dokka") version "1.9.10"
 }
 
 val lwjglVersion = "3.3.2"
@@ -70,7 +71,7 @@ kotlin {
         }
     }
     androidTarget {
-        jvmToolchain(11)
+        jvmToolchain(17)
         publishLibraryVariants("release", "debug")
     }
 
@@ -146,17 +147,18 @@ kotlin {
 }
 
 android {
-    compileSdk = 33
+    namespace = "com.outsidesource.oskitkmp"
+    compileSdk = 34
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     publishing {
