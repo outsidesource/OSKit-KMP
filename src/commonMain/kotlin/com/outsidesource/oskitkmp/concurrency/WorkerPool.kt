@@ -5,6 +5,9 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.*
 
+/**
+ * Creates a worker pool for running a set number of concurrent tasks at a time
+ */
 class WorkerPool(
     private val workerCount: Int = 10,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),

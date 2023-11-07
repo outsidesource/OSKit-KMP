@@ -6,6 +6,21 @@ import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
+/**
+ * A coroutine based debouncer
+ *
+ * ```
+ * val debouncer = Debouncer(200)
+ *
+ * for (i in 0..100) {
+ *      debouncer.emit { println("Hello!") }
+ * }
+ * ```
+ *
+ * @param timeoutMillis How long to wait after the last emit before running the action
+ * @param maxWaitMillis The maximum time to wait before running the action. This works similar to a throttle.
+ * @param scope The coroutine scope to run the action in
+ */
 class Debouncer(
     private val timeoutMillis: Int,
     private val maxWaitMillis: Int = -1,

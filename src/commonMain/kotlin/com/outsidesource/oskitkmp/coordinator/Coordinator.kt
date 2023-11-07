@@ -4,6 +4,10 @@ import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
+/**
+ * An abstraction around [Router] to protect against direct utilization of router methods. Coordinators act as the
+ * mediator between interactors and a router.
+ */
 abstract class Coordinator(
     initialRoute: IRoute,
     defaultTransition: IRouteTransition = object : IRouteTransition {},
@@ -100,6 +104,10 @@ abstract class Coordinator(
     }
 }
 
+/**
+ * [ICoordinatorObserver]'s main purpose is to be used in the UI layer for observing and reacting to route changes
+ * without exposing route stack management.
+ */
 interface ICoordinatorObserver {
     fun hasBackStack(): Boolean
     fun pop()
