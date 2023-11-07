@@ -1,6 +1,6 @@
 object Versions {
     const val Kotlin = "1.9.20"
-    const val KtLintPlugin = "10.2.1"
+    const val KtLintPlugin = "11.6.1"
 
     const val CoroutinesCore = "1.7.1"
     const val KotlinxDateTime = "0.4.0"

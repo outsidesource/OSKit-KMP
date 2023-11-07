@@ -2,15 +2,16 @@ package com.outsidesource.oskitkmp.lib
 
 enum class Platform {
     Android,
-    iOS,
+    IOS,
     MacOS,
     Windows,
     Linux,
-    Unknown;
+    Unknown,
+    ;
 
     val isMobile
         get() = when (this) {
-            iOS, Android -> true
+            IOS, Android -> true
             else -> false
         }
 

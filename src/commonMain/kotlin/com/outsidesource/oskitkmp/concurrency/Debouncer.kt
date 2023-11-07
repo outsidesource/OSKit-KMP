@@ -9,7 +9,7 @@ import kotlinx.datetime.Instant
 class Debouncer(
     private val timeoutMillis: Int,
     private val maxWaitMillis: Int = -1,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job()),
 ) {
     private var job: Job? = null
     private var lastEmit: Instant = Clock.System.now()

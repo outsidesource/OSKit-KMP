@@ -33,8 +33,6 @@ fun <T> Flow<T>.withTimeout(timeout: Long, throwOnTimeout: Boolean = false): Flo
     }
 }
 
-
-
 @Suppress("UNCHECKED_CAST")
 inline fun <reified R> Flow<*>.filterIsInstance(crossinline predicate: suspend (R) -> Boolean): Flow<R> =
     filter { it is R && predicate(it) } as Flow<R>

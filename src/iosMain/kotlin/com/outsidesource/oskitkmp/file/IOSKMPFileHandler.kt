@@ -29,7 +29,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
 
     private val directoryPickerDelegate = IOSPickerDelegate()
     private val directoryPickerViewController = UIDocumentPickerViewController(
-        forOpeningContentTypes = listOf(UTTypeFolder)
+        forOpeningContentTypes = listOf(UTTypeFolder),
     ).apply {
         delegate = directoryPickerDelegate
         allowsMultipleSelection = false
@@ -41,7 +41,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFile(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<KMPFileRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -49,7 +49,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
                     forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
-                        ?: listOf(UTTypeItem)
+                        ?: listOf(UTTypeItem),
                 ).apply {
                     delegate = documentPickerDelegate
                     allowsMultipleSelection = false
@@ -61,7 +61,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 context.rootController.presentViewController(
                     viewControllerToPresent = openFilePicker,
                     animated = true,
-                    completion = null
+                    completion = null,
                 )
             }
 
@@ -74,7 +74,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFiles(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -82,7 +82,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
                     forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
-                        ?: listOf(UTTypeItem)
+                        ?: listOf(UTTypeItem),
                 ).apply {
                     delegate = documentPickerDelegate
                     allowsMultipleSelection = true
@@ -94,7 +94,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 context.rootController.presentViewController(
                     viewControllerToPresent = openFilePicker,
                     animated = true,
-                    completion = null
+                    completion = null,
                 )
             }
 
@@ -135,7 +135,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveFile(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val directoryUrl = dir.toNSURL()
@@ -147,7 +147,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
                 val created = NSFileManager.defaultManager.createFileAtPath(
                     path = url.path ?: "",
                     contents = null,
-                    attributes = null
+                    attributes = null,
                 )
                 if (!created) return Outcome.Error(FileCreateException())
             }
@@ -162,7 +162,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val directoryUrl = dir.toNSURL()
@@ -285,7 +285,7 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
 
     val resultFlow = MutableSharedFlow<List<NSURL>?>(
         extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -298,7 +298,7 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
     @Suppress("UNCHECKED_CAST")
     override fun documentPicker(
         controller: UIDocumentPickerViewController,
-        didPickDocumentsAtURLs: List<*>
+        didPickDocumentsAtURLs: List<*>,
     ) {
         coroutineScope.launch {
             resultFlow.emit(didPickDocumentsAtURLs as List<NSURL>)

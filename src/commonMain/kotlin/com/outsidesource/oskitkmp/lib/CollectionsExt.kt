@@ -9,7 +9,7 @@ inline fun <reified R> Iterable<*>.filterIsInstance(predicate: (R) -> Boolean): 
 
 inline fun <reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstanceTo(
     destination: C,
-    predicate: (R) -> Boolean
+    predicate: (R) -> Boolean,
 ): C {
     for (element in this) if (element is R && predicate(element)) destination.add(element)
     return destination

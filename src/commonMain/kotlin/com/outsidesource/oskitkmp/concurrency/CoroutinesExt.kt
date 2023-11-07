@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
  * Best used with [awaitOutcome].
  */
 fun <T> CoroutineScope.asyncOutcome(
-    block: suspend CoroutineScope.() -> Outcome<T, Any>
+    block: suspend CoroutineScope.() -> Outcome<T, Any>,
 ): Deferred<Outcome<T, Any>> = async {
     try {
         block()

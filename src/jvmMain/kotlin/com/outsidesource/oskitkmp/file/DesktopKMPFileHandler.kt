@@ -19,7 +19,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFile(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -44,7 +44,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFiles(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -113,7 +113,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveFile(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val path = "${dir.ref}$name".toPath()
@@ -131,7 +131,7 @@ class DesktopKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val path = "${dir.ref}$name".toPath()

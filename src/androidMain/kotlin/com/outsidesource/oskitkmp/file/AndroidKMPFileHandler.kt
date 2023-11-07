@@ -53,7 +53,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         context = fileHandlerContext
 
         pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
-            ActivityResultContracts.OpenDocument()
+            ActivityResultContracts.OpenDocument(),
         ) { data ->
             coroutineScope.launch {
                 pickFileResultFlow.emit(if (data != null) listOf(data) else null)
@@ -61,7 +61,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
 
         pickFilesResultLauncher = fileHandlerContext.activity.registerForActivityResult(
-            ActivityResultContracts.OpenMultipleDocuments()
+            ActivityResultContracts.OpenMultipleDocuments(),
         ) { data ->
             coroutineScope.launch {
                 pickFileResultFlow.emit(data)
@@ -69,7 +69,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
         }
 
         pickSaveFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
-            ActivityResultContracts.CreateDocument("*/*")
+            ActivityResultContracts.CreateDocument("*/*"),
         ) { data ->
             coroutineScope.launch {
                 pickSaveFileResultFlow.emit(data)
@@ -87,7 +87,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFile(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<KMPFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -112,7 +112,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickFiles(
         startingDir: KMPFileRef?,
-        filter: KMPFileFilter?
+        filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -185,7 +185,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveFile(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -205,7 +205,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
     override suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
-        create: Boolean
+        create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -296,7 +296,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
                 null,
                 null,
                 null,
-                null
+                null,
             ) ?: return Outcome.Error(FileMetadataException())
 
             cursor.use {

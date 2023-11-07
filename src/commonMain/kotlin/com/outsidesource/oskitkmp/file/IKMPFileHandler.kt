@@ -24,12 +24,12 @@ interface IKMPFileHandler {
 
     suspend fun pickFile(
         startingDir: KMPFileRef? = null,
-        filter: KMPFileFilter? = null
+        filter: KMPFileFilter? = null,
     ): Outcome<KMPFileRef?, Exception>
 
     suspend fun pickFiles(
         startingDir: KMPFileRef? = null,
-        filter: KMPFileFilter? = null
+        filter: KMPFileFilter? = null,
     ): Outcome<List<KMPFileRef>?, Exception>
 
     suspend fun pickDirectory(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
@@ -59,7 +59,7 @@ interface IKMPFileHandler {
     suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
-        create: Boolean = false
+        create: Boolean = false,
     ): Outcome<KMPFileRef, Exception>
 
     suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>

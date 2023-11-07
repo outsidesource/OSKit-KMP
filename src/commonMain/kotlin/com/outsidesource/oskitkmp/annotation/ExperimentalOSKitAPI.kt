@@ -25,7 +25,7 @@ package com.outsidesource.oskitkmp.annotation
     AnnotationTarget.FUNCTION,
     AnnotationTarget.PROPERTY_GETTER,
     AnnotationTarget.PROPERTY_SETTER,
-    AnnotationTarget.TYPEALIAS
+    AnnotationTarget.TYPEALIAS,
 )
 @MustBeDocumented
 public annotation class ExperimentalOSKitAPI

@@ -11,7 +11,7 @@ import kotlinx.datetime.Instant
 
 class Throttler(
     private val timeoutMillis: Int,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job())
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job()),
 ) {
     private var lastEmit: Instant = Clock.System.now()
     private val lock = reentrantLock()

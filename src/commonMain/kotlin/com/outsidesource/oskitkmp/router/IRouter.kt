@@ -67,7 +67,7 @@ interface IRouter {
         route: IRoute,
         transition: IRouteTransition? = null,
         force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean
+        popWhile: (entry: IRoute) -> Boolean,
     )
 
     fun push(
@@ -75,7 +75,7 @@ interface IRouter {
         popTo: IRoute,
         popToInclusive: Boolean = false,
         transition: IRouteTransition? = null,
-        force: Boolean = false
+        force: Boolean = false,
     )
 
     fun <T : IRoute> push(
@@ -83,7 +83,7 @@ interface IRouter {
         popTo: KClass<T>,
         popToInclusive: Boolean = false,
         transition: IRouteTransition? = null,
-        force: Boolean = false
+        force: Boolean = false,
     )
 
     /**
@@ -96,7 +96,7 @@ interface IRouter {
         route: IRoute,
         transition: IRouteTransition? = null,
         force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean
+        popWhile: (entry: IRoute) -> Boolean,
     )
 
     fun replace(
@@ -104,7 +104,7 @@ interface IRouter {
         popTo: IRoute,
         popToInclusive: Boolean = false,
         transition: IRouteTransition? = null,
-        force: Boolean = false
+        force: Boolean = false,
     )
 
     fun <T : IRoute> replace(
@@ -112,7 +112,7 @@ interface IRouter {
         popTo: KClass<T>,
         popToInclusive: Boolean = false,
         transition: IRouteTransition? = null,
-        force: Boolean = false
+        force: Boolean = false,
     )
 
     /**
