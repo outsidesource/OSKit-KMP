@@ -1,6 +1,5 @@
-import java.io.File
+import com.vanniktech.maven.publish.SonatypeHost
 import java.io.FileInputStream
-import java.lang.System.getenv
 import java.util.*
 
 buildscript {
@@ -19,6 +18,7 @@ plugins {
     id("com.android.library")
     id("maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
+    id("com.vanniktech.maven.publish") version "0.25.3"
 }
 
 val lwjglVersion = "3.3.2"
@@ -72,7 +72,7 @@ kotlin {
     }
     androidTarget {
         jvmToolchain(17)
-        publishLibraryVariants("release", "debug")
+        publishAllLibraryVariants()
     }
 
     listOf(
@@ -127,23 +127,6 @@ kotlin {
             }
         }
     }
-
-    afterEvaluate {
-        getenv("GITHUB_REPOSITORY")?.let { repoName ->
-            publishing {
-                repositories {
-                    maven {
-                        name = "GitHubPackages"
-                        url = uri("https://maven.pkg.github.com/$repoName")
-                        credentials {
-                            username = getenv("OSD_DEVELOPER")
-                            password = getenv("OSD_TOKEN")
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 android {
@@ -182,3 +165,35 @@ ktlint {
 }
 
 tasks.getByName("preBuild").dependsOn("ktlintFormat")
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.S01, true)
+    signAllPublications()
+    pom {
+        description.set("An opinionated architecture/library for Kotlin Multiplatform development")
+        name.set(project.name)
+        url.set("https://github.com/outsidesource/OSKit-KMP")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://spdx.org/licenses/MIT.html")
+                distribution.set("https://spdx.org/licenses/MIT.html")
+            }
+        }
+        scm {
+            url.set("https://github.com/outsidesource/OSKit-KMP")
+            connection.set("scm:git:git://github.com/outsidesource/OSKit-KMP.git")
+            developerConnection.set("scm:git:ssh://git@github.com/outsidesource/OSKit-KMP.git")
+        }
+        developers {
+            developer {
+                id.set("ryanmitchener")
+                name.set("Ryan Mitchener")
+            }
+            developer {
+                id.set("osddeveloper")
+                name.set("Outside Source")
+            }
+        }
+    }
+}
