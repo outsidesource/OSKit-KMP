@@ -30,7 +30,7 @@ data class SemVer(val major: Int = 0, val minor: Int = 0, val patch: Int = 0) : 
             return SemVer(
                 versions.getOrNull(0)?.toInt() ?: 0,
                 versions.getOrNull(1)?.toInt() ?: 0,
-                versions.getOrNull(2)?.toInt() ?: 0
+                versions.getOrNull(2)?.toInt() ?: 0,
             )
         }
 

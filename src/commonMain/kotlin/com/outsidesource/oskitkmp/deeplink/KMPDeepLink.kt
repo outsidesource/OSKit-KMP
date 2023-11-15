@@ -1,3 +1,6 @@
 package com.outsidesource.oskitkmp.deeplink
 
-expect sealed class KMPDeepLink
+import com.outsidesource.oskitkmp.annotation.ExperimentalOSKitAPI
+
+@ExperimentalOSKitAPI
+expect class KMPDeepLink

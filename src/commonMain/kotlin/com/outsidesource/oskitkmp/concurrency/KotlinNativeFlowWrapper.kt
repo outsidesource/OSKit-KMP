@@ -8,7 +8,7 @@ class KotlinNativeFlowWrapper<T : Any>(private val flow: Flow<T>) {
         scope: CoroutineScope,
         onEach: (item: T) -> Unit,
         onComplete: () -> Unit,
-        onThrow: (error: Throwable) -> Unit
+        onThrow: (error: Throwable) -> Unit,
     ) = flow
         .onEach { onEach(it) }
         .catch { onThrow(it) }

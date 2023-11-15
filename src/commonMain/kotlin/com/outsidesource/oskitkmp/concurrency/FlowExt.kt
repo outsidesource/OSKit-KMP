@@ -34,15 +34,8 @@ fun <T> Flow<T>.withTimeout(timeout: Long, throwOnTimeout: Boolean = false): Flo
 }
 
 /**
- * Run a block after a timeout/delay
+ * Filters flow elements that don't match a given instance along with a provided predicate
  */
-suspend fun withDelay(delayInMillis: Long, block: suspend () -> Any) = coroutineScope {
-    launch {
-        delay(delayInMillis)
-        block()
-    }
-}
-
 @Suppress("UNCHECKED_CAST")
 inline fun <reified R> Flow<*>.filterIsInstance(crossinline predicate: suspend (R) -> Boolean): Flow<R> =
     filter { it is R && predicate(it) } as Flow<R>

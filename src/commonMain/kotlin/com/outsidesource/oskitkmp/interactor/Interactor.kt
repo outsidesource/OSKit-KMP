@@ -1,7 +1,5 @@
 package com.outsidesource.oskitkmp.interactor
 
-import com.outsidesource.oskitkmp.devTool.OSDevTool
-import com.outsidesource.oskitkmp.devTool.sendEvent
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -22,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 
-interface IInteractorObservable<T : Any> {
+interface IInteractor<T : Any> {
     val state: T
     fun flow(): Flow<T>
 }
@@ -34,11 +32,11 @@ interface IInteractorObservable<T : Any> {
  *
  * Observing State
  * When an observer subscribes to state via the [flow] method it will immediately receive the latest state as the first
- * emit. Afterwards, only changes to the state will be emitted to observers.
+ * emit. Afterward, only changes to the state will be emitted to observers.
  *
  * Updating State
- * The only way to update an [Interactor]'s state is by calling the [update] method. Calling [update] will synchronously update
- * the internal state with a new copy of state and notify all observers of the change as long as the new state is
+ * The only way to update an [Interactor]'s state is by calling the [update] method. Calling [update] will synchronously
+ * update the internal state with a new copy of state and notify all observers of the change as long as the new state is
  * different from the previous state.
  *
  * [initialState] The initial state of an Interactor.
@@ -48,8 +46,8 @@ interface IInteractorObservable<T : Any> {
  */
 abstract class Interactor<T : Any>(
     private val initialState: T,
-    private val dependencies: List<IInteractorObservable<*>> = emptyList(),
-) : IInteractorObservable<T> {
+    private val dependencies: List<IInteractor<*>> = emptyList(),
+) : IInteractor<T> {
     internal val subscriptionCount = atomic(0)
     internal val dependencySubscriptionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val _state: MutableStateFlow<T> by lazy { MutableStateFlow(computed(initialState)) }
@@ -58,7 +56,9 @@ abstract class Interactor<T : Any>(
      * Provides a standard coroutine scope for use in the Interactor.
      */
     protected val interactorScope = CoroutineScope(
-        defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() }
+        defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e ->
+            e.printStackTrace()
+        },
     )
 
     /**
@@ -66,10 +66,6 @@ abstract class Interactor<T : Any>(
      */
     override val state get() =
         if (dependencies.isNotEmpty() && subscriptionCount.value == 0) computed(_state.value) else _state.value
-
-    init {
-        OSDevTool.sendEvent(this::class.simpleName ?: "", "New Interactor", initialState)
-    }
 
     /**
      * Returns the state as a flow for observing updates. The latest state will be immediately emitted to a new
@@ -88,9 +84,7 @@ abstract class Interactor<T : Any>(
      * Immutably update the state and notify all subscribers of the change.
      */
     protected fun update(function: (state: T) -> T): T {
-        val updated = _state.updateAndGet { computed(function(it)) }
-        OSDevTool.sendEvent(this::class.simpleName ?: "", "Updated", updated)
-        return updated
+        return _state.updateAndGet { computed(function(it)) }
     }
 
     private suspend fun handleSubscribe() {

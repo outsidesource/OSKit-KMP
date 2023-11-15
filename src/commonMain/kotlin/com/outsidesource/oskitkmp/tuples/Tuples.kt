@@ -11,7 +11,7 @@ data class Tup5<out V1, out V2, out V3, out V4, out V5>(
     val v2: V2,
     val v3: V3,
     val v4: V4,
-    val v5: V5
+    val v5: V5,
 ) : Tuple()
 data class Tup6<out V1, out V2, out V3, out V4, out V5, out V6>(
     val v1: V1,
@@ -19,7 +19,7 @@ data class Tup6<out V1, out V2, out V3, out V4, out V5, out V6>(
     val v3: V3,
     val v4: V4,
     val v5: V5,
-    val v6: V6
+    val v6: V6,
 ) : Tuple()
 data class Tup7<out V1, out V2, out V3, out V4, out V5, out V6, out V7>(
     val v1: V1,
@@ -28,5 +28,5 @@ data class Tup7<out V1, out V2, out V3, out V4, out V5, out V6, out V7>(
     val v4: V4,
     val v5: V5,
     val v6: V6,
-    val v7: V7
+    val v7: V7,
 ) : Tuple()

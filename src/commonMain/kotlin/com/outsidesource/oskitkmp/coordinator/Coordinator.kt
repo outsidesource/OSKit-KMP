@@ -4,9 +4,13 @@ import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KClass
 
+/**
+ * An abstraction around [Router] to protect against direct utilization of router methods. Coordinators act as the
+ * mediator between interactors and a router.
+ */
 abstract class Coordinator(
     initialRoute: IRoute,
-    defaultTransition: IRouteTransition = object : IRouteTransition {}
+    defaultTransition: IRouteTransition = object : IRouteTransition {},
 ) {
     internal val router = Router(initialRoute, defaultTransition)
 
@@ -25,7 +29,7 @@ abstract class Coordinator(
         popTo: IRoute,
         popToInclusive: Boolean,
         transition: IRouteTransition?,
-        force: Boolean
+        force: Boolean,
     ) = router.push(route, popTo, popToInclusive, transition, force)
 
     protected fun <T : IRoute> push(
@@ -33,14 +37,14 @@ abstract class Coordinator(
         popTo: KClass<T>,
         popToInclusive: Boolean,
         transition: IRouteTransition?,
-        force: Boolean
+        force: Boolean,
     ) = router.push(route, popTo, popToInclusive, transition, force)
 
     protected fun push(
         route: IRoute,
         transition: IRouteTransition?,
         force: Boolean,
-        popWhile: (entry: IRoute) -> Boolean
+        popWhile: (entry: IRoute) -> Boolean,
     ) = router.push(route, transition, force, popWhile)
 
     protected fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
@@ -50,7 +54,7 @@ abstract class Coordinator(
         route: IRoute,
         transition: IRouteTransition?,
         force: Boolean,
-        popWhile: (entry: IRoute) -> Boolean
+        popWhile: (entry: IRoute) -> Boolean,
     ) = router.replace(route, transition, force, popWhile)
 
     protected fun replace(
@@ -58,7 +62,7 @@ abstract class Coordinator(
         popTo: IRoute,
         popToInclusive: Boolean,
         transition: IRouteTransition?,
-        force: Boolean
+        force: Boolean,
     ) = router.replace(route, popTo, popToInclusive, transition, force)
 
     protected fun <T : IRoute> replace(
@@ -66,7 +70,7 @@ abstract class Coordinator(
         popTo: KClass<T>,
         popToInclusive: Boolean,
         transition: IRouteTransition?,
-        force: Boolean
+        force: Boolean,
     ) = router.replace(route, popTo, popToInclusive, transition, force)
 
     fun pop(force: Boolean = false) = router.pop(force)
@@ -80,6 +84,8 @@ abstract class Coordinator(
     protected fun popTo(to: IRoute, inclusive: Boolean = false, force: Boolean = false) =
         router.popTo(to, inclusive, force)
 
+    fun addRouteLifecycleListener(listener: IRouteLifecycleListener) = router.addRouteLifecycleListener(listener)
+
     companion object {
         fun createObserver(coordinator: Coordinator): ICoordinatorObserver =
             object : ICoordinatorObserver {
@@ -92,16 +98,20 @@ abstract class Coordinator(
                 override fun markTransitionStatus(status: RouteTransitionStatus) =
                     coordinator.router.markTransitionStatus(status)
 
-                override fun addRouteDestroyedListener(block: () -> Unit) =
-                    coordinator.router.addRouteDestroyedListener(block)
+                override fun addRouteLifecycleListener(listener: IRouteLifecycleListener) =
+                    coordinator.router.addRouteLifecycleListener(listener)
             }
     }
 }
 
+/**
+ * [ICoordinatorObserver]'s main purpose is to be used in the UI layer for observing and reacting to route changes
+ * without exposing route stack management.
+ */
 interface ICoordinatorObserver {
     fun hasBackStack(): Boolean
     fun pop()
     val routeFlow: StateFlow<RouteStackEntry>
     fun markTransitionStatus(status: RouteTransitionStatus)
-    fun addRouteDestroyedListener(block: () -> Unit)
+    fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
 }
