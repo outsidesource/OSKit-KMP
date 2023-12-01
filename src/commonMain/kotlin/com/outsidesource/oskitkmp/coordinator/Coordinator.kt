@@ -94,6 +94,8 @@ abstract class Coordinator(
                 override fun pop() = coordinator.router.pop()
 
                 override val routeFlow: StateFlow<RouteStackEntry> = coordinator.router.routeFlow
+                override val routeStack: List<RouteStackEntry>
+                    get() = coordinator.router.routeStack
 
                 override fun markTransitionStatus(status: RouteTransitionStatus) =
                     coordinator.router.markTransitionStatus(status)
@@ -112,6 +114,7 @@ interface ICoordinatorObserver {
     fun hasBackStack(): Boolean
     fun pop()
     val routeFlow: StateFlow<RouteStackEntry>
+    val routeStack: List<RouteStackEntry>
     fun markTransitionStatus(status: RouteTransitionStatus)
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
 }
