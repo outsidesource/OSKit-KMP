@@ -8,7 +8,7 @@ import platform.Foundation.NSNumberFormatterNoStyle
 actual class NumberFormatter actual constructor(
     private val minimumFractionDigits: Int,
     private val maximumFractionDigits: Int,
-    private val useGrouping: Boolean
+    private val useGrouping: Boolean,
 ) {
     private val formatter = NSNumberFormatter()
 
