@@ -50,9 +50,7 @@ abstract class Interactor<T : Any>(
      * Provides a standard coroutine scope for use in the Interactor.
      */
     protected val interactorScope = CoroutineScope(
-        defaultInteractorDispatcher + SupervisorJob() + CoroutineExceptionHandler { _, e ->
-            e.printStackTrace()
-        },
+        Dispatchers.IO + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() },
     )
 
     /**
@@ -117,8 +115,3 @@ abstract class Interactor<T : Any>(
         dependencySubscriptionScope.coroutineContext.cancelChildren()
     }
 }
-
-/**
- * Allows implementers to change the default thread effect management is run on.
- */
-internal val defaultInteractorDispatcher = Dispatchers.Default
