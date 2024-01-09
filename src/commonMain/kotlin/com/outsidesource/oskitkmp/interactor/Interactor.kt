@@ -1,12 +1,7 @@
 package com.outsidesource.oskitkmp.interactor
 
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +13,6 @@ import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.launch
 
 interface IInteractor<T : Any> {
     val state: T
@@ -127,4 +121,4 @@ abstract class Interactor<T : Any>(
 /**
  * Allows implementers to change the default thread effect management is run on.
  */
-internal expect val defaultInteractorDispatcher: CoroutineDispatcher
+internal val defaultInteractorDispatcher = Dispatchers.Default
