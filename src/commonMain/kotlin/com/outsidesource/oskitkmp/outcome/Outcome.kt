@@ -30,3 +30,11 @@ inline fun <reified T, reified E> Outcome<T, E>.unwrapOrElse(block: Outcome.Erro
         is Outcome.Error -> block(this)
     }
 }
+
+inline fun <reified T> Outcome<T, *>.runOnOk(block: (T) -> Unit) {
+    if (this is Outcome.Ok) block(value)
+}
+
+inline fun <reified T> Outcome<*, T>.runOnError(block: (T) -> Unit) {
+    if (this is Outcome.Error) block(error)
+}
