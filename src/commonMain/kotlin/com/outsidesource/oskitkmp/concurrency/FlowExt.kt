@@ -1,12 +1,10 @@
 package com.outsidesource.oskitkmp.concurrency
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -57,5 +55,19 @@ fun <T> Flow<T>.throttle(periodMillis: Long): Flow<T> = flow {
 
         windowStartTime += delta
         emit(value)
+    }
+}
+
+/**
+ * Runs a flow in a given coroutine scope. If the scope is cancelled, the flow will complete.
+ */
+fun <T> Flow<T>.flowIn(scope: CoroutineScope): Flow<T> {
+    return channelFlow {
+        val job = this@flowIn
+            .onEach { trySend(it) }
+            .onCompletion { close() }
+            .launchIn(scope)
+
+        awaitClose { job.cancel() }
     }
 }
