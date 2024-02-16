@@ -1,12 +1,12 @@
 package com.outsidesource.oskitkmp.interactor
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.forEach
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class InteractorTest {
     @Test
@@ -170,6 +170,42 @@ class InteractorTest {
 //        dependencyBloc.state
 //        dependencyBloc.state
 //        assertTrue(dependencyBlocComputedCount == 1, "Dependent state computes more than once with no updates")
+    }
+
+    @Test
+    fun testFunctionalInteractor() = runBlocking {
+        val interactor = createInteractor(
+            initialState = TestState(),
+            dependencies = emptyList(),
+            computed = { state -> state.copy(testInt = state.testString.length) },
+            hooks = { update, interactor ->
+                object : IInteractor<TestState> by interactor {
+                    fun test() {
+                        update { state -> state.copy(testString = "Test Succeeded") }
+                    }
+                    fun test2(value: String) {
+                        update { state -> state.copy(testString = value)}
+                    }
+                }
+            },
+        )
+
+        assertTrue(interactor.state.testString == "Test", "Invalid initial value")
+        assertEquals("Test".length, interactor.state.testInt, "Invalid computed")
+        interactor.test()
+        assertTrue(interactor.state.testString == "Test Succeeded", "Update didn't work")
+        assertEquals("Test Succeeded".length, interactor.state.testInt, "Computed after update didn't work")
+        var streamCount = 0
+        val listener = launch { interactor.flow().collect { streamCount++ } }
+        delay(16)
+        interactor.test2("one")
+        delay(16)
+        interactor.test2("two")
+        delay(16)
+        interactor.test2("three")
+        delay(16)
+        assertEquals(4, streamCount, "Stream doesn't work. Stream count: $streamCount")
+        listener.cancel()
     }
 }
 
