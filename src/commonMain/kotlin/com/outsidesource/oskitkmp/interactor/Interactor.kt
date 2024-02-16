@@ -2,17 +2,7 @@ package com.outsidesource.oskitkmp.interactor
 
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.flow.*
 
 interface IInteractor<T : Any> {
     val state: T
@@ -114,4 +104,45 @@ abstract class Interactor<T : Any>(
 
         dependencySubscriptionScope.coroutineContext.cancelChildren()
     }
+}
+
+
+/**
+ * Create a functional [Interactor] without having to extend the Interactor class. It is recommended to extend the
+ * [Interactor] class directly, but sometimes that may not be possible. [createInteractor] provides an alternative
+ * means of creating an [Interactor].
+ *
+ * Example:
+ * ```
+ * private interface ITestInteractor: IInteractor<TestState> {
+ *     fun test()
+ * }
+ *
+ * val interactor = createInteractor(
+ *     initialState = TestState(),
+ *     dependencies = emptyList(),
+ *     computed = { state -> state.copy(testInt = state.testString.length) },
+ *     hooks = { update, interactor ->
+ *         object : ITestInteractor, IInteractor<TestState> by interactor {
+ *             override fun test() {
+ *                 update { state -> state.copy(testString = "Test Succeeded") }
+ *             }
+ *         }
+ *     },
+ * )
+ * ```
+ */
+fun <S : Any, H : IInteractor<S>> createInteractor(
+    initialState: S,
+    dependencies: List<IInteractor<*>>,
+    computed: (state: S) -> S,
+    hooks: ((update: (state: S) -> S) -> S, interactor: IInteractor<S>) -> H,
+): H {
+    return object : Interactor<S>(
+        initialState,
+        dependencies,
+    ) {
+        val resolvedHooks = hooks(::update, this)
+        override fun computed(state: S): S = computed(state)
+    }.resolvedHooks
 }
