@@ -22,7 +22,7 @@ import platform.darwin.NSObject
 
 actual data class KMPFileHandlerContext(val rootController: UIViewController)
 
-class IOSKMPFileHandler : IKMPFileHandler {
+actual class KMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
 
     private val documentPickerDelegate = IOSPickerDelegate()

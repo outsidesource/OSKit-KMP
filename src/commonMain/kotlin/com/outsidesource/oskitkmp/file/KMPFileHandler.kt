@@ -19,6 +19,8 @@ expect class KMPFileHandlerContext
  * [resolveFile] and [resolveDirectory] will return a file or directory reference if it exists with an optional
  * parameter to create.
  */
+expect class KMPFileHandler : IKMPFileHandler
+
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
 

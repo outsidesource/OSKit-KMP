@@ -106,7 +106,6 @@ abstract class Interactor<T : Any>(
     }
 }
 
-
 /**
  * Create a functional [Interactor] without having to extend the Interactor class. It is recommended to extend the
  * [Interactor] class directly, but sometimes that may not be possible. [createInteractor] provides an alternative
