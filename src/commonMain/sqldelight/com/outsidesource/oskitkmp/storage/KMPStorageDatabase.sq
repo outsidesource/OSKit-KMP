@@ -3,6 +3,12 @@ CREATE TABLE IF NOT EXISTS kmp_storage (
     value BLOB NOT NULL
 );
 
+getKeys:
+SELECT key FROM kmp_storage;
+
+getKeyCount:
+SELECT COUNT(*) FROM kmp_storage;
+
 put:
 INSERT OR REPLACE INTO kmp_storage(key, value) VALUES (?, ?);
 
@@ -17,3 +23,7 @@ DELETE FROM kmp_storage WHERE key = ?;
 
 clear:
 DELETE FROM kmp_storage;
+VACUUM;
+
+vacuum:
+VACUUM;
