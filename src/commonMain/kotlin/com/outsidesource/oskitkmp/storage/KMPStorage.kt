@@ -15,13 +15,21 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 import okio.Buffer
 
+// TODO: Write tests
+
 expect class KMPStorageContext : IKMPStorageContext
 
 interface IKMPStorageContext {
     val appName: String
 }
 
-interface IKMPStorage {
+internal expect fun createDatabaseDriver(context: KMPStorageContext, nodeName: String): SqlDriver
+
+class KMPStorage(private val context: KMPStorageContext) {
+    fun openNode(nodeName: String): IKMPStorageNode = KMPStorageNode(context, nodeName)
+}
+
+interface IKMPStorageNode {
     fun close()
     fun contains(key: String): Boolean
     fun remove(key: String): Outcome<Unit, Exception>
@@ -58,76 +66,60 @@ interface IKMPStorage {
     fun transaction(block: (rollback: () -> Nothing) -> Unit)
 }
 
-class KMPStorage(context: KMPStorageContext) : IKMPStorage {
-    private val driver = createDatabaseDriver(context)
+class KMPStorageNode internal constructor(context: KMPStorageContext, name: String) : IKMPStorageNode {
+    private val driver = createDatabaseDriver(context, name)
     private val queries = KMPStorageDatabaseQueries(driver)
 
-    override fun close() {
-        driver.close()
+    override fun close() = driver.close()
+
+    override fun contains(key: String): Boolean = try {
+        queries.exists(key).executeAsOneOrNull() != null
+    } catch (e: Exception) {
+        false
     }
 
-    override fun contains(key: String): Boolean {
-        return try {
-            queries.exists(key).executeAsOneOrNull() != null
-        } catch (e: Exception) {
-            false
-        }
+    override fun remove(key: String): Outcome<Unit, Exception> = try {
+        queries.remove(key)
+        Outcome.Ok(Unit)
+    } catch (e: Exception) {
+        Outcome.Error(e)
     }
 
-    override fun remove(key: String): Outcome<Unit, Exception> {
-        return try {
-            queries.remove(key)
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
+    override fun clear(): Outcome<Unit, Exception> = try {
+        queries.clear()
+        Outcome.Ok(Unit)
+    } catch (e: Exception) {
+        Outcome.Error(e)
     }
 
-    override fun clear(): Outcome<Unit, Exception> {
-        return try {
-            queries.clear()
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
+    override fun vacuum(): Outcome<Unit, Exception> = try {
+        queries.vacuum()
+        Outcome.Ok(Unit)
+    } catch (e: Exception) {
+        Outcome.Error(e)
     }
 
-    override fun vacuum(): Outcome<Unit, Exception> {
-        return try {
-            queries.vacuum()
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
+    override fun getKeys(): List<String>? = try {
+        queries.getKeys().executeAsList()
+    } catch (e: Exception) {
+        null
     }
 
-    override fun getKeys(): List<String>? {
-        return try {
-            queries.getKeys().executeAsList()
-        } catch (e: Exception) {
-            null
-        }
+    override fun keyCount(): Long = try {
+        queries.getKeyCount().executeAsOne()
+    } catch (e: Exception) {
+        0
     }
 
-    override fun keyCount(): Long {
-        return try {
-            queries.getKeyCount().executeAsOne()
-        } catch (e: Exception) {
-            0
-        }
-    }
-
-    override fun dbFileSize(): Long {
-        return try {
-            driver.executeQuery(
-                identifier = null,
-                sql = "SELECT `page_count` * `page_size` as `size` FROM pragma_page_count(), pragma_page_size();",
-                mapper = { QueryResult.Value(it.getLong(0)) },
-                parameters = 0,
-            ).value ?: 0
-        } catch (e: Exception) {
-            0
-        }
+    override fun dbFileSize(): Long = try {
+        driver.executeQuery(
+            identifier = null,
+            sql = "SELECT `page_count` * `page_size` as `size` FROM pragma_page_count(), pragma_page_size();",
+            mapper = { QueryResult.Value(it.getLong(0)) },
+            parameters = 0,
+        ).value ?: 0
+    } catch (e: Exception) {
+        0
     }
 
     override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> =
@@ -224,5 +216,3 @@ class KMPStorage(context: KMPStorageContext) : IKMPStorage {
         }
     }
 }
-
-internal expect fun createDatabaseDriver(context: KMPStorageContext): SqlDriver
