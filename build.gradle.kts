@@ -124,8 +124,10 @@ kotlin {
                 implementation("androidx.documentfile:documentfile:1.0.1")
             }
         }
-        val androidInstrumentedTest by getting {
+        val androidUnitTest by getting {
             dependencies {
+                implementation("androidx.test:runner:1.5.2")
+                implementation("androidx.test:core:1.5.0")
                 implementation("junit:junit:4.13.2")
             }
         }
@@ -134,6 +136,7 @@ kotlin {
                 implementation("app.cash.sqldelight:native-driver:2.0.1")
             }
         }
+        val iosTest by getting
         val jvmMain by getting {
             dependencies {
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.1")
@@ -142,6 +145,7 @@ kotlin {
                 runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
             }
         }
+        val jvmTest by getting
     }
 }
 

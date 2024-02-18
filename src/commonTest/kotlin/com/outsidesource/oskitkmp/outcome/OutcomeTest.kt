@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.outcome
 
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class OutcomeTest {
     @Test
@@ -8,10 +9,10 @@ class OutcomeTest {
         val outcome: Outcome<Int, Any> = Outcome.Ok(1)
         val outcome2: Outcome<Int, Any> = Outcome.Error(1)
 
-        assert(outcome is Outcome.Ok)
-        assert(outcome2 is Outcome.Error)
-        assert(outcome2.unwrapOrDefault(3) == 3)
-        assert(outcome2.unwrapOrNull() == null)
+        assertTrue { outcome is Outcome.Ok }
+        assertTrue { outcome2 is Outcome.Error }
+        assertTrue { outcome2.unwrapOrDefault(3) == 3 }
+        assertTrue { outcome2.unwrapOrNull() == null }
     }
 
     @Test
@@ -23,8 +24,8 @@ class OutcomeTest {
             throw Exception("")
         }
 
-        assert(error is Outcome.Error)
-        assert(ok is Outcome.Ok && ok.value == 1)
+        assertTrue { error is Outcome.Error }
+        assertTrue { ok is Outcome.Ok && ok.value == 1 }
     }
 
     fun test(): Outcome<Int, Throwable> {
