@@ -15,19 +15,19 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 import okio.Buffer
 
-// TODO: Write tests
-
-expect class KMPStorageContext : IKMPStorageContext
-
-interface IKMPStorageContext {
-    val appName: String
+/**
+ * [KMPStorage] is a multiplatform key value store that allows storage of any data type
+ *
+ * All [KMPStorage] and [KMPStorageNode] methods are blocking and should be run in a coroutine on
+ * [Dispatchers.IO]
+ */
+interface IKMPStorage {
+    fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception>
 }
+
+internal expect class KMPStorageContext
 
 internal expect fun createDatabaseDriver(context: KMPStorageContext, nodeName: String): SqlDriver
-
-class KMPStorage(private val context: KMPStorageContext) {
-    fun openNode(nodeName: String): IKMPStorageNode = KMPStorageNode(context, nodeName)
-}
 
 interface IKMPStorageNode {
     fun close()
@@ -39,18 +39,21 @@ interface IKMPStorageNode {
     fun keyCount(): Long
     fun dbFileSize(): Long
     fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception>
-    fun <T> putSerializable(
-        key: String,
-        value: T,
-        serializer: SerializationStrategy<T>,
-    ): Outcome<Unit, Exception>
+    fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception>
     fun putString(key: String, value: String): Outcome<Unit, Exception>
     fun putInt(key: String, value: Int): Outcome<Unit, Exception>
     fun putLong(key: String, value: Long): Outcome<Unit, Exception>
     fun putFloat(key: String, value: Float): Outcome<Unit, Exception>
     fun putDouble(key: String, value: Double): Outcome<Unit, Exception>
+    fun <T> putSerializable(
+        key: String,
+        value: T,
+        serializer: SerializationStrategy<T>,
+    ): Outcome<Unit, Exception>
     fun getBytes(key: String): ByteArray?
     fun observeBytes(key: String): Flow<ByteArray>
+    fun getBoolean(key: String): Boolean?
+    fun observeBoolean(key: String): Flow<Boolean>
     fun getString(key: String): String?
     fun observeString(key: String): Flow<String>
     fun getInt(key: String): Int?
@@ -125,6 +128,9 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
     override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> =
         put(key) { value }
 
+    override fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception> =
+        put(key) { byteArrayOf(if (value) 0x01 else 0x00) }
+
     override fun putString(key: String, value: String): Outcome<Unit, Exception> =
         put(key) { value.encodeToByteArray() }
 
@@ -151,6 +157,10 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     override fun observeBytes(key: String): Flow<ByteArray> = observe(key) { it }
 
+    override fun getBoolean(key: String): Boolean? = get(key) { it[0] == 0x01.toByte() }
+
+    override fun observeBoolean(key: String): Flow<Boolean> = observe(key) { it[0] == 0x01.toByte() }
+
     override fun getString(key: String): String? = get(key) { Buffer().write(it).readUtf8() }
 
     override fun observeString(key: String): Flow<String> = observe(key) { Buffer().write(it).readUtf8() }
@@ -174,15 +184,21 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T? =
-        get(key) { Cbor.decodeFromByteArray(deserializer, queries.get(key).executeAsOne().value_) }
+        get(key) { Cbor.decodeFromByteArray(deserializer, queries.get(key).executeAsOne()) }
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T> =
         observe(key) { Cbor.decodeFromByteArray(deserializer, it) }
 
+    override fun transaction(block: (rollback: () -> Nothing) -> Unit) {
+        queries.transaction {
+            block(::rollback)
+        }
+    }
+
     private inline fun <T> get(key: String, crossinline mapper: (bytes: ByteArray) -> T): T? {
         return try {
-            return mapper(queries.get(key).executeAsOne().value_)
+            return mapper(queries.get(key).executeAsOne())
         } catch (e: Exception) {
             null
         }
@@ -209,10 +225,4 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
             // NoOp
         }
     }.buffer(1, BufferOverflow.DROP_OLDEST)
-
-    override fun transaction(block: (rollback: () -> Nothing) -> Unit) {
-        queries.transaction {
-            block(::rollback)
-        }
-    }
 }

@@ -16,7 +16,7 @@ exists:
 SELECT key FROM kmp_storage WHERE key = ?;
 
 get:
-SELECT * FROM kmp_storage WHERE key = ?;
+SELECT value FROM kmp_storage WHERE key = ?;
 
 remove:
 DELETE FROM kmp_storage WHERE key = ?;
