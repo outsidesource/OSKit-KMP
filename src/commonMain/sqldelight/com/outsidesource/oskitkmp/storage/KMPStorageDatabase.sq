@@ -23,7 +23,6 @@ DELETE FROM kmp_storage WHERE key = ?;
 
 clear:
 DELETE FROM kmp_storage;
-VACUUM;
 
 vacuum:
 VACUUM;
