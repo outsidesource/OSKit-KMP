@@ -16,10 +16,13 @@ import kotlinx.serialization.cbor.Cbor
 import okio.Buffer
 
 /**
- * [KMPStorage] is a multiplatform key value store that allows storage of any data type
+ * [KMPStorage] is a multiplatform key value store that allows persistent storage of any data
  *
  * All [KMPStorage] and [KMPStorageNode] methods are blocking and should be run in a coroutine on
  * [Dispatchers.IO]
+ *
+ * To use [KMPStorage] create an instance of each platform independent implementation, [AndroidKMPStorage],
+ * [IOSKMPStorage], [DesktopKMPStorage] (JVM). Each implementation implements [IKMPStorage].
  */
 interface IKMPStorage {
     fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception>
