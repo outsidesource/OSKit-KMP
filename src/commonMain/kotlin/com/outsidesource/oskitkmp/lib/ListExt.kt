@@ -1,27 +1,21 @@
 package com.outsidesource.oskitkmp.lib
 
-inline fun <reified R> List<Any>.findInstance(): R? {
-    return find { it is R } as R?
+inline fun <reified R> List<Any>.findInstance(predicate: (R) -> Boolean = { true }): R? {
+    return find { it is R && predicate(it) } as R?
 }
 
-//inline fun <T, reified R> List<T>.findMapped(mapper: (T) -> R?): R? {
-//    return find { it is R } as R?
-//}
-//
-//inline fun <T, R> List<T>.lastOrNullMapped(mapper: (T) -> R?): R? {
-//    var value: R? = null
-//    lastOrNull {
-//        value = mapper(it) ?: return@lastOrNull false
-//        true
-//    }
-//    return value
-//}
-//
-//inline fun <T, R> List<T>.firstOrNullMapped(mapper: (T) -> R?): R? {
-//    var value: R? = null
-//    lastOrNull {
-//        value = mapper(it) ?: return@lastOrNull false
-//        true
-//    }
-//    return value
-//}
+inline fun <T, reified R> List<T>.findMapped(transform: (T) -> R?): R? {
+    for (item in this) {
+        return transform(item) ?: continue
+    }
+    return null
+}
+
+inline fun <T, R> List<T>.lastNotNullOfOrNull(transform: (T) -> R?): R? {
+    val iterator = listIterator(size)
+    while (iterator.hasPrevious()) {
+        val element = iterator.previous()
+        return transform(element) ?: continue
+    }
+    return null
+}
