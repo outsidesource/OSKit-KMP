@@ -1,8 +1,8 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrElse
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import io.ktor.util.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -108,7 +108,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
-        val directory = pickDirectory(startingDir).unwrapOrElse { return this } ?: return Outcome.Ok(null)
+        val directory = pickDirectory(startingDir).unwrapOrReturn { return this } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 
