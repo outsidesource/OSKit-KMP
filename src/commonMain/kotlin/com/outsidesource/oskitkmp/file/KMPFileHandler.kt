@@ -9,10 +9,10 @@ expect class KMPFileHandlerContext
 
 /**
  * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
- * application sandboxes in iOS and Android. All files/folders created are user accessible from outside the application.
+ * application sandboxes in iOS and Android. All files/directories created are user accessible from outside the application.
  *
  * In order to access any file a user must call [pickDirectory] or [pickFile]. Use [pickDirectory] to gain permissions to a
- * root folder. The user may then take any action within that folder.
+ * root directories. The user may then take any action within that directories.
  *
  * In order to rename files, use [moveFile] command.
  *
