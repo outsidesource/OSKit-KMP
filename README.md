@@ -34,11 +34,15 @@ implementation("com.outsidesource:oskit-kmp:4.3.0")
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
-### 4.4.0 - 2024-02-18
+
+### 4.4.0 - 2024-03-06
 #### Added
 * KMPStorage
+* Double.toFixed()
+* List extensions
 #### Breaking Changes
 * renamed `Outcome.unwrapOrElse` to `Outcome.unwrapOrReturn` 
+
 ### 4.3.0 - 2024-02-16
 #### Added
 * `createInteractor()`
