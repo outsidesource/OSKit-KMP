@@ -4,6 +4,9 @@ import kotlin.math.absoluteValue
 
 fun Int.snapTo(value: Int): Int {
     require(value > 0f)
+
+    if (value == 1) return this
+
     val diff = (this % value).absoluteValue
     return if (this > 0) {
         if (diff >= (value / 2)) this + (value - diff) else this - diff

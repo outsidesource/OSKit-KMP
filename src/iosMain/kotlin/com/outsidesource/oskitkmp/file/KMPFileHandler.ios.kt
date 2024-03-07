@@ -1,8 +1,8 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrElse
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import io.ktor.util.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
@@ -22,7 +22,7 @@ import platform.darwin.NSObject
 
 actual data class KMPFileHandlerContext(val rootController: UIViewController)
 
-class IOSKMPFileHandler : IKMPFileHandler {
+actual class KMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
 
     private val documentPickerDelegate = IOSPickerDelegate()
@@ -108,7 +108,7 @@ class IOSKMPFileHandler : IKMPFileHandler {
     }
 
     override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
-        val directory = pickDirectory(startingDir).unwrapOrElse { return this } ?: return Outcome.Ok(null)
+        val directory = pickDirectory(startingDir).unwrapOrReturn { return this } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 

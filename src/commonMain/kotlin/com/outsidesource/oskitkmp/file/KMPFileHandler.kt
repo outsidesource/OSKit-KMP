@@ -1,7 +1,7 @@
 package com.outsidesource.oskitkmp.file
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrElse
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import okio.buffer
 import okio.use
 
@@ -9,16 +9,18 @@ expect class KMPFileHandlerContext
 
 /**
  * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
- * application sandboxes in iOS and Android. All files/folders created are user accessible from outside the application.
+ * application sandboxes in iOS and Android. All files/directories created are user accessible from outside the application.
  *
  * In order to access any file a user must call [pickDirectory] or [pickFile]. Use [pickDirectory] to gain permissions to a
- * root folder. The user may then take any action within that folder.
+ * root directories. The user may then take any action within that directories.
  *
  * In order to rename files, use [moveFile] command.
  *
  * [resolveFile] and [resolveDirectory] will return a file or directory reference if it exists with an optional
  * parameter to create.
  */
+expect class KMPFileHandler() : IKMPFileHandler
+
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)
 
@@ -76,8 +78,8 @@ interface IKMPFileHandler {
      */
     suspend fun moveFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveException())
-        val source = from.source().unwrapOrElse { return this }
-        val sink = to.sink().unwrapOrElse { return this }
+        val source = from.source().unwrapOrReturn { return this }
+        val sink = to.sink().unwrapOrReturn { return this }
 
         try {
             sink.buffer().use { it.writeAll(source) }
@@ -85,15 +87,15 @@ interface IKMPFileHandler {
             return Outcome.Error(e)
         }
 
-        delete(from).unwrapOrElse { return this }
+        delete(from).unwrapOrReturn { return this }
 
         return Outcome.Ok(Unit)
     }
 
     suspend fun copyFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileCopyException())
-        val source = from.source().unwrapOrElse { return this }
-        val sink = to.sink().unwrapOrElse { return this }
+        val source = from.source().unwrapOrReturn { return this }
+        val sink = to.sink().unwrapOrReturn { return this }
 
         try {
             sink.buffer().use { it.writeAll(source) }

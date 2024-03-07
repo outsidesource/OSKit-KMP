@@ -9,6 +9,9 @@ We strive to adhere to semantic versioning.
 Contributions are appreciated and welcome, but we are a small team and make no guarantees that your changes will be
 implemented.
 
+## Documentation
+<https://outsidesource.github.io/OSKit-KMP/>
+
 ## Features
 * An easy-to-use, concurrent, reactive, state management system
 * Platform independent routing
@@ -31,6 +34,15 @@ implementation("com.outsidesource:oskit-kmp:4.3.0")
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+
+### 4.4.0 - 2024-03-06
+#### Added
+* KMPStorage
+* Double.toFixed()
+* List extensions
+#### Breaking Changes
+* renamed `Outcome.unwrapOrElse` to `Outcome.unwrapOrReturn` 
+
 ### 4.3.0 - 2024-02-16
 #### Added
 * `createInteractor()`

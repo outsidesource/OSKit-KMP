@@ -10,7 +10,7 @@ import java.awt.Frame
 
 actual class KMPFileHandlerContext(val window: Frame)
 
-class DesktopKMPFileHandler : IKMPFileHandler {
+actual class KMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
 
     override fun init(fileHandlerContext: KMPFileHandlerContext) {

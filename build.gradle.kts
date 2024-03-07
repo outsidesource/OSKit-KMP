@@ -19,6 +19,15 @@ plugins {
     id("maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
     id("com.vanniktech.maven.publish") version "0.25.3"
+    id("app.cash.sqldelight") version "2.0.1"
+}
+
+sqldelight {
+    databases {
+        create("KMPStorageDatabase") {
+            packageName.set("com.outsidesource.oskitkmp.storage")
+        }
+    }
 }
 
 val lwjglVersion = "3.3.2"
@@ -110,22 +119,33 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
+                implementation("app.cash.sqldelight:android-driver:2.0.1")
                 implementation("androidx.activity:activity-compose:1.8.0")
                 implementation("androidx.documentfile:documentfile:1.0.1")
             }
         }
-        val androidInstrumentedTest by getting {
+        val androidUnitTest by getting {
             dependencies {
+                implementation("androidx.test:runner:1.5.2")
+                implementation("androidx.test:core:1.5.0")
                 implementation("junit:junit:4.13.2")
             }
         }
+        val iosMain by getting {
+            dependencies {
+                implementation("app.cash.sqldelight:native-driver:2.0.1")
+            }
+        }
+        val iosTest by getting
         val jvmMain by getting {
             dependencies {
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.1")
                 implementation("org.lwjgl:lwjgl-tinyfd:$lwjglVersion")
                 runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
                 runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
             }
         }
+        val jvmTest by getting
     }
 }
 

@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS kmp_storage (
+    key TEXT PRIMARY KEY NOT NULL,
+    value BLOB NOT NULL
+);
+
+getKeys:
+SELECT key FROM kmp_storage;
+
+getKeyCount:
+SELECT COUNT(*) FROM kmp_storage;
+
+put:
+INSERT OR REPLACE INTO kmp_storage(key, value) VALUES (?, ?);
+
+exists:
+SELECT key FROM kmp_storage WHERE key = ?;
+
+get:
+SELECT value FROM kmp_storage WHERE key = ?;
+
+remove:
+DELETE FROM kmp_storage WHERE key = ?;
+
+clear:
+DELETE FROM kmp_storage;
+
+vacuum:
+VACUUM;

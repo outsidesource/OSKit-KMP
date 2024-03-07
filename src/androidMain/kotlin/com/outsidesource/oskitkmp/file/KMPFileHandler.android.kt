@@ -29,7 +29,7 @@ actual data class KMPFileHandlerContext(
     val activity: ComponentActivity,
 )
 
-class AndroidKMPFileHandler : IKMPFileHandler {
+actual class KMPFileHandler : IKMPFileHandler {
     companion object {
         internal var context: KMPFileHandlerContext? = null
     }
@@ -328,7 +328,7 @@ class AndroidKMPFileHandler : IKMPFileHandler {
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SourceException())
-        val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
+        val context = KMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
             ?: return Outcome.Error(FileOpenException())
         Outcome.Ok(stream.source())
@@ -341,7 +341,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SinkException())
-        val context = AndroidKMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
+        val context = KMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val modeString = when (mode) {
             KMPFileWriteMode.Overwrite -> "wt"
             KMPFileWriteMode.Append -> "wa"
