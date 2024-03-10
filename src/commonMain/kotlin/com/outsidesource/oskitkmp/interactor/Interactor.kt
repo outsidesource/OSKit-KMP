@@ -133,8 +133,8 @@ abstract class Interactor<T : Any>(
  */
 fun <S : Any, H : IInteractor<S>> createInteractor(
     initialState: S,
-    dependencies: List<IInteractor<*>>,
-    computed: (state: S) -> S,
+    dependencies: List<IInteractor<*>> = emptyList(),
+    computed: (state: S) -> S = { it },
     hooks: ((update: (state: S) -> S) -> S, interactor: IInteractor<S>) -> H,
 ): H {
     return object : Interactor<S>(
