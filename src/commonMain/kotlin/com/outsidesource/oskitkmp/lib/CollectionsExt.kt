@@ -1,8 +1,8 @@
 package com.outsidesource.oskitkmp.lib
 
-fun <T> List<T>.containsAny(list: List<T>) = any { it in list }
-fun <T> List<T>.containsAny(vararg list: T) = any { it in list }
-fun <T> List<T>.containsAll(vararg list: T) = containsAll(list.toList())
+fun <T> Iterable<T>.containsAny(list: List<T>) = any { it in list }
+fun <T> Iterable<T>.containsAny(vararg list: T) = any { it in list }
+fun <T> Collection<T>.containsAll(vararg list: T) = containsAll(list.toList())
 
 inline fun <reified R> Iterable<*>.filterIsInstance(predicate: (R) -> Boolean): List<R> =
     filterIsInstanceTo(mutableListOf(), predicate)
@@ -20,4 +20,24 @@ fun <T> List<List<T>>.intersect(): List<T> {
     var res = this[0].toSet()
     forEach { res = res.intersect(it.toSet()) }
     return res.toList()
+}
+
+inline fun <reified R> Iterable<Any>.findInstance(predicate: (R) -> Boolean = { true }): R? {
+    return find { it is R && predicate(it) } as R?
+}
+
+inline fun <T, reified R> Iterable<T>.findMapped(transform: (T) -> R?): R? {
+    for (item in this) {
+        return transform(item) ?: continue
+    }
+    return null
+}
+
+inline fun <T, R> List<T>.lastNotNullOfOrNull(transform: (T) -> R?): R? {
+    val iterator = listIterator(size)
+    while (iterator.hasPrevious()) {
+        val element = iterator.previous()
+        return transform(element) ?: continue
+    }
+    return null
 }

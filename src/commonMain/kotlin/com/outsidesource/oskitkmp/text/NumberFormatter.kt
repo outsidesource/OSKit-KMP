@@ -9,6 +9,12 @@ fun Float.toFixed(decimalPlaces: Int): String {
     }
 }
 
+fun Double.toFixed(decimalPlaces: Int): String {
+    return (this * 10f.pow(decimalPlaces)).roundToInt().toString().let {
+        it.replaceRange(it.length - decimalPlaces, it.length - decimalPlaces, ".")
+    }
+}
+
 expect class NumberFormatter(
     minimumFractionDigits: Int = 0,
     maximumFractionDigits: Int = 2,
