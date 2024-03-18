@@ -24,7 +24,6 @@ data class SemVer(val major: Int = 0, val minor: Int = 0, val patch: Int = 0) : 
         fun fromString(version: String): SemVer {
             val versions = version.replace("[^0-9.]".toRegex(), "")
                 .split(".")
-                .map { it.take(1) }
                 .filter { it.isNotBlank() }
 
             return SemVer(
