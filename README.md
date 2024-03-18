@@ -34,6 +34,9 @@ implementation("com.outsidesource:oskit-kmp:4.3.0")
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+### 4.4.2 - 2024-03-18
+#### Fixed
+* SemVer.fromString() only taking the first digit
 
 ### 4.4.0 - 2024-03-06
 #### Added
