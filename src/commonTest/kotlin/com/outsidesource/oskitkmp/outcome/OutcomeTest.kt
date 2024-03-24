@@ -28,11 +28,31 @@ class OutcomeTest {
         assertTrue { ok is Outcome.Ok && ok.value == 1 }
     }
 
-    fun test(): Outcome<Int, Throwable> {
-        return try {
-            Outcome.Ok(1)
-        } catch (e: Exception) {
-            Outcome.Error(e)
-        }
+    @Test
+    fun testRunOnOk() {
+        val test1 = testOk()
+        var didRunOk = false
+        var didRunError = false
+        test1.runOnOk { didRunOk = true }
+        test1.runOnError { didRunError = true }
+        assertTrue { didRunOk && !didRunError }
+    }
+
+    @Test
+    fun testRunOnError() {
+        val test1 = testError()
+        var didRunOk = false
+        var didRunError = false
+        test1.runOnOk { didRunOk = true }
+        test1.runOnError { didRunError = true }
+        assertTrue { !didRunOk && didRunError }
+    }
+
+    fun testOk(): Outcome<Int, Throwable> {
+        return Outcome.Ok(1)
+    }
+
+    fun testError(): Outcome<Int, Throwable> {
+        return Outcome.Error(Exception())
     }
 }
