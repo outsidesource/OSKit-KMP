@@ -34,9 +34,16 @@ implementation("com.outsidesource:oskit-kmp:4.3.0")
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+
+### 4.5.0 - 2024-03-23
+#### Updated
+* Outcome.runOnOk and Outcome.runOnError now return the outcome specified 
+
 ### 4.4.2 - 2024-03-18
 #### Fixed
 * SemVer.fromString() only taking the first digit
+#### Updated
+* Made dependencies and computed optional in createInteractor()
 
 ### 4.4.0 - 2024-03-06
 #### Added
