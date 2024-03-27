@@ -244,6 +244,15 @@ class KMPStorageTest {
                     !node.contains("testString")
         }
     }
+
+    @Test
+    fun testWrongTypes() {
+        val node = InMemoryKMPStorageNode()
+        node.putString("test", "Test")
+        assertTrue { node.getLong("test") == null }
+        node.putLong("test", 1L)
+        assertTrue { node.getLong("test") == 1L }
+    }
 }
 
 @Serializable
