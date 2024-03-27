@@ -19,7 +19,7 @@ import kotlinx.serialization.cbor.Cbor
 /**
  * InMemoryKMPStorageNode provides a thread-safe, fallback, in-memory storage node
  */
-class InMemoryKMPStorageNode: IKMPStorageNode {
+class InMemoryKMPStorageNode : IKMPStorageNode {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val storage = atomic(mapOf<String, Any>())
     private val transaction = atomic<Map<String, Any?>?>(null)
@@ -44,6 +44,7 @@ class InMemoryKMPStorageNode: IKMPStorageNode {
     override fun getKeys(): List<String> = storage.value.keys.toList()
     override fun getLong(key: String): Long? = storage.value[key] as? Long
     override fun getString(key: String): String? = storage.value[key] as? String
+
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T? {
         return try {
@@ -60,6 +61,7 @@ class InMemoryKMPStorageNode: IKMPStorageNode {
     override fun observeInt(key: String): Flow<Int> = observe(key)
     override fun observeLong(key: String): Flow<Long> = observe(key)
     override fun observeString(key: String): Flow<String> = observe(key)
+
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T> =
         observe<ByteArray>(key).mapNotNull {
@@ -70,7 +72,6 @@ class InMemoryKMPStorageNode: IKMPStorageNode {
             }
         }
 
-
     override fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception> = performWrite(key, value)
     override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> = performWrite(key, value)
     override fun putDouble(key: String, value: Double): Outcome<Unit, Exception> = performWrite(key, value)
@@ -79,11 +80,12 @@ class InMemoryKMPStorageNode: IKMPStorageNode {
     override fun putLong(key: String, value: Long): Outcome<Unit, Exception> = performWrite(key, value)
     override fun putString(key: String, value: String): Outcome<Unit, Exception> = performWrite(key, value)
     override fun remove(key: String): Outcome<Unit, Exception> = performWrite(key, null)
+
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> putSerializable(
         key: String,
         value: T,
-        serializer: SerializationStrategy<T>
+        serializer: SerializationStrategy<T>,
     ): Outcome<Unit, Exception> {
         return try {
             performWrite(key, Cbor.encodeToByteArray(serializer, value))
@@ -91,7 +93,6 @@ class InMemoryKMPStorageNode: IKMPStorageNode {
             Outcome.Error(e)
         }
     }
-
 
     override fun transaction(block: (rollback: () -> Nothing) -> Unit) {
         transactionLock.withLock {
