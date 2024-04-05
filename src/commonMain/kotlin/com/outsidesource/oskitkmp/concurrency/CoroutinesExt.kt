@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.concurrency
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlinx.coroutines.*
 
 /**
@@ -35,4 +36,19 @@ suspend fun withDelay(delayInMillis: Long, block: suspend () -> Any) = coroutine
         delay(delayInMillis)
         block()
     }
+}
+
+suspend fun <T, E> withTimeoutOrOutcome(
+    timeoutMillis: Long,
+    timeoutError: E,
+    block: suspend CoroutineScope.() -> Outcome<T, E>,
+): Outcome<T, E> = withTimeoutOrNull(timeoutMillis, block) ?: Outcome.Error(timeoutError)
+
+suspend fun <T> withTimeoutOrOutcome(
+    timeoutMillis: Long,
+    block: suspend CoroutineScope.() -> Outcome<T, Any>,
+): Outcome<T, Any> = try {
+    withTimeout(timeoutMillis, block)
+} catch (e: Exception) {
+    Outcome.Error(e)
 }
