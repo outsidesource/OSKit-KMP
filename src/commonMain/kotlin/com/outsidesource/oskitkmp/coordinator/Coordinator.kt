@@ -27,23 +27,23 @@ abstract class Coordinator(
     protected fun push(
         route: IRoute,
         popTo: IRoute,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
     ) = router.push(route, popTo, popToInclusive, transition, force)
 
     protected fun <T : IRoute> push(
         route: IRoute,
         popTo: KClass<T>,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
     ) = router.push(route, popTo, popToInclusive, transition, force)
 
     protected fun push(
         route: IRoute,
-        transition: IRouteTransition?,
-        force: Boolean,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
         popWhile: (entry: IRoute) -> Boolean,
     ) = router.push(route, transition, force, popWhile)
 
@@ -52,25 +52,25 @@ abstract class Coordinator(
 
     protected fun replace(
         route: IRoute,
-        transition: IRouteTransition?,
-        force: Boolean,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
         popWhile: (entry: IRoute) -> Boolean,
     ) = router.replace(route, transition, force, popWhile)
 
     protected fun replace(
         route: IRoute,
         popTo: IRoute,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
     ) = router.replace(route, popTo, popToInclusive, transition, force)
 
     protected fun <T : IRoute> replace(
         route: IRoute,
         popTo: KClass<T>,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
+        popToInclusive: Boolean = false,
+        transition: IRouteTransition? = null,
+        force: Boolean = false,
     ) = router.replace(route, popTo, popToInclusive, transition, force)
 
     fun pop(force: Boolean = false) = router.pop(force)
