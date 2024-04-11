@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.concurrency
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlinx.coroutines.*
 
 /**
