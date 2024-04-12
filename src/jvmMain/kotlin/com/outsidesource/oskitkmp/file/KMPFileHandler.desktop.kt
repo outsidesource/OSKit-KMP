@@ -120,7 +120,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
-            if (create) FileSystem.SYSTEM.sink(path, mustCreate = true)
+            if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
             return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = false))
         } catch (e: Exception) {
@@ -138,7 +138,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
-            if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = true)
+            if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
             return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = true))
         } catch (e: Exception) {
