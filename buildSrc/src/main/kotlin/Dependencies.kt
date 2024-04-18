@@ -4,7 +4,7 @@ object Versions {
 
     const val CoroutinesCore = "1.7.1"
     const val KotlinxDateTime = "0.4.0"
-    const val KotlinxAtomicFu = "0.20.2"
+    const val KotlinxAtomicFu = "0.23.2"
     const val KotlinxSerializationJson = "1.5.1"
     const val KotlinxSerializationCBOR = "1.5.1"
     const val Ktor = "2.3.1"
