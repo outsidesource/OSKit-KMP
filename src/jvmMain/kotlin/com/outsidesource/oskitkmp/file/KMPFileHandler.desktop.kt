@@ -12,6 +12,7 @@ actual class KMPFileHandlerContext(val window: Frame)
 
 actual class KMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
+    private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 
     override fun init(fileHandlerContext: KMPFileHandlerContext) {
         context = fileHandlerContext
@@ -31,7 +32,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KMPFileRef(
-                ref = "${dialog.directory}${dialog.file}",
+                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
             )
@@ -58,7 +59,7 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             val refs = dialog.files.map { file ->
                 KMPFileRef(
-                    ref = "${dialog.directory}${file.name}",
+                    ref = joinDirectoryAndFilePath(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
                 )
@@ -97,7 +98,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KMPFileRef(
-                ref = "${dialog.directory}${dialog.file}",
+                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
             )
@@ -116,7 +117,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
-            val path = "${dir.ref}$name".toPath()
+            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
@@ -134,7 +135,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
-            val path = "${dir.ref}$name".toPath()
+            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
@@ -213,6 +214,9 @@ actual class KMPFileHandler : IKMPFileHandler {
             false
         }
     }
+
+    private fun joinDirectoryAndFilePath(dir: String, name: String): String =
+        dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
