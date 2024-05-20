@@ -4,6 +4,7 @@ import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
 import okio.*
 import okio.Path.Companion.toPath
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
 import java.awt.Frame
@@ -48,22 +49,43 @@ actual class KMPFileHandler : IKMPFileHandler {
         filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
         return try {
-            val context = context ?: return Outcome.Error(NotInitializedException())
-            val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
-            dialog.directory = startingDir?.ref?.toPath()?.pathString
-            dialog.isMultipleMode = true
-            if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
-            dialog.isVisible = true
+            val files = MemoryStack.stackPush().use { stack ->
+                val pointerBuffer = stack.mallocPointer(0)
+                pointerBuffer.flip()
 
-            if (dialog.files == null || dialog.files.isEmpty()) return Outcome.Ok(null)
+                TinyFileDialogs.tinyfd_openFileDialog(
+                    "Select Files",
+                    startingDir?.ref ?: "",
+                    pointerBuffer,
+                    null,
+                    true,
+                )
+            } ?: return Outcome.Ok(null)
 
-            val refs = dialog.files.map { file ->
+            val refs = files.split("|").map { file ->
                 KMPFileRef(
-                    ref = joinDirectoryAndFilePath(dialog.directory, file.name),
-                    name = file.name,
+                    ref = file,
+                    name = file.toPath().name,
                     isDirectory = false,
                 )
             }
+
+//            val context = context ?: return Outcome.Error(NotInitializedException())
+//            val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
+//            dialog.directory = startingDir?.ref?.toPath()?.pathString
+//            dialog.isMultipleMode = true
+//            if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
+//            dialog.isVisible = true
+//
+//            if (dialog.files == null || dialog.files.isEmpty()) return Outcome.Ok(null)
+//
+//            val refs = dialog.files.map { file ->
+//                KMPFileRef(
+//                    ref = joinDirectoryAndFilePath(dialog.directory, file.name),
+//                    name = file.name,
+//                    isDirectory = false,
+//                )
+//            }
 
             Outcome.Ok(refs)
         } catch (e: Exception) {
