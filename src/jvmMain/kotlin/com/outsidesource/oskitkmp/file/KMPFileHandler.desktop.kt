@@ -56,7 +56,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         val file = MemoryStack.stackPush().use { stack ->
             val filters = stack.mallocPointer(filter?.size ?: 0)
             for (fileFilter in filter ?: emptyList()) {
-                filters.put(stack.UTF8(fileFilter.extension))
+                filters.put(stack.UTF8("*.${fileFilter.extension}"))
             }
             filters.flip()
 
@@ -110,7 +110,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         val files = MemoryStack.stackPush().use { stack ->
             val filters = stack.mallocPointer(filter?.size ?: 0)
             for (fileFilter in filter ?: emptyList()) {
-                filters.put(stack.UTF8(fileFilter.extension))
+                filters.put(stack.UTF8("*.${fileFilter.extension}"))
             }
             filters.flip()
 
