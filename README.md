@@ -27,13 +27,31 @@ Currently supported platforms include:
 
 ## Installation
 ```
-implementation("com.outsidesource:oskit-kmp:4.3.0")
+implementation("com.outsidesource:oskit-kmp:4.6.0")
 ```
 
 ## Example App
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+### 4.6.0 - 2024-05-21
+#### Added
+* InMemoryKMPStorageNode
+* withTimeoutOrOutcome
+* Deferrable code helpers
+  * Deferrer/SuspendDeferrer
+  * withDefer/withSuspendDefer
+  * coroutineScopeWithDefer/coroutineScopeWithSuspendDefer
+  * flowWithDefer/flowWithSuspendDefer
+  * channelFlowWithDefer/channelFlowWithSuspendDefer
+#### Updated
+* Default parameters in Coordinator
+#### Fixed
+* KMPFileRef being broken after reboot on iOS
+* Large iOS KMPFileRef sink() writes 
+* Issue when resolving KMPFileRef on desktop
+* Issue with resolving KMPFileRef directory on Linux
+* Issue with file pickers on Linux with Plasma
 
 ### 4.5.0 - 2024-03-23
 #### Updated
