@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.file
 
+import com.outsidesource.oskitkmp.lib.Deferrer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
@@ -137,8 +138,13 @@ actual class KMPFileHandler : IKMPFileHandler {
         name: String,
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
+        val deferrer = Deferrer()
+
         return try {
-            val directoryUrl = dir.toNSURL()
+            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+            directoryUrl.startAccessingSecurityScopedResource()
+            deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
+
             val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(FileCreateException())
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
@@ -155,6 +161,8 @@ actual class KMPFileHandler : IKMPFileHandler {
             Outcome.Ok(url.toKMPFileRef(isDirectory = false))
         } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            deferrer.run()
         }
     }
 
@@ -164,8 +172,13 @@ actual class KMPFileHandler : IKMPFileHandler {
         name: String,
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
+        val deferrer = Deferrer()
+
         return try {
-            val directoryUrl = dir.toNSURL()
+            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+            directoryUrl.startAccessingSecurityScopedResource()
+            deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
+
             val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(FileCreateException())
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
@@ -183,6 +196,8 @@ actual class KMPFileHandler : IKMPFileHandler {
             Outcome.Ok(url.toKMPFileRef(isDirectory = true))
         } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            deferrer.run()
         }
     }
 
@@ -201,8 +216,13 @@ actual class KMPFileHandler : IKMPFileHandler {
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
+        val deferrer = Deferrer()
+
         return try {
-            val url = ref.toNSURL()
+            val url = ref.toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+            url.startAccessingSecurityScopedResource()
+            deferrer.defer { url.stopAccessingSecurityScopedResource() }
+
             val deleteSuccess = memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
                 NSFileManager.defaultManager.removeItemAtPath(url.path ?: "", error.ptr)
@@ -211,15 +231,23 @@ actual class KMPFileHandler : IKMPFileHandler {
             return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(FileDeleteException())
         } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            deferrer.run()
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
+        val deferrer = Deferrer()
+
         return try {
             val list = memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
-                val directoryUrl = dir.toNSURL()
+                val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+
+                directoryUrl.startAccessingSecurityScopedResource()
+                deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
+
                 val paths = NSFileManager.defaultManager.contentsOfDirectoryAtPath(directoryUrl.path ?: "", error.ptr)
                     ?: return Outcome.Error(FileListException())
 
@@ -249,17 +277,27 @@ actual class KMPFileHandler : IKMPFileHandler {
             Outcome.Ok(list)
         } catch (e: Exception) {
             Outcome.Error(e)
+        } finally {
+            deferrer.run()
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
+        val deferrer = Deferrer()
+
         try {
             val attributes = memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
-                val url = ref.toNSURL()
-                val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(url.path ?: "", error.ptr)
-                    ?: return Outcome.Error(FileMetadataException())
+                val url = ref.toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+
+                url.startAccessingSecurityScopedResource()
+                deferrer.defer { url.stopAccessingSecurityScopedResource() }
+
+                val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(url.path ?: "", error.ptr) ?: run {
+                    url.stopAccessingSecurityScopedResource()
+                    return Outcome.Error(FileMetadataException())
+                }
                 attrs
             }
 
@@ -268,25 +306,35 @@ actual class KMPFileHandler : IKMPFileHandler {
             return Outcome.Ok(KMPFileMetadata(size = size as Long))
         } catch (e: Exception) {
             return Outcome.Error(e)
+        } finally {
+            deferrer.run()
         }
     }
 
     override suspend fun exists(ref: KMPFileRef): Boolean {
+        val deferrer = Deferrer()
+
         return try {
-            val url = ref.toNSURL()
+            val url = ref.toNSURL() ?: return false
+
+            url.startAccessingSecurityScopedResource()
+            deferrer.defer { url.stopAccessingSecurityScopedResource() }
+
             NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
         } catch (e: Exception) {
             false
+        } finally {
+            deferrer.run()
         }
     }
 }
 
 private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
-
     val resultFlow = MutableSharedFlow<List<NSURL>?>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
+
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
@@ -307,22 +355,38 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
 }
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {
+    val deferrer = Deferrer()
+
     return try {
         if (isDirectory) return Outcome.Error(SourceException())
-        val url = toNSURL()
+        val url = toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+
+        url.startAccessingSecurityScopedResource()
+        deferrer.defer { url.stopAccessingSecurityScopedResource() }
+
         Outcome.Ok(NSInputStream(uRL = url).source())
     } catch (e: Exception) {
         Outcome.Error(e)
+    } finally {
+        deferrer.run()
     }
 }
 
 actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+    val deferrer = Deferrer()
+
     return try {
         if (isDirectory) return Outcome.Error(SinkException())
-        val url = toNSURL()
+        val url = toNSURL() ?: return Outcome.Error(KMPFileNSURLException())
+
+        url.startAccessingSecurityScopedResource()
+        deferrer.defer { url.stopAccessingSecurityScopedResource() }
+
         Outcome.Ok(NSOutputStream(uRL = url, append = mode == KMPFileWriteMode.Append).sink())
     } catch (e: Exception) {
         Outcome.Error(e)
+    } finally {
+        deferrer.run()
     }
 }
 
@@ -350,18 +414,30 @@ private fun NSURL.toKMPFileRef(isDirectory: Boolean): KMPFileRef {
     )
 }
 
-@OptIn(ExperimentalForeignApi::class)
-private fun KMPFileRef.toNSURL(): NSURL {
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+private fun KMPFileRef.toNSURL(): NSURL? {
     val data = NSMutableData()
     ref.decodeBase64Bytes().usePinned {
         data.appendBytes(it.addressOf(0).reinterpret(), it.get().size.convert())
     }
 
-    return NSURL(
-        byResolvingBookmarkData = data,
-        options = NSURLBookmarkCreationMinimalBookmark,
-        relativeToURL = null,
-        bookmarkDataIsStale = null,
-        error = null,
-    )
+    return memScoped {
+        val error = alloc<ObjCObjectVar<NSError?>>()
+        val isStale = alloc<BooleanVar>()
+
+        val url = NSURL(
+            byResolvingBookmarkData = data,
+            options = NSURLBookmarkResolutionWithoutUI,
+            relativeToURL = null,
+            bookmarkDataIsStale = isStale.ptr,
+            error = error.ptr,
+        )
+
+        if (error.value != null) return null
+        if (isStale.value) return null
+
+        url
+    }
 }
+
+class KMPFileNSURLException : Exception("Error converting KMPFileRef to NSURL")

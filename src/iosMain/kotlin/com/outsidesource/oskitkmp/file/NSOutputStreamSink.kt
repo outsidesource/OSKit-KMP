@@ -29,11 +29,11 @@ private open class OutputStreamSink(
 
         checkOffsetAndCount(source.size, 0, byteCount)
         var remaining = byteCount
-        var pos = 0
+        var pos = 0L
 
         while (remaining > 0) {
-            val byteCountToCopy = minOf(remaining, buffer.size - pos.toLong()).toInt()
-            pos += source.read(buffer, 0, byteCountToCopy)
+            val byteCountToCopy = minOf(remaining, buffer.size.toLong())
+            pos += source.read(buffer, 0, byteCountToCopy.toInt())
 
             val bytesWritten = buffer.usePinned {
                 val bytes = it.addressOf(0).reinterpret<uint8_tVar>()
@@ -43,7 +43,6 @@ private open class OutputStreamSink(
             if (bytesWritten < 0L) throw IOException(out.streamError?.localizedDescription ?: "Unknown error")
             if (bytesWritten == 0L) throw IOException("NSOutputStream reached capacity")
 
-            pos += bytesWritten.toInt()
             remaining -= bytesWritten
         }
     }

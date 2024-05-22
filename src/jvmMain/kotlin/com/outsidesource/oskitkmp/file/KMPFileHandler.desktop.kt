@@ -1,9 +1,12 @@
 package com.outsidesource.oskitkmp.file
 
+import com.outsidesource.oskitkmp.lib.Platform
+import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
 import okio.*
 import okio.Path.Companion.toPath
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
 import java.awt.Frame
@@ -12,6 +15,7 @@ actual class KMPFileHandlerContext(val window: Frame)
 
 actual class KMPFileHandler : IKMPFileHandler {
     private var context: KMPFileHandlerContext? = null
+    private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 
     override fun init(fileHandlerContext: KMPFileHandlerContext) {
         context = fileHandlerContext
@@ -22,6 +26,10 @@ actual class KMPFileHandler : IKMPFileHandler {
         filter: KMPFileFilter?,
     ): Outcome<KMPFileRef?, Exception> {
         return try {
+            // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
+            if (Platform.current == Platform.Linux) return nativeOpenFilePicker(startingDir, filter)
+
+            // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
             val context = context ?: return Outcome.Error(NotInitializedException())
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
@@ -31,7 +39,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KMPFileRef(
-                ref = "${dialog.directory}${dialog.file}",
+                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
             )
@@ -42,11 +50,38 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
+    private fun nativeOpenFilePicker(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?,
+    ): Outcome<KMPFileRef?, Exception> {
+        val file = MemoryStack.stackPush().use { stack ->
+            val filters = stack.mallocPointer(filter?.size ?: 0)
+            for (fileFilter in filter ?: emptyList()) {
+                filters.put(stack.UTF8("*.${fileFilter.extension}"))
+            }
+            filters.flip()
+
+            TinyFileDialogs.tinyfd_openFileDialog(
+                "Select File",
+                startingDir?.ref ?: "",
+                filters,
+                null,
+                false,
+            )
+        } ?: return Outcome.Ok(null)
+
+        return Outcome.Ok(KMPFileRef(ref = file, name = file.toPath().name, isDirectory = false))
+    }
+
     override suspend fun pickFiles(
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
         return try {
+            // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
+            if (Platform.current == Platform.Linux) return nativeOpenFilesPicker(startingDir, filter)
+
+            // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
             val context = context ?: return Outcome.Error(NotInitializedException())
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
@@ -58,7 +93,7 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             val refs = dialog.files.map { file ->
                 KMPFileRef(
-                    ref = "${dialog.directory}${file.name}",
+                    ref = joinDirectoryAndFilePath(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
                 )
@@ -70,8 +105,40 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
+    private fun nativeOpenFilesPicker(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?,
+    ): Outcome<List<KMPFileRef>?, Exception> {
+        val files = MemoryStack.stackPush().use { stack ->
+            val filters = stack.mallocPointer(filter?.size ?: 0)
+            for (fileFilter in filter ?: emptyList()) {
+                filters.put(stack.UTF8("*.${fileFilter.extension}"))
+            }
+            filters.flip()
+
+            TinyFileDialogs.tinyfd_openFileDialog(
+                "Select Files",
+                startingDir?.ref ?: "",
+                filters,
+                null,
+                true,
+            )
+        } ?: return Outcome.Ok(null)
+
+        val refs = files.split("|").map { file ->
+            KMPFileRef(
+                ref = file,
+                name = file.toPath().name,
+                isDirectory = false,
+            )
+        }
+
+        return Outcome.Ok(refs)
+    }
+
     override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
+            // Use TinyFileDialogs because there is no AWT directory picker
             val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
                 ?: return Outcome.Ok(null)
             val ref = KMPFileRef(
@@ -88,6 +155,10 @@ actual class KMPFileHandler : IKMPFileHandler {
 
     override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         return try {
+            // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
+            if (Platform.current == Platform.Linux) return nativeSaveFilePicker(fileName, startingDir)
+
+            // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
             val context = context ?: return Outcome.Error(NotInitializedException())
             val dialog = FileDialog(context.window, "Save File", FileDialog.SAVE)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
@@ -97,7 +168,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KMPFileRef(
-                ref = "${dialog.directory}${dialog.file}",
+                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
             )
@@ -110,17 +181,31 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
+    private fun nativeSaveFilePicker(
+        name: String,
+        startingDir: KMPFileRef?,
+    ): Outcome<KMPFileRef?, Exception> {
+        val file = TinyFileDialogs.tinyfd_saveFileDialog(
+            "Save File",
+            joinDirectoryAndFilePath(startingDir?.ref ?: "", name),
+            null,
+            null,
+        ) ?: return Outcome.Ok(null)
+
+        return Outcome.Ok(KMPFileRef(ref = file, name = file.toPath().name, isDirectory = false))
+    }
+
     override suspend fun resolveFile(
         dir: KMPFileRef,
         name: String,
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
-            val path = "${dir.ref}$name".toPath()
+            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
-            if (create) FileSystem.SYSTEM.sink(path, mustCreate = true)
+            if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
             return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = false))
         } catch (e: Exception) {
@@ -134,11 +219,11 @@ actual class KMPFileHandler : IKMPFileHandler {
         create: Boolean,
     ): Outcome<KMPFileRef, Exception> {
         return try {
-            val path = "${dir.ref}$name".toPath()
+            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
-            if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = true)
+            if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
             return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = true))
         } catch (e: Exception) {
@@ -213,6 +298,11 @@ actual class KMPFileHandler : IKMPFileHandler {
             false
         }
     }
+
+    // Makes sure there is a path separator when joining a directory and file path. Some platforms (linux) may not
+    // include the trailing / when selecting a directory
+    private fun joinDirectoryAndFilePath(dir: String, name: String): String =
+        dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
 actual fun KMPFileRef.source(): Outcome<Source, Exception> {

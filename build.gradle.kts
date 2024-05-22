@@ -19,7 +19,7 @@ plugins {
     id("maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
     id("com.vanniktech.maven.publish") version "0.25.3"
-    id("app.cash.sqldelight") version "2.0.1"
+    id("app.cash.sqldelight") version "2.0.2"
 }
 
 sqldelight {
@@ -119,7 +119,7 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("app.cash.sqldelight:android-driver:2.0.1")
+                implementation("app.cash.sqldelight:android-driver:2.0.2")
                 implementation("androidx.activity:activity-compose:1.8.0")
                 implementation("androidx.documentfile:documentfile:1.0.1")
             }
@@ -133,13 +133,13 @@ kotlin {
         }
         val iosMain by getting {
             dependencies {
-                implementation("app.cash.sqldelight:native-driver:2.0.1")
+                implementation("app.cash.sqldelight:native-driver:2.0.2")
             }
         }
         val iosTest by getting
         val jvmMain by getting {
             dependencies {
-                implementation("app.cash.sqldelight:sqlite-driver:2.0.1")
+                implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
                 implementation("org.lwjgl:lwjgl-tinyfd:$lwjglVersion")
                 runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
                 runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
