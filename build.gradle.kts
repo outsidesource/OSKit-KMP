@@ -105,10 +105,6 @@ kotlin {
                 implementation(Dependencies.KotlinxSerializationJson)
                 implementation(Dependencies.KotlinxSerializationCBOR)
                 implementation(Dependencies.KtorServerCore)
-                implementation(Dependencies.KtorServerCIO)
-                implementation(Dependencies.KtorClientCore)
-                implementation(Dependencies.KtorClientCIO)
-                implementation(Dependencies.KtorWebsockets)
                 implementation(Dependencies.OkIO)
             }
         }
