@@ -18,8 +18,5 @@ object Dependencies {
     const val KotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.KotlinxSerializationJson}"
     const val KotlinxSerializationCBOR = "org.jetbrains.kotlinx:kotlinx-serialization-cbor:${Versions.KotlinxSerializationCBOR}"
     const val KtorServerCore = "io.ktor:ktor-server-core:${Versions.Ktor}"
-    const val KtorServerCIO = "io.ktor:ktor-server-cio:${Versions.Ktor}"
-    const val KtorClientCore = "io.ktor:ktor-client-core:${Versions.Ktor}"
-    const val KtorClientCIO = "io.ktor:ktor-client-cio:${Versions.Ktor}"
     const val OkIO = "com.squareup.okio:okio:${Versions.OkIO}"
 }
