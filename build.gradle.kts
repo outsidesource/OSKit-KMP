@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import java.io.FileInputStream
 import java.util.*
@@ -18,7 +20,7 @@ plugins {
     id("com.android.library")
     id("maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
-    id("com.vanniktech.maven.publish") version "0.25.3"
+    id("com.vanniktech.maven.publish") version "0.28.0"
     id("app.cash.sqldelight") version "2.0.2"
 }
 
@@ -67,8 +69,8 @@ version = versionProperty
 
 repositories {
     google()
-    gradlePluginPortal()
     mavenCentral()
+    gradlePluginPortal()
     maven("https://plugins.gradle.org/m2/")
 }
 
@@ -81,7 +83,6 @@ kotlin {
     }
     androidTarget {
         jvmToolchain(17)
-        publishAllLibraryVariants()
     }
 
     listOf(
@@ -159,13 +160,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
 ktlint {
@@ -183,8 +177,17 @@ ktlint {
 tasks.getByName("preBuild").dependsOn("ktlintFormat")
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.S01, true)
+    publishToMavenCentral(SonatypeHost.S01, automaticRelease = true)
     signAllPublications()
+
+    configure(
+        platform = KotlinMultiplatform(
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            sourcesJar = true,
+            androidVariantsToPublish = listOf("debug", "release"),
+        )
+    )
+
     pom {
         description.set("An opinionated architecture/library for Kotlin Multiplatform development")
         name.set(project.name)
