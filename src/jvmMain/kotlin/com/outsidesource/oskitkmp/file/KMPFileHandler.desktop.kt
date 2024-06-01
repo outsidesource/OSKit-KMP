@@ -4,8 +4,11 @@ import com.outsidesource.oskitkmp.lib.Platform
 import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
-import okio.*
+import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
+import okio.Sink
+import okio.Source
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog

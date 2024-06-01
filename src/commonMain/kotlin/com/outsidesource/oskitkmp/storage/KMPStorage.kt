@@ -23,6 +23,17 @@ import okio.Buffer
  *
  * To use [KMPStorage] create an instance of each platform independent implementation, [AndroidKMPStorage],
  * [IOSKMPStorage], [DesktopKMPStorage] (JVM). Each implementation implements [IKMPStorage].
+ *
+ * Desktop/JVM Note: You may need to add the `java.sql` module:
+ * ```
+ * compose.desktop {
+ *    nativeDistributions {
+ *        modules("java.sql")
+ *    }
+ * }
+ * ```
+ *
+ * iOS Note: You may need to add the linker flag `-lsqlite3`
  */
 interface IKMPStorage {
     fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception>

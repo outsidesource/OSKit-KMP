@@ -32,32 +32,6 @@ sqldelight {
     }
 }
 
-val lwjglVersion = "3.3.2"
-
-val lwjglNatives = Pair(
-    System.getProperty("os.name")!!,
-    System.getProperty("os.arch")!!
-).let { (name, arch) ->
-    when {
-        arrayOf("Linux", "FreeBSD", "SunOS", "Unit").any { name.startsWith(it) } ->
-            if (arrayOf("arm", "aarch64").any { arch.startsWith(it) }) {
-                "natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
-            } else {
-                "natives-linux"
-            }
-        arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) } ->
-            "natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
-        arrayOf("Windows").any { name.startsWith(it) } ->
-            if (arch.contains("64")) {
-                "natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
-            } else {
-                "natives-windows-x86"
-            }
-        else ->
-            throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
-    }
-}
-
 apply(from = "versioning.gradle.kts")
 
 val versionProperty = Properties().apply {
@@ -137,9 +111,9 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
-                implementation("org.lwjgl:lwjgl-tinyfd:$lwjglVersion")
-                runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
-                runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
+                implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:3.3.3"))
+                implementation("org.lwjgl:lwjgl")
+                implementation("org.lwjgl:lwjgl-tinyfd")
             }
         }
         val jvmTest by getting
