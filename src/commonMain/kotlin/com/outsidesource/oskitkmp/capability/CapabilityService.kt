@@ -116,7 +116,6 @@ internal interface IInitializableCapability : ICapability {
     fun init(context: CapabilityContext)
 }
 
-// Note, iOS BLE central takes a second or two to determine if BLE is powered on or not
 interface ICapability {
     val status: CapabilityStatus
     val statusFlow: Flow<CapabilityStatus>
