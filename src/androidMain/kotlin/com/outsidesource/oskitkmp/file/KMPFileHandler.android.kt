@@ -41,7 +41,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     private val pickFileResultFlow =
         MutableSharedFlow<List<Uri>?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    private var pickSaveFileResultLauncher: ActivityResultLauncher<String?>? = null
+    private var pickSaveFileResultLauncher: ActivityResultLauncher<String>? = null
     private val pickSaveFileResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 

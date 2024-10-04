@@ -43,6 +43,7 @@ internal class BluetoothCapability(
     override val hasPermissions: Boolean = true
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = false
+    override val supportsOpenAppSettingsScreen: Boolean = true
     override val supportsOpenEnableSettingsScreen: Boolean = false
 
     private var hardwareSupportsCapability: Boolean = true

@@ -59,8 +59,6 @@ class CapabilityService(
 //        (camera as? IInitializableCapability)?.init(context)
 //        (network as? IInitializableCapability)?.init(context)
     }
-
-    suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(context)
 }
 
 // Potential Permissions
@@ -126,6 +124,7 @@ interface ICapability {
     val hasPermissions: Boolean
     val hasEnablableService: Boolean
     val supportsRequestEnable: Boolean
+    val supportsOpenAppSettingsScreen: Boolean
     val supportsOpenEnableSettingsScreen: Boolean
 
     suspend fun requestPermissions(): Outcome<CapabilityStatus, Any>

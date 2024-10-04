@@ -60,6 +60,7 @@ internal class BluetoothCapability(
     override val hasPermissions: Boolean = permissions.isNotEmpty()
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = true
+    override val supportsOpenAppSettingsScreen: Boolean = true
     override val supportsOpenEnableSettingsScreen: Boolean = true
 
     override val status: CapabilityStatus

@@ -67,6 +67,7 @@ internal class LocationCapability(
     override val hasPermissions: Boolean = permissions.isNotEmpty()
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = false
+    override val supportsOpenAppSettingsScreen: Boolean = true
     override val supportsOpenEnableSettingsScreen: Boolean = true
 
     override val status: CapabilityStatus

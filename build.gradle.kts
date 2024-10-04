@@ -91,7 +91,8 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation("app.cash.sqldelight:android-driver:2.0.2")
-                implementation("androidx.activity:activity-compose:1.8.0")
+                implementation("androidx.activity:activity-compose:1.9.2")
+                implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
                 implementation("androidx.documentfile:documentfile:1.0.1")
             }
         }
@@ -152,11 +153,11 @@ tasks.getByName("preBuild").dependsOn("ktlintFormat")
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.S01, automaticRelease = true)
-    signAllPublications()
+//    signAllPublications()
 
     configure(
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+//            javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true,
             androidVariantsToPublish = listOf("debug", "release"),
         )
