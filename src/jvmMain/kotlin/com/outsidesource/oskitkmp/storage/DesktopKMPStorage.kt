@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.outsidesource.oskitkmp.file.FileUtil
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.storage.sqldelight.KMPStorageDatabase
 import java.io.File
 
 class DesktopKMPStorage(private val appName: String) : IKMPStorage {
@@ -22,6 +23,6 @@ internal actual fun createDatabaseDriver(context: KMPStorageContext, nodeName: S
 
     val fileName = "${FileUtil.appDirPath(context.appName)}/$nodeName.db"
     val driver = JdbcSqliteDriver("jdbc:sqlite:$fileName")
-    KMPStorageDatabase.Schema.create(driver)
+    KMPStorageDatabase.Companion.Schema.create(driver)
     return driver
 }

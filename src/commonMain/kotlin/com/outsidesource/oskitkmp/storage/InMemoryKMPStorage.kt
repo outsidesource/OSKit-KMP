@@ -3,7 +3,9 @@ package com.outsidesource.oskitkmp.storage
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.tuples.Tup2
 import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.reentrantLock
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.*
@@ -15,6 +17,18 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
+
+class InMemoryKMPStorage : IKMPStorage {
+    private val lock = SynchronizedObject()
+    private val nodes = mutableMapOf<String, IKMPStorageNode>()
+
+    override fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception> {
+        synchronized(lock) {
+            if (!nodes.contains(nodeName)) nodes[nodeName] = InMemoryKMPStorageNode()
+            return Outcome.Ok(nodes[nodeName]!!)
+        }
+    }
+}
 
 /**
  * InMemoryKMPStorageNode provides a thread-safe, fallback, in-memory storage node

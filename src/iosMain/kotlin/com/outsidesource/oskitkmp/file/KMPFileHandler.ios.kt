@@ -36,11 +36,11 @@ actual class KMPFileHandler : IKMPFileHandler {
         allowsMultipleSelection = false
     }
 
-    override fun init(fileHandlerContext: KMPFileHandlerContext) {
+    actual override fun init(fileHandlerContext: KMPFileHandlerContext) {
         context = fileHandlerContext
     }
 
-    override suspend fun pickFile(
+    actual override suspend fun pickFile(
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?,
     ): Outcome<KMPFileRef?, Exception> {
@@ -73,7 +73,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickFiles(
+    actual override suspend fun pickFiles(
         startingDir: KMPFileRef?,
         filter: KMPFileFilter?,
     ): Outcome<List<KMPFileRef>?, Exception> {
@@ -108,12 +108,15 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    actual override suspend fun pickSaveFile(
+        fileName: String,
+        startingDir: KMPFileRef?,
+    ): Outcome<KMPFileRef?, Exception> {
         val directory = pickDirectory(startingDir).unwrapOrReturn { return this } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 
-    override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    actual override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedException())
 
@@ -133,7 +136,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun resolveFile(
+    actual override suspend fun resolveFile(
         dir: KMPFileRef,
         name: String,
         create: Boolean,
@@ -167,7 +170,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun resolveDirectory(
+    actual override suspend fun resolveDirectory(
         dir: KMPFileRef,
         name: String,
         create: Boolean,
@@ -201,7 +204,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+    actual override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
         return try {
             val url = NSURL(fileURLWithPath = path)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
@@ -215,7 +218,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
+    actual override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -237,7 +240,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
+    actual override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -283,7 +286,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
         val deferrer = Deferrer()
 
         try {
@@ -311,7 +314,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    override suspend fun exists(ref: KMPFileRef): Boolean {
+    actual override suspend fun exists(ref: KMPFileRef): Boolean {
         val deferrer = Deferrer()
 
         return try {

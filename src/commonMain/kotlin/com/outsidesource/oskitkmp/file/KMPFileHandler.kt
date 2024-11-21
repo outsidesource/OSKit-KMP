@@ -63,7 +63,46 @@ expect class KMPFileHandlerContext
  * }
  * ```
  */
-expect class KMPFileHandler() : IKMPFileHandler
+expect class KMPFileHandler() : IKMPFileHandler {
+    override fun init(fileHandlerContext: KMPFileHandlerContext)
+    override suspend fun pickFile(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?,
+    ): Outcome<KMPFileRef?, Exception>
+
+    override suspend fun pickFiles(
+        startingDir: KMPFileRef?,
+        filter: KMPFileFilter?,
+    ): Outcome<List<KMPFileRef>?, Exception>
+
+    override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception>
+    override suspend fun pickSaveFile(
+        fileName: String,
+        startingDir: KMPFileRef?,
+    ): Outcome<KMPFileRef?, Exception>
+
+    override suspend fun resolveFile(
+        dir: KMPFileRef,
+        name: String,
+        create: Boolean,
+    ): Outcome<KMPFileRef, Exception>
+
+    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception>
+    override suspend fun resolveDirectory(
+        dir: KMPFileRef,
+        name: String,
+        create: Boolean,
+    ): Outcome<KMPFileRef, Exception>
+
+    override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
+    override suspend fun list(
+        dir: KMPFileRef,
+        isRecursive: Boolean,
+    ): Outcome<List<KMPFileRef>, Exception>
+
+    override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception>
+    override suspend fun exists(ref: KMPFileRef): Boolean
+}
 
 interface IKMPFileHandler {
     fun init(fileHandlerContext: KMPFileHandlerContext)

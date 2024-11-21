@@ -3,6 +3,13 @@ package com.outsidesource.oskitkmp.concurrency
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
 
+expect object KMPDispatchers {
+    val IO: CoroutineDispatcher
+    val Default: CoroutineDispatcher
+    val Main: CoroutineDispatcher
+    val Unconfined: CoroutineDispatcher
+}
+
 /**
  * Creates a deferred result that does not cancel the parent upon failure but instead returns an Outcome.
  * Best used with [awaitOutcome].

@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.interactor
 
+import com.outsidesource.oskitkmp.concurrency.KMPDispatchers
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -40,7 +41,7 @@ abstract class Interactor<T : Any>(
      * Provides a standard coroutine scope for use in the Interactor.
      */
     protected val interactorScope = CoroutineScope(
-        Dispatchers.IO + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() },
+        KMPDispatchers.IO + SupervisorJob() + CoroutineExceptionHandler { _, e -> e.printStackTrace() },
     )
 
     /**

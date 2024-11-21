@@ -1,5 +1,9 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import java.io.FileInputStream
 import java.util.*
 
@@ -8,28 +12,37 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath(kotlin("gradle-plugin", Versions.Kotlin))
+        classpath(kotlin("gradle-plugin", libs.versions.kotlin.toString()))
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+    maven("https://plugins.gradle.org/m2/")
+}
+
 plugins {
-    kotlin("multiplatform") version Versions.Kotlin
-    kotlin("plugin.serialization") version Versions.Kotlin
-    id("org.jlleitschuh.gradle.ktlint") version Versions.KtLintPlugin
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktlint)
     id("com.android.library")
     id("maven-publish")
     id("org.jetbrains.dokka") version "1.9.10"
     id("com.vanniktech.maven.publish") version "0.28.0"
-    id("app.cash.sqldelight") version "2.0.2"
+    // Disable SQLDelight Gradle plugin until WASM support is released (https://github.com/sqldelight/sqldelight/pull/5531)
+    // Pulled generated database from previous build
+//    id("app.cash.sqldelight") version "2.0.2"
 }
 
-sqldelight {
-    databases {
-        create("KMPStorageDatabase") {
-            packageName.set("com.outsidesource.oskitkmp.storage")
-        }
-    }
-}
+//sqldelight {
+//    databases {
+//        create("KMPStorageDatabase") {
+//            packageName.set("com.outsidesource.oskitkmp.storage")
+//        }
+//    }
+//}
 
 apply(from = "versioning.gradle.kts")
 
@@ -40,23 +53,21 @@ val versionProperty = Properties().apply {
 group = "com.outsidesource"
 version = versionProperty
 
-repositories {
-    google()
-    mavenCentral()
-    gradlePluginPortal()
-    maven("https://plugins.gradle.org/m2/")
-}
-
 kotlin {
+    jvmToolchain(17)
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+    }
+
     jvm {
-        jvmToolchain(17)
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
     }
-    androidTarget {
-        jvmToolchain(17)
-    }
+
+    androidTarget()
 
     listOf(
         iosX64(),
@@ -68,18 +79,25 @@ kotlin {
         }
     }
 
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser {
+            binaries.executable()
+        }
+    }
+
     applyDefaultHierarchyTemplate()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(Dependencies.KotlinxAtomicFu)
-                implementation(Dependencies.KotlinxDateTime)
-                implementation(Dependencies.CoroutinesCore)
-                implementation(Dependencies.KotlinxSerializationJson)
-                implementation(Dependencies.KotlinxSerializationCBOR)
-                implementation(Dependencies.KtorServerCore)
-                implementation(Dependencies.OkIO)
+                implementation(libs.kotlinx.atomicfu)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.serialization.cbor)
+                implementation(libs.ktor.server.core)
+                implementation(libs.okio)
             }
         }
         val commonTest by getting {
@@ -87,47 +105,56 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val androidMain by getting {
+        val nonJsMain by creating {
+            dependsOn(commonMain)
             dependencies {
-                implementation("app.cash.sqldelight:android-driver:2.0.2")
-                implementation("androidx.activity:activity-compose:1.9.2")
-                implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
-                implementation("androidx.documentfile:documentfile:1.0.1")
+                implementation(libs.sqldelight.runtime)
+            }
+        }
+        val androidMain by getting {
+            dependsOn(nonJsMain)
+            dependencies {
+                implementation(libs.sqldelight.android.driver)
+                implementation(libs.activity.compose)
+                implementation(libs.lifecycle.runtime)
+                implementation(libs.documentfile)
             }
         }
         val androidUnitTest by getting {
             dependencies {
-                implementation("androidx.test:runner:1.5.2")
-                implementation("androidx.test:core:1.5.0")
-                implementation("junit:junit:4.13.2")
+                implementation(libs.testrunner)
+                implementation(libs.core)
+                implementation(libs.junit)
             }
         }
         val iosMain by getting {
+            dependsOn(nonJsMain)
             dependencies {
-                implementation("app.cash.sqldelight:native-driver:2.0.2")
+                implementation(libs.sqldelight.native.driver)
             }
         }
         val iosTest by getting
         val jvmMain by getting {
+            dependsOn(nonJsMain)
             dependencies {
-                implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
+                implementation(libs.sqldelight.jvm.driver)
                 implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:3.3.3"))
-                implementation("org.lwjgl:lwjgl")
-                implementation("org.lwjgl:lwjgl-tinyfd")
+                implementation(libs.lwjgl)
+                implementation(libs.lwjgl.tinyfd)
             }
         }
         val jvmTest by getting
+        val wasmJsMain by getting
     }
 }
 
 android {
     namespace = "com.outsidesource.oskitkmp"
-    compileSdk = 34
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
     defaultConfig {
-        minSdk = 24
-        targetSdk = 34
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
     compileOptions {

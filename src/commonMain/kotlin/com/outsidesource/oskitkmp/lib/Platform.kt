@@ -7,6 +7,7 @@ enum class Platform {
     Windows,
     Linux,
     Unknown,
+    WASM,
     ;
 
     val isMobile
@@ -18,6 +19,12 @@ enum class Platform {
     val isDesktop
         get() = when (this) {
             MacOS, Windows, Linux -> true
+            else -> false
+        }
+
+    val isWeb
+        get() = when (this) {
+            WASM -> true
             else -> false
         }
 
