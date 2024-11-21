@@ -63,7 +63,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
     override fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T? {
         return try {
             Cbor.decodeFromByteArray(deserializer, storage.value[key] as? ByteArray ?: return null)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -81,19 +81,19 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
         observe<ByteArray>(key).mapNotNull {
             try {
                 Cbor.decodeFromByteArray(deserializer, it)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
 
-    override fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putDouble(key: String, value: Double): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putFloat(key: String, value: Float): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putInt(key: String, value: Int): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putLong(key: String, value: Long): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun putString(key: String, value: String): Outcome<Unit, Exception> = performWrite(key, value)
-    override fun remove(key: String): Outcome<Unit, Exception> = performWrite(key, null)
+    override fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception> = put(key, value)
+    override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> = put(key, value)
+    override fun putDouble(key: String, value: Double): Outcome<Unit, Exception> = put(key, value)
+    override fun putFloat(key: String, value: Float): Outcome<Unit, Exception> = put(key, value)
+    override fun putInt(key: String, value: Int): Outcome<Unit, Exception> = put(key, value)
+    override fun putLong(key: String, value: Long): Outcome<Unit, Exception> = put(key, value)
+    override fun putString(key: String, value: String): Outcome<Unit, Exception> = put(key, value)
+    override fun remove(key: String): Outcome<Unit, Exception> = put(key, null)
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun <T> putSerializable(
@@ -102,7 +102,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
         serializer: SerializationStrategy<T>,
     ): Outcome<Unit, Exception> {
         return try {
-            performWrite(key, Cbor.encodeToByteArray(serializer, value))
+            put(key, Cbor.encodeToByteArray(serializer, value))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -114,7 +114,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
                 transaction.update { mutableMapOf() }
                 val rollback = { throw KMPStorageRollbackException() }
                 block(rollback)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 storage.update {
                     it.toMutableMap().apply {
                         transaction.value?.forEach { (k, v) ->
@@ -123,6 +123,8 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
                             } else {
                                 put(k, v)
                             }
+
+                            if (v != null) scope.launch { observer.emit(Tup2(k, v)) }
                         }
                     }
                 }
@@ -133,7 +135,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
 
     override fun vacuum(): Outcome<Unit, Exception> = Outcome.Ok(Unit)
 
-    private fun performWrite(key: String, value: Any?): Outcome<Unit, Exception> {
+    private fun put(key: String, value: Any?): Outcome<Unit, Exception> {
         if (transaction.value != null) transaction.update { it?.toMutableMap()?.apply { put(key, storage.value[key]) } }
         storage.update {
             it.toMutableMap().apply {
@@ -145,7 +147,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
             }
         }
 
-        if (value != null) scope.launch { observer.emit(Tup2(key, value)) }
+        if (transaction.value == null && value != null) scope.launch { observer.emit(Tup2(key, value)) }
         return Outcome.Ok(Unit)
     }
 
