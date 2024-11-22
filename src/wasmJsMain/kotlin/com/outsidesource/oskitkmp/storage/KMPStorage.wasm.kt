@@ -8,18 +8,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-enum class WASMKMPStorageType {
+enum class WasmKmpStorageType {
     LocalStorage,
-    IndexedDB,
+    IndexedDb,
 }
 
-class WASMKMPStorage(
-    private val type: WASMKMPStorageType = WASMKMPStorageType.LocalStorage,
+class WasmKmpStorage(
+    private val type: WasmKmpStorageType = WasmKmpStorageType.LocalStorage,
 ) : IKMPStorage {
     override fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception> = try {
         val node = when (type) {
-            WASMKMPStorageType.LocalStorage -> WasmLocalStorageKmpStorageNode(nodeName)
-            WASMKMPStorageType.IndexedDB -> WASMIndexedDBKMPStorageNode(nodeName)
+            WasmKmpStorageType.LocalStorage -> LocalStorageWasmKmpStorageNode(nodeName)
+            WasmKmpStorageType.IndexedDb -> IndexedDbWasmKmpStorageNode(nodeName)
         }
         Outcome.Ok(node)
     } catch (e: Exception) {
@@ -27,7 +27,7 @@ class WASMKMPStorage(
     }
 }
 
-internal object WASMQueryRegistry {
+internal object WasmQueryRegistry {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val listeners: AtomicRef<Map<String, List<() -> Unit>>> = atomic(emptyMap())
 

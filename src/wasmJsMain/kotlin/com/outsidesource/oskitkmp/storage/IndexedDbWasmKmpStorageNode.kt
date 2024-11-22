@@ -5,9 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 
-internal class WASMIndexedDBKMPStorageNode(
-    val nodeName: String,
-) : IKMPStorageNode {
+internal class IndexedDbWasmKmpStorageNode(val nodeName: String) : IKMPStorageNode {
+
     override fun close() {
         TODO("Not yet implemented")
     }
@@ -28,7 +27,7 @@ internal class WASMIndexedDBKMPStorageNode(
         TODO("Not yet implemented")
     }
 
-    override fun getKeys(): List<String> {
+    override fun getKeys(): Set<String> {
         TODO("Not yet implemented")
     }
 

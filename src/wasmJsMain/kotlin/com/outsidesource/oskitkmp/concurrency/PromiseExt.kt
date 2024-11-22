@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.lib
+package com.outsidesource.oskitkmp.concurrency
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlin.coroutines.resume
@@ -17,13 +17,13 @@ suspend fun <T : JsAny?> Promise<T>.kmpAwait() = suspendCoroutine<T> { continuat
         }
 }
 
-suspend fun <T : JsAny?> Promise<T>.kmpAwaitOutcome() = suspendCoroutine<Outcome<T, JsAny>> { continuation ->
+suspend fun <T : JsAny?> Promise<T>.kmpAwaitOutcome() = suspendCoroutine<Outcome<T, KmpJsException>> { continuation ->
     then {
         continuation.resume(Outcome.Ok(it))
         it
     }
         .catch {
-            continuation.resume(Outcome.Error(it))
+            continuation.resume(Outcome.Error(KmpJsException(it)))
             it
         }
 }

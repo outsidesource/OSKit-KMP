@@ -55,7 +55,7 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
     override fun getDouble(key: String): Double? = storage.value[key] as? Double
     override fun getFloat(key: String): Float? = storage.value[key] as? Float
     override fun getInt(key: String): Int? = storage.value[key] as? Int
-    override fun getKeys(): List<String> = storage.value.keys.toList()
+    override fun getKeys(): Set<String> = storage.value.keys
     override fun getLong(key: String): Long? = storage.value[key] as? Long
     override fun getString(key: String): String? = storage.value[key] as? String
 

@@ -53,10 +53,10 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
         Outcome.Error(e)
     }
 
-    override fun getKeys(): List<String> = try {
-        queries.getKeys().executeAsList()
+    override fun getKeys(): Set<String> = try {
+        queries.getKeys().executeAsList().toSet()
     } catch (e: Exception) {
-        emptyList()
+        emptySet()
     }
 
     override fun keyCount(): Long = try {

@@ -40,7 +40,7 @@ interface IKMPStorageNode {
     fun remove(key: String): Outcome<Unit, Exception>
     fun clear(): Outcome<Unit, Exception>
     fun vacuum(): Outcome<Unit, Exception>
-    fun getKeys(): List<String>
+    fun getKeys(): Set<String>
     fun keyCount(): Long
     fun dbFileSize(): Long
 

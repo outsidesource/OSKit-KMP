@@ -18,9 +18,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-internal class WasmLocalStorageKmpStorageNode(
-    val nodeName: String,
-) : IKMPStorageNode {
+internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorageNode {
 
     private val transaction = atomic<Map<String, String?>?>(null)
     private val transactionLock = reentrantLock()
@@ -45,8 +43,8 @@ internal class WasmLocalStorageKmpStorageNode(
         return Outcome.Ok(Unit)
     }
 
-    override fun getKeys(): List<String> {
-        return buildList {
+    override fun getKeys(): Set<String> {
+        return buildSet {
             for (i in 0 until localStorage.length) {
                 val keyName = localStorage.key(i) ?: continue
                 if (!keyName.startsWith("$nodeName:")) continue
@@ -124,7 +122,7 @@ internal class WasmLocalStorageKmpStorageNode(
                     } else {
                         put(k) { v }
                     }
-                    if (v != null) WASMQueryRegistry.notifyListeners(k)
+                    if (v != null) WasmQueryRegistry.notifyListeners(k)
                 }
                 transaction.update { null }
             }
@@ -136,7 +134,7 @@ internal class WasmLocalStorageKmpStorageNode(
             recordTransaction(key)
             val value = mapper()
             localStorage.setItem(normalizeKey(key), value)
-            if (transaction.value == null) WASMQueryRegistry.notifyListeners(key)
+            if (transaction.value == null) WasmQueryRegistry.notifyListeners(key)
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -165,8 +163,8 @@ internal class WasmLocalStorageKmpStorageNode(
                 val value = get(normalizedKey, mapper) ?: return@listener
                 trySend(value)
             }
-            WASMQueryRegistry.addListener(normalizedKey, listener)
-            awaitClose { WASMQueryRegistry.removeListener(normalizedKey, listener) }
+            WasmQueryRegistry.addListener(normalizedKey, listener)
+            awaitClose { WasmQueryRegistry.removeListener(normalizedKey, listener) }
         } catch (_: Exception) {
             // NoOp
         }
