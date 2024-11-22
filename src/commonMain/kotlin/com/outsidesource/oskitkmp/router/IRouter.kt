@@ -23,7 +23,7 @@ interface IAnimatedRoute : IRoute {
 }
 
 /**
- * [IRouteTransition] the abstract interface that defines a route transition. An IRouteTransition may define a transition
+ * [IRouteTransition] the empty interface that defines a route transition. An IRouteTransition may define a transition
  * however the UI needs.
  */
 interface IRouteTransition
