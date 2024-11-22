@@ -72,7 +72,7 @@ interface IKMPStorageNode {
     fun getDouble(key: String): Double?
     fun observeDouble(key: String): Flow<Double>
 
-    fun <T> putSerializable(key: String, value: T, serializer: SerializationStrategy<T>, ): Outcome<Unit, Exception>
+    fun <T> putSerializable(key: String, value: T, serializer: SerializationStrategy<T>): Outcome<Unit, Exception>
     fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T?
     fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T>
 

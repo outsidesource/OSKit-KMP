@@ -18,7 +18,7 @@ class WASMKMPStorage(
 ) : IKMPStorage {
     override fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception> = try {
         val node = when (type) {
-            WASMKMPStorageType.LocalStorage -> WASMLocalStorageKMPStorageNode(nodeName)
+            WASMKMPStorageType.LocalStorage -> WasmLocalStorageKmpStorageNode(nodeName)
             WASMKMPStorageType.IndexedDB -> WASMIndexedDBKMPStorageNode(nodeName)
         }
         Outcome.Ok(node)

@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 
-
 internal class WASMIndexedDBKMPStorageNode(
     val nodeName: String,
 ) : IKMPStorageNode {
@@ -114,7 +113,7 @@ internal class WASMIndexedDBKMPStorageNode(
     override fun <T> putSerializable(
         key: String,
         value: T,
-        serializer: SerializationStrategy<T>
+        serializer: SerializationStrategy<T>,
     ): Outcome<Unit, Exception> {
         TODO("Not yet implemented")
     }

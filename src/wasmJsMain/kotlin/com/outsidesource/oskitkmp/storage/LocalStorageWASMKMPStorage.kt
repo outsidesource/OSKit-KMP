@@ -18,7 +18,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-internal class WASMLocalStorageKMPStorageNode(
+internal class WasmLocalStorageKmpStorageNode(
     val nodeName: String,
 ) : IKMPStorageNode {
 
@@ -61,8 +61,10 @@ internal class WASMLocalStorageKMPStorageNode(
 
     @OptIn(ExperimentalEncodingApi::class)
     override fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception> = put(key) { Base64.encode(value) }
+
     @OptIn(ExperimentalEncodingApi::class)
     override fun getBytes(key: String): ByteArray? = get(key) { Base64.decode(it) }
+
     @OptIn(ExperimentalEncodingApi::class)
     override fun observeBytes(key: String): Flow<ByteArray> = observe(key) { Base64.decode(it) }
 
@@ -94,13 +96,15 @@ internal class WASMLocalStorageKMPStorageNode(
     override fun <T> putSerializable(
         key: String,
         value: T,
-        serializer: SerializationStrategy<T>
+        serializer: SerializationStrategy<T>,
     ): Outcome<Unit, Exception> = put(key) { Base64.encode(Cbor.encodeToByteArray(serializer, value)) }
+
     @OptIn(ExperimentalSerializationApi::class, ExperimentalEncodingApi::class)
     override fun <T> getSerializable(
         key: String,
         deserializer: DeserializationStrategy<T>,
     ): T? = get(key) { Cbor.decodeFromByteArray(deserializer, Base64.decode(it)) }
+
     @OptIn(ExperimentalEncodingApi::class, ExperimentalSerializationApi::class)
     override fun <T> observeSerializable(
         key: String,
