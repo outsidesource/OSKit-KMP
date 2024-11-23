@@ -3,28 +3,28 @@ package com.outsidesource.oskitkmp.interactor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class InteractorTest {
     @Test
-    fun getCurrentStateOnSubscribe() = runBlocking {
+    fun getCurrentStateOnSubscribe() = blockingTest {
         val interactor = TestInteractor()
         val result = interactor.flow().first()
         assertTrue(result.testInt == 0, "State not returned on subscription")
     }
 
     @Test
-    fun stateGetter() = runBlocking {
+    fun stateGetter() = blockingTest {
         val interactor = TestInteractor()
         interactor.increment()
         assertTrue(interactor.state.testInt == 1, "asserted state getter to return 1. Got ${interactor.state.testInt}")
     }
 
     @Test
-    fun subscribe() = runBlocking {
+    fun subscribe() = blockingTest {
         val interactor = TestInteractor()
         var eventCount = 0
 
@@ -41,7 +41,7 @@ class InteractorTest {
     }
 
     @Test
-    fun distinctUpdates() = runBlocking {
+    fun distinctUpdates() = blockingTest {
         val interactor = TestInteractor()
         var eventCount = 0
 
@@ -63,7 +63,7 @@ class InteractorTest {
     }
 
     @Test
-    fun update() = runBlocking {
+    fun update() = blockingTest {
         val interactor = TestInteractor()
         val originalState = interactor.state
         assertTrue(interactor.state.testInt == 0, "testInt was not 0")
@@ -76,7 +76,7 @@ class InteractorTest {
     }
 
     @Test
-    fun computedValue() = runBlocking {
+    fun computedValue() = blockingTest {
         val interactor = TestInteractor()
         val subscription = launch { interactor.flow().collect { } }
         delay(100)
@@ -87,7 +87,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependency() = runBlocking {
+    fun testDependency() = blockingTest {
         val testBloc = TestInteractor()
         testBloc.setString("dependency")
         testBloc.increment()
@@ -134,7 +134,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependentInteractorDependencySubscriptionsCancelled() = runBlocking {
+    fun testDependentInteractorDependencySubscriptionsCancelled() = blockingTest {
         val testBloc = TestInteractor()
         val dependencyBloc = TestDependencyInteractor(testBloc)
         assertTrue(dependencyBloc.subscriptionCount.value == 0, "Dependency subscription count should be 0")
@@ -155,7 +155,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependencyComputedCalls() = runBlocking {
+    fun testDependencyComputedCalls() = blockingTest {
         var testBlocComputedCount = 0
         val testBloc = TestInteractor(onComputedCallback = { testBlocComputedCount++ })
 
@@ -173,7 +173,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testFunctionalInteractor() = runBlocking {
+    fun testFunctionalInteractor() = blockingTest {
         val interactor = createInteractor(
             initialState = TestState(),
             dependencies = emptyList(),
@@ -206,6 +206,12 @@ class InteractorTest {
         delay(16)
         assertEquals(4, streamCount, "Stream doesn't work. Stream count: $streamCount")
         listener.cancel()
+    }
+}
+
+private fun blockingTest(block: suspend CoroutineScope.() -> Unit) = runTest {
+    withContext(Dispatchers.Default) {
+        block()
     }
 }
 

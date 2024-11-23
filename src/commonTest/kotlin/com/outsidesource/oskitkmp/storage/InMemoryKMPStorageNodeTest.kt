@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.storage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -42,7 +42,7 @@ class InMemoryKMPStorageNodeTest {
     }
 
     @Test
-    fun testObserve() = runBlocking {
+    fun testObserve() = runTest {
         val node = InMemoryKMPStorageNode()
         var lastValue: Any? = null
         val observer = async { node.observeInt("int").take(2).collect { lastValue = it } }

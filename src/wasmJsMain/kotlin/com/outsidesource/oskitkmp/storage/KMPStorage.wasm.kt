@@ -29,23 +29,23 @@ class WasmKmpStorage(
 
 internal object WasmQueryRegistry {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val listeners: AtomicRef<Map<String, List<() -> Unit>>> = atomic(emptyMap())
+    private val listeners: AtomicRef<Map<String, List<(String) -> Unit>>> = atomic(emptyMap())
 
-    fun addListener(key: String, listener: () -> Unit) = listeners.update {
+    fun addListener(key: String, listener: (String) -> Unit) = listeners.update {
         it.toMutableMap().apply {
             val listeners = (this[key] ?: emptyList()) + listener
             this[key] = listeners
         }
     }
 
-    fun removeListener(key: String, listener: () -> Unit) = listeners.update {
+    fun removeListener(key: String, listener: (String) -> Unit) = listeners.update {
         it.toMutableMap().apply {
             val listeners = (this[key] ?: emptyList()) - listener
             this[key] = listeners
         }
     }
 
-    fun notifyListeners(key: String) {
-        scope.launch { listeners.value[key]?.forEach { it() } }
+    fun notifyListeners(key: String, value: String) {
+        scope.launch { listeners.value[key]?.forEach { it(value) } }
     }
 }

@@ -5,6 +5,7 @@ import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -13,72 +14,72 @@ import kotlin.test.fail
 class KMPStorageTest {
     private val storage = createKMPStorage()
 
-    private inline fun openNode() = storage.openNode("Test").unwrapOrReturn { fail("Could not open node") }
-
+    private fun openNode() = storage.openNode("Test").unwrapOrReturn { fail("Could not open node") }
+    
     @Test
-    fun createNode() = runBlocking {
+    fun createNode() = blockingTest {
         val outcome = storage.openNode("Test")
         if (outcome is Outcome.Error) fail("Could not open node: ${outcome.error}")
     }
 
     @Test
-    fun putGetBytes() = runBlocking {
+    fun putGetBytes() = blockingTest {
         val node = openNode()
         node.putBytes("test", byteArrayOf(0x00, 0x01, 0x02)).unwrapOrReturn { fail() }
         assertTrue { node.getBytes("test").contentEquals(byteArrayOf(0x00, 0x01, 0x02)) }
     }
 
     @Test
-    fun putGetString() = runBlocking {
+    fun putGetString() = blockingTest {
         val node = openNode()
         node.putString("test", "Hello").unwrapOrReturn { fail() }
         assertTrue { node.getString("test") == "Hello" }
     }
 
     @Test
-    fun putGetInt() = runBlocking {
+    fun putGetInt() = blockingTest {
         val node = openNode()
         node.putInt("test", 1).unwrapOrReturn { fail() }
         assertTrue { node.getInt("test") == 1 }
     }
 
     @Test
-    fun putGetLong() = runBlocking {
+    fun putGetLong() = blockingTest {
         val node = openNode()
         node.putLong("test", 1L).unwrapOrReturn { fail() }
         assertTrue { node.getLong("test") == 1L }
     }
 
     @Test
-    fun putGetFloat() = runBlocking {
+    fun putGetFloat() = blockingTest {
         val node = openNode()
         node.putFloat("test", 1.1234567f).unwrapOrReturn { fail() }
         assertTrue { node.getFloat("test") == 1.1234567f }
     }
 
     @Test
-    fun putGetDouble() = runBlocking {
+    fun putGetDouble() = blockingTest {
         val node = openNode()
         node.putDouble("test", 1.1234567890123457).unwrapOrReturn { fail() }
         assertTrue { node.getDouble("test") == 1.1234567890123457 }
     }
 
     @Test
-    fun putGetBoolean() = runBlocking {
+    fun putGetBoolean() = blockingTest {
         val node = openNode()
         node.putBoolean("test", true).unwrapOrReturn { fail() }
         assertTrue { node.getBoolean("test") == true }
     }
 
     @Test
-    fun putGetSerializable() = runBlocking {
+    fun putGetSerializable() = blockingTest {
         val node = openNode()
         node.putSerializable("test", TestSerializable(1, "one"), TestSerializable.serializer()).unwrapOrReturn { fail() }
         assertTrue { node.getSerializable("test", TestSerializable.serializer()) == TestSerializable(1, "one") }
     }
 
     @Test
-    fun observeBytes() = runBlocking {
+    fun observeBytes() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeBytes("test").first() } }
         delay(16)
@@ -87,7 +88,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeString() = runBlocking {
+    fun observeString() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeString("test").first() } }
         delay(16)
@@ -96,7 +97,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeInt() = runBlocking {
+    fun observeInt() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeInt("test").first() } }
         delay(16)
@@ -105,7 +106,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeLong() = runBlocking {
+    fun observeLong() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeLong("test").first() } }
         delay(16)
@@ -114,7 +115,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeFloat() = runBlocking {
+    fun observeFloat() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeFloat("test").first() } }
         delay(16)
@@ -123,7 +124,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeDouble() = runBlocking {
+    fun observeDouble() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeDouble("test").first() } }
         delay(16)
@@ -132,7 +133,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeBoolean() = runBlocking {
+    fun observeBoolean() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeBoolean("test").first() } }
         delay(16)
@@ -141,7 +142,7 @@ class KMPStorageTest {
     }
 
     @Test
-    fun observeSerializable() = runBlocking {
+    fun observeSerializable() = blockingTest {
         val node = openNode()
         val value = async { withTimeout(100) { node.observeSerializable("test", TestSerializable.serializer()).first() } }
         delay(16)
@@ -150,8 +151,9 @@ class KMPStorageTest {
     }
 
     @Test
-    fun multipleObserve() = runBlocking {
+    fun multipleObserve() = blockingTest {
         val node = openNode()
+        node.clear()
         var lastValue: Any? = null
         val observer = async { node.observeInt("int").take(2).collect { lastValue = it } }
         delay(16)
@@ -165,17 +167,19 @@ class KMPStorageTest {
     }
 
     @Test
-    fun clear() = runBlocking {
+    fun clear() = blockingTest {
         val node = openNode()
         node.clear()
         node.putInt("test", 1).unwrapOrReturn { fail("Could not insert") }
-        assertTrue(message = "Insert didn't work") { node.keyCount() == 1L }
+        node.putInt("test2", 1).unwrapOrReturn { fail("Could not insert") }
+        node.putInt("test3", 1).unwrapOrReturn { fail("Could not insert") }
+        assertTrue(message = "Insert didn't work") { node.keyCount() == 3L }
         node.clear()
         assertTrue(message = "Clear didn't work") { node.keyCount() == 0L }
     }
 
     @Test
-    fun keyCount() = runBlocking {
+    fun keyCount() = blockingTest {
         val node = openNode()
         node.clear()
         assertTrue { node.keyCount() == 0L }
@@ -184,16 +188,16 @@ class KMPStorageTest {
     }
 
     @Test
-    fun keys() = runBlocking {
+    fun keys() = blockingTest {
         val node = openNode()
         node.clear()
         node.putString("test1", "Hello 1")
         node.putString("test2", "Hello 2")
-        assertTrue { node.getKeys() == listOf("test1", "test2") }
+        assertTrue { node.getKeys() == setOf("test1", "test2") }
     }
 
     @Test
-    fun exists() = runBlocking {
+    fun exists() = blockingTest {
         val node = openNode()
         node.clear()
         assertTrue { !node.contains("test") }
@@ -204,6 +208,7 @@ class KMPStorageTest {
     @Test
     fun testTransaction() {
         val node = openNode()
+        node.clear()
 
         node.putInt("int", 0)
         node.putLong("long", 1L)
@@ -218,11 +223,10 @@ class KMPStorageTest {
             node.putLong("long", 2L)
         }
 
-        assertTrue("transaction") {
+        assertTrue("transaction 1") {
             node.keyCount() == 6L &&
                     node.getLong("long") == 2L &&
                     node.getFloat("float") == 2.123f &&
-                    !node.contains("testString")  &&
                     !node.contains("testString")
         }
 
@@ -236,11 +240,10 @@ class KMPStorageTest {
             rollback()
         }
 
-        assertTrue("transaction") {
+        assertTrue("transaction 2") {
             node.keyCount() == 6L &&
                     node.getLong("long") == 2L &&
                     node.getFloat("float") == 2.123f &&
-                    !node.contains("testString")  &&
                     !node.contains("testString")
         }
     }
@@ -252,6 +255,12 @@ class KMPStorageTest {
         assertTrue { node.getLong("test") == null }
         node.putLong("test", 1L)
         assertTrue { node.getLong("test") == 1L }
+    }
+}
+
+private fun blockingTest(block: suspend CoroutineScope.() -> Unit) = runTest {
+    withContext(Dispatchers.Default) {
+        block()
     }
 }
 

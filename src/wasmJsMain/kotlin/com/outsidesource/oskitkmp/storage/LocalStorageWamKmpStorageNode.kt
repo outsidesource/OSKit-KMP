@@ -30,12 +30,16 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
     }
 
     override fun remove(key: String): Outcome<Unit, Exception> {
+        recordTransaction(key)
         localStorage.removeItem(normalizeKey(key))
         return Outcome.Ok(Unit)
     }
 
     override fun clear(): Outcome<Unit, Exception> {
-        localStorage.clear()
+        getKeys().forEach {
+            recordTransaction(it)
+            localStorage.removeItem(normalizeKey(it))
+        }
         return Outcome.Ok(Unit)
     }
 
@@ -47,8 +51,8 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
         return buildSet {
             for (i in 0 until localStorage.length) {
                 val keyName = localStorage.key(i) ?: continue
-                if (!keyName.startsWith("$nodeName:")) continue
-                add(keyName.removePrefix("$nodeName:"))
+                if (!keyName.startsWith(normalizedNodeName())) continue
+                add(keyName.removePrefix(normalizedNodeName()))
             }
         }
     }
@@ -122,7 +126,7 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
                     } else {
                         put(k) { v }
                     }
-                    if (v != null) WasmQueryRegistry.notifyListeners(k)
+                    if (v != null) WasmQueryRegistry.notifyListeners(k, v)
                 }
                 transaction.update { null }
             }
@@ -134,7 +138,7 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
             recordTransaction(key)
             val value = mapper()
             localStorage.setItem(normalizeKey(key), value)
-            if (transaction.value == null) WasmQueryRegistry.notifyListeners(key)
+            if (transaction.value == null) WasmQueryRegistry.notifyListeners(normalizeKey(key), value)
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -143,7 +147,7 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
 
     private fun recordTransaction(key: String) {
         if (transaction.value == null) return
-        val currentValue = get(normalizeKey(key)) { it }
+        val currentValue = localStorage.getItem(normalizeKey(key))
         transaction.update { it?.toMutableMap()?.apply { put(key, currentValue) } }
     }
 
@@ -159,9 +163,9 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
     private inline fun <T> observe(key: String, crossinline mapper: (bytes: String) -> T?): Flow<T> = channelFlow {
         try {
             val normalizedKey = normalizeKey(key)
-            val listener = listener@{
-                val value = get(normalizedKey, mapper) ?: return@listener
-                trySend(value)
+            val listener = listener@{ value: String ->
+                val mappedValue = mapper(value) ?: return@listener
+                trySend(mappedValue)
             }
             WasmQueryRegistry.addListener(normalizedKey, listener)
             awaitClose { WasmQueryRegistry.removeListener(normalizedKey, listener) }
@@ -170,7 +174,8 @@ internal class LocalStorageWasmKmpStorageNode(val nodeName: String) : IKMPStorag
         }
     }.buffer(1, BufferOverflow.DROP_OLDEST)
 
-    private fun normalizeKey(key: String) = "__${nodeName}__:$key"
+    private fun normalizeKey(key: String) = "${normalizedNodeName()}$key"
+    private fun normalizedNodeName() = "__${nodeName}__:"
 }
 
 private class KMPStorageRollbackException : Exception("Transaction Rolled Back")
