@@ -234,6 +234,7 @@ class Router(
 
     private fun notifyRouteFlowListeners() {
         routeFlow.value = _routeStack.value.last()
+        handleNewRouteForPlatform(routeFlow.value.route)
     }
 
     private fun notifyRouteStopped() {
@@ -246,3 +247,5 @@ class Router(
         routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStarted() }
     }
 }
+
+internal expect fun handleNewRouteForPlatform(route: IRoute)
