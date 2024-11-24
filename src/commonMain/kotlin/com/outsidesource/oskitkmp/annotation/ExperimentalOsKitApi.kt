@@ -28,4 +28,4 @@ package com.outsidesource.oskitkmp.annotation
     AnnotationTarget.TYPEALIAS,
 )
 @MustBeDocumented
-public annotation class ExperimentalOSKitAPI
+public annotation class ExperimentalOsKitApi

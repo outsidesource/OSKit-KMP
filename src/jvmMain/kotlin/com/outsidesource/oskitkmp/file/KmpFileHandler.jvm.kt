@@ -14,20 +14,20 @@ import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
 import java.awt.Frame
 
-actual class KMPFileHandlerContext(val window: Frame)
+actual class KmpFileHandlerContext(val window: Frame)
 
-actual class KMPFileHandler : IKMPFileHandler {
-    private var context: KMPFileHandlerContext? = null
+actual class KmpFileHandler : IKmpFileHandler {
+    private var context: KmpFileHandlerContext? = null
     private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 
-    actual override fun init(fileHandlerContext: KMPFileHandlerContext) {
+    actual override fun init(fileHandlerContext: KmpFileHandlerContext) {
         context = fileHandlerContext
     }
 
     actual override suspend fun pickFile(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<KmpFileRef?, Exception> {
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeOpenFilePicker(startingDir, filter)
@@ -41,7 +41,7 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             if (dialog.file == null) return Outcome.Ok(null)
 
-            val ref = KMPFileRef(
+            val ref = KmpFileRef(
                 ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
@@ -54,9 +54,9 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     private fun nativeOpenFilePicker(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<KmpFileRef?, Exception> {
         val file = MemoryStack.stackPush().use { stack ->
             val filters = stack.mallocPointer(filter?.size ?: 0)
             for (fileFilter in filter ?: emptyList()) {
@@ -73,13 +73,13 @@ actual class KMPFileHandler : IKMPFileHandler {
             )
         } ?: return Outcome.Ok(null)
 
-        return Outcome.Ok(KMPFileRef(ref = file, name = file.toPath().name, isDirectory = false))
+        return Outcome.Ok(KmpFileRef(ref = file, name = file.toPath().name, isDirectory = false))
     }
 
     actual override suspend fun pickFiles(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<List<KMPFileRef>?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<List<KmpFileRef>?, Exception> {
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeOpenFilesPicker(startingDir, filter)
@@ -95,7 +95,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (dialog.files == null || dialog.files.isEmpty()) return Outcome.Ok(null)
 
             val refs = dialog.files.map { file ->
-                KMPFileRef(
+                KmpFileRef(
                     ref = joinDirectoryAndFilePath(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
@@ -109,9 +109,9 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     private fun nativeOpenFilesPicker(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<List<KMPFileRef>?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<List<KmpFileRef>?, Exception> {
         val files = MemoryStack.stackPush().use { stack ->
             val filters = stack.mallocPointer(filter?.size ?: 0)
             for (fileFilter in filter ?: emptyList()) {
@@ -129,7 +129,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         } ?: return Outcome.Ok(null)
 
         val refs = files.split("|").map { file ->
-            KMPFileRef(
+            KmpFileRef(
                 ref = file,
                 name = file.toPath().name,
                 isDirectory = false,
@@ -139,12 +139,12 @@ actual class KMPFileHandler : IKMPFileHandler {
         return Outcome.Ok(refs)
     }
 
-    actual override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    actual override suspend fun pickDirectory(startingDir: KmpFileRef?): Outcome<KmpFileRef?, Exception> {
         return try {
             // Use TinyFileDialogs because there is no AWT directory picker
             val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
                 ?: return Outcome.Ok(null)
-            val ref = KMPFileRef(
+            val ref = KmpFileRef(
                 ref = directory,
                 name = directory.toPath().name,
                 isDirectory = true,
@@ -158,8 +158,8 @@ actual class KMPFileHandler : IKMPFileHandler {
 
     actual override suspend fun pickSaveFile(
         fileName: String,
-        startingDir: KMPFileRef?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+    ): Outcome<KmpFileRef?, Exception> {
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeSaveFilePicker(fileName, startingDir)
@@ -173,7 +173,7 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             if (dialog.file == null) return Outcome.Ok(null)
 
-            val ref = KMPFileRef(
+            val ref = KmpFileRef(
                 ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
@@ -189,8 +189,8 @@ actual class KMPFileHandler : IKMPFileHandler {
 
     private fun nativeSaveFilePicker(
         name: String,
-        startingDir: KMPFileRef?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+    ): Outcome<KmpFileRef?, Exception> {
         val file = TinyFileDialogs.tinyfd_saveFileDialog(
             "Save File",
             joinDirectoryAndFilePath(startingDir?.ref ?: "", name),
@@ -198,14 +198,14 @@ actual class KMPFileHandler : IKMPFileHandler {
             null,
         ) ?: return Outcome.Ok(null)
 
-        return Outcome.Ok(KMPFileRef(ref = file, name = file.toPath().name, isDirectory = false))
+        return Outcome.Ok(KmpFileRef(ref = file, name = file.toPath().name, isDirectory = false))
     }
 
     actual override suspend fun resolveFile(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception> {
+    ): Outcome<KmpFileRef, Exception> {
         return try {
             val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
@@ -213,17 +213,17 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
             if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
-            return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = false))
+            return Outcome.Ok(KmpFileRef(ref = path.pathString, name = name, isDirectory = false))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
     actual override suspend fun resolveDirectory(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception> {
+    ): Outcome<KmpFileRef, Exception> {
         return try {
             val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
@@ -231,13 +231,13 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (!exists && !create) return Outcome.Error(FileNotFoundException())
             if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
-            return Outcome.Ok(KMPFileRef(ref = path.pathString, name = name, isDirectory = true))
+            return Outcome.Ok(KmpFileRef(ref = path.pathString, name = name, isDirectory = true))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFileRef, Exception> {
         return try {
             val localPath = path.toPath()
             val exists = FileSystem.SYSTEM.exists(localPath)
@@ -245,14 +245,14 @@ actual class KMPFileHandler : IKMPFileHandler {
             if (!exists) return Outcome.Error(FileNotFoundException())
             val metadata = FileSystem.SYSTEM.metadata(localPath)
 
-            val ref = KMPFileRef(ref = localPath.pathString, name = localPath.name, isDirectory = metadata.isDirectory)
+            val ref = KmpFileRef(ref = localPath.pathString, name = localPath.name, isDirectory = metadata.isDirectory)
             return Outcome.Ok(ref)
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    actual override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
+    actual override suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception> {
         return try {
             FileSystem.SYSTEM.delete(ref.ref.toPath())
             Outcome.Ok(Unit)
@@ -261,7 +261,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
+    actual override suspend fun list(dir: KmpFileRef, isRecursive: Boolean): Outcome<List<KmpFileRef>, Exception> {
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
             val path = dir.ref.toPath()
@@ -273,7 +273,7 @@ actual class KMPFileHandler : IKMPFileHandler {
             }.mapNotNull {
                 val metadata = FileSystem.SYSTEM.metadataOrNull(it) ?: return@mapNotNull null
 
-                KMPFileRef(
+                KmpFileRef(
                     ref = it.pathString,
                     name = it.name,
                     isDirectory = metadata.isDirectory,
@@ -286,7 +286,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception> {
         return try {
             val path = ref.ref.toPath()
             val metadata = FileSystem.SYSTEM.metadata(path)
@@ -297,7 +297,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun exists(ref: KMPFileRef): Boolean {
+    actual override suspend fun exists(ref: KmpFileRef): Boolean {
         return try {
             FileSystem.SYSTEM.exists(ref.ref.toPath())
         } catch (e: Exception) {
@@ -311,7 +311,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
-actual fun KMPFileRef.source(): Outcome<Source, Exception> {
+actual fun KmpFileRef.source(): Outcome<Source, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SourceException())
         Outcome.Ok(FileSystem.SYSTEM.source(ref.toPath()))
@@ -320,7 +320,7 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
     }
 }
 
-actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SinkException())
         if (mode == KMPFileWriteMode.Append) {

@@ -5,7 +5,7 @@ import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import okio.buffer
 import okio.use
 
-expect class KMPFileHandlerContext
+expect class KmpFileHandlerContext
 
 /**
  * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
@@ -63,94 +63,94 @@ expect class KMPFileHandlerContext
  * }
  * ```
  */
-expect class KMPFileHandler() : IKMPFileHandler {
-    override fun init(fileHandlerContext: KMPFileHandlerContext)
+expect class KmpFileHandler() : IKmpFileHandler {
+    override fun init(fileHandlerContext: KmpFileHandlerContext)
     override suspend fun pickFile(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<KMPFileRef?, Exception>
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<KmpFileRef?, Exception>
 
     override suspend fun pickFiles(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<List<KMPFileRef>?, Exception>
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<List<KmpFileRef>?, Exception>
 
-    override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception>
+    override suspend fun pickDirectory(startingDir: KmpFileRef?): Outcome<KmpFileRef?, Exception>
     override suspend fun pickSaveFile(
         fileName: String,
-        startingDir: KMPFileRef?,
-    ): Outcome<KMPFileRef?, Exception>
+        startingDir: KmpFileRef?,
+    ): Outcome<KmpFileRef?, Exception>
 
     override suspend fun resolveFile(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception>
+    ): Outcome<KmpFileRef, Exception>
 
-    override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception>
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFileRef, Exception>
     override suspend fun resolveDirectory(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception>
+    ): Outcome<KmpFileRef, Exception>
 
-    override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
+    override suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception>
     override suspend fun list(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         isRecursive: Boolean,
-    ): Outcome<List<KMPFileRef>, Exception>
+    ): Outcome<List<KmpFileRef>, Exception>
 
-    override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception>
-    override suspend fun exists(ref: KMPFileRef): Boolean
+    override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception>
+    override suspend fun exists(ref: KmpFileRef): Boolean
 }
 
-interface IKMPFileHandler {
-    fun init(fileHandlerContext: KMPFileHandlerContext)
+interface IKmpFileHandler {
+    fun init(fileHandlerContext: KmpFileHandlerContext)
 
     suspend fun pickFile(
-        startingDir: KMPFileRef? = null,
-        filter: KMPFileFilter? = null,
-    ): Outcome<KMPFileRef?, Exception>
+        startingDir: KmpFileRef? = null,
+        filter: KmpFileFilter? = null,
+    ): Outcome<KmpFileRef?, Exception>
 
     suspend fun pickFiles(
-        startingDir: KMPFileRef? = null,
-        filter: KMPFileFilter? = null,
-    ): Outcome<List<KMPFileRef>?, Exception>
+        startingDir: KmpFileRef? = null,
+        filter: KmpFileFilter? = null,
+    ): Outcome<List<KmpFileRef>?, Exception>
 
-    suspend fun pickDirectory(startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
+    suspend fun pickDirectory(startingDir: KmpFileRef? = null): Outcome<KmpFileRef?, Exception>
 
     /**
      * [pickSaveFile] opens a picker for saving a new file. Android and Desktop allow the user to specify the name.
      * iOS does not have a native save dialog and will instead show a directory picker to save the file. The newly
      * created file ref is returned unless the dialog is cancelled.
      */
-    suspend fun pickSaveFile(fileName: String, startingDir: KMPFileRef? = null): Outcome<KMPFileRef?, Exception>
+    suspend fun pickSaveFile(fileName: String, startingDir: KmpFileRef? = null): Outcome<KmpFileRef?, Exception>
 
     /**
      * [create] Creates the file if it does not exist
      */
-    suspend fun resolveFile(dir: KMPFileRef, name: String, create: Boolean = false): Outcome<KMPFileRef, Exception>
+    suspend fun resolveFile(dir: KmpFileRef, name: String, create: Boolean = false): Outcome<KmpFileRef, Exception>
 
     /**
      * [resolveRefFromPath] Attempts to create a KMPFileRef from the provided path string. This is not guaranteed to
      * work and will most likely fail on Android and iOS due to paths not being properly sandboxed. This method
      * exists primarily for desktop where sandboxes are not an issue. Android should use a Uri string for the path.
      */
-    suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception>
+    suspend fun resolveRefFromPath(path: String): Outcome<KmpFileRef, Exception>
 
     /**
      * [create] Creates the directory if it does not exist
      */
     suspend fun resolveDirectory(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean = false,
-    ): Outcome<KMPFileRef, Exception>
+    ): Outcome<KmpFileRef, Exception>
 
-    suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception>
-    suspend fun list(dir: KMPFileRef, isRecursive: Boolean = false): Outcome<List<KMPFileRef>, Exception>
-    suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception>
-    suspend fun exists(ref: KMPFileRef): Boolean
+    suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception>
+    suspend fun list(dir: KmpFileRef, isRecursive: Boolean = false): Outcome<List<KmpFileRef>, Exception>
+    suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception>
+    suspend fun exists(ref: KmpFileRef): Boolean
 
     /**
      * Convenience functions
@@ -159,7 +159,7 @@ interface IKMPFileHandler {
     /**
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
      */
-    suspend fun moveFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
+    suspend fun moveFile(from: KmpFileRef, to: KmpFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveException())
         val source = from.source().unwrapOrReturn { return this }
         val sink = to.sink().unwrapOrReturn { return this }
@@ -175,7 +175,7 @@ interface IKMPFileHandler {
         return Outcome.Ok(Unit)
     }
 
-    suspend fun copyFile(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception> {
+    suspend fun copyFile(from: KmpFileRef, to: KmpFileRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileCopyException())
         val source = from.source().unwrapOrReturn { return this }
         val sink = to.sink().unwrapOrReturn { return this }
@@ -189,21 +189,21 @@ interface IKMPFileHandler {
         return Outcome.Ok(Unit)
     }
 
-    suspend fun exists(dir: KMPFileRef, name: String): Boolean {
+    suspend fun exists(dir: KmpFileRef, name: String): Boolean {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return exists(outcome.value)
             is Outcome.Error -> false
         }
     }
 
-    suspend fun readMetadata(dir: KMPFileRef, name: String): Outcome<KMPFileMetadata, Exception> {
+    suspend fun readMetadata(dir: KmpFileRef, name: String): Outcome<KMPFileMetadata, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
         }
     }
 
-    suspend fun delete(dir: KMPFileRef, name: String): Outcome<Unit, Exception> {
+    suspend fun delete(dir: KmpFileRef, name: String): Outcome<Unit, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return delete(outcome.value)
             is Outcome.Error -> outcome
@@ -245,7 +245,7 @@ interface IKMPFileHandler {
 //    ): Outcome<KMPFileRef, Exception> {}
 }
 
-typealias KMPFileFilter = List<KMPFileMimeType>
+typealias KmpFileFilter = List<KMPFileMimeType>
 
 /**
  * [extension] defines the file extension used i.e. "txt", "png", "jpg"

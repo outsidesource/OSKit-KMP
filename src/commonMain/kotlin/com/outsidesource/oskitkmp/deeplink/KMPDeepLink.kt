@@ -1,6 +1,6 @@
 package com.outsidesource.oskitkmp.deeplink
 
-import com.outsidesource.oskitkmp.annotation.ExperimentalOSKitAPI
+import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
 
-@ExperimentalOSKitAPI
+@ExperimentalOsKitApi
 expect class KmpDeepLink

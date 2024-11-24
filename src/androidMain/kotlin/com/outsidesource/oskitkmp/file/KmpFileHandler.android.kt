@@ -24,14 +24,14 @@ import okio.Source
 import okio.sink
 import okio.source
 
-actual data class KMPFileHandlerContext(
+actual data class KmpFileHandlerContext(
     val applicationContext: Context,
     val activity: ComponentActivity,
 )
 
-actual class KMPFileHandler : IKMPFileHandler {
+actual class KmpFileHandler : IKmpFileHandler {
     companion object {
-        internal var context: KMPFileHandlerContext? = null
+        internal var context: KmpFileHandlerContext? = null
     }
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -49,7 +49,7 @@ actual class KMPFileHandler : IKMPFileHandler {
     private val pickFolderResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    actual override fun init(fileHandlerContext: KMPFileHandlerContext) {
+    actual override fun init(fileHandlerContext: KmpFileHandlerContext) {
         context = fileHandlerContext
 
         pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
@@ -86,9 +86,9 @@ actual class KMPFileHandler : IKMPFileHandler {
     }
 
     actual override suspend fun pickFile(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<KmpFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val fileResultLauncher = pickFileResultLauncher ?: return Outcome.Error(NotInitializedException())
@@ -104,16 +104,16 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KMPFileRef(ref = uri.toString(), isDirectory = false, name = name))
+            Outcome.Ok(KmpFileRef(ref = uri.toString(), isDirectory = false, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
     actual override suspend fun pickFiles(
-        startingDir: KMPFileRef?,
-        filter: KMPFileFilter?,
-    ): Outcome<List<KMPFileRef>?, Exception> {
+        startingDir: KmpFileRef?,
+        filter: KmpFileFilter?,
+    ): Outcome<List<KmpFileRef>?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val filesResultLauncher = pickFilesResultLauncher ?: return Outcome.Error(NotInitializedException())
@@ -130,7 +130,7 @@ actual class KMPFileHandler : IKMPFileHandler {
 
                 context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-                KMPFileRef(ref = uri.toString(), isDirectory = false, name = name)
+                KmpFileRef(ref = uri.toString(), isDirectory = false, name = name)
             }
 
             Outcome.Ok(refs)
@@ -141,8 +141,8 @@ actual class KMPFileHandler : IKMPFileHandler {
 
     actual override suspend fun pickSaveFile(
         fileName: String,
-        startingDir: KMPFileRef?,
-    ): Outcome<KMPFileRef?, Exception> {
+        startingDir: KmpFileRef?,
+    ): Outcome<KmpFileRef?, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(NotInitializedException())
@@ -158,13 +158,13 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KMPFileRef(ref = uri.toString(), isDirectory = false, name = name))
+            Outcome.Ok(KmpFileRef(ref = uri.toString(), isDirectory = false, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    actual override suspend fun pickDirectory(startingDir: KMPFileRef?): Outcome<KMPFileRef?, Exception> {
+    actual override suspend fun pickDirectory(startingDir: KmpFileRef?): Outcome<KmpFileRef?, Exception> {
         return try {
             val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(NotInitializedException())
             val context = context ?: return Outcome.Error(NotInitializedException())
@@ -179,17 +179,17 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KMPFileRef(ref = uri.toString(), isDirectory = true, name = name))
+            Outcome.Ok(KmpFileRef(ref = uri.toString(), isDirectory = true, name = name))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
     actual override suspend fun resolveFile(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception> {
+    ): Outcome<KmpFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
@@ -199,17 +199,17 @@ actual class KMPFileHandler : IKMPFileHandler {
             val createdFile = file ?: parentUri.createFile("", name)
                 ?: return Outcome.Error(FileCreateException())
 
-            Outcome.Ok(KMPFileRef(ref = createdFile.uri.toString(), name = name, isDirectory = false))
+            Outcome.Ok(KmpFileRef(ref = createdFile.uri.toString(), name = name, isDirectory = false))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
     actual override suspend fun resolveDirectory(
-        dir: KMPFileRef,
+        dir: KmpFileRef,
         name: String,
         create: Boolean,
-    ): Outcome<KMPFileRef, Exception> {
+    ): Outcome<KmpFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
@@ -220,25 +220,25 @@ actual class KMPFileHandler : IKMPFileHandler {
             val createdDirectory = file ?: parentUri.createDirectory(name)
                 ?: return Outcome.Error(FileCreateException())
 
-            Outcome.Ok(KMPFileRef(ref = createdDirectory.uri.toString(), name = name, isDirectory = true))
+            Outcome.Ok(KmpFileRef(ref = createdDirectory.uri.toString(), name = name, isDirectory = true))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KMPFileRef, Exception> {
+    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFileRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val file = DocumentFile.fromSingleUri(context.applicationContext, path.toUri())
                 ?: return Outcome.Error(FileOpenException())
 
-            Outcome.Ok(KMPFileRef(ref = file.uri.toString(), name = file.name ?: "", isDirectory = file.isDirectory))
+            Outcome.Ok(KmpFileRef(ref = file.uri.toString(), name = file.name ?: "", isDirectory = file.isDirectory))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    actual override suspend fun delete(ref: KMPFileRef): Outcome<Unit, Exception> {
+    actual override suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val documentFile = if (ref.isDirectory) {
@@ -257,7 +257,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun list(dir: KMPFileRef, isRecursive: Boolean): Outcome<List<KMPFileRef>, Exception> {
+    actual override suspend fun list(dir: KmpFileRef, isRecursive: Boolean): Outcome<List<KmpFileRef>, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
@@ -267,14 +267,14 @@ actual class KMPFileHandler : IKMPFileHandler {
 
             if (!isRecursive) {
                 val list = documentFile.listFiles().map {
-                    KMPFileRef(ref = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
+                    KmpFileRef(ref = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
                 }
                 return Outcome.Ok(list)
             }
 
             val list = documentFile.listFiles().flatMap {
                 buildList {
-                    val file = KMPFileRef(ref = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
+                    val file = KmpFileRef(ref = it.uri.toString(), name = it.name ?: "", isDirectory = it.isDirectory)
                     add(file)
 
                     if (it.isDirectory) {
@@ -289,7 +289,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KMPFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedException())
             val size: Long
@@ -314,7 +314,7 @@ actual class KMPFileHandler : IKMPFileHandler {
         }
     }
 
-    actual override suspend fun exists(ref: KMPFileRef): Boolean {
+    actual override suspend fun exists(ref: KmpFileRef): Boolean {
         val context = context ?: return false
 
         val documentFile = if (ref.isDirectory) {
@@ -328,10 +328,10 @@ actual class KMPFileHandler : IKMPFileHandler {
 }
 
 @SuppressLint("Recycle")
-actual fun KMPFileRef.source(): Outcome<Source, Exception> {
+actual fun KmpFileRef.source(): Outcome<Source, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SourceException())
-        val context = KMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
+        val context = KmpFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
             ?: return Outcome.Error(FileOpenException())
         Outcome.Ok(stream.source())
@@ -341,10 +341,10 @@ actual fun KMPFileRef.source(): Outcome<Source, Exception> {
 }
 
 @SuppressLint("Recycle")
-actual fun KMPFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(SinkException())
-        val context = KMPFileHandler.context ?: return Outcome.Error(NotInitializedException())
+        val context = KmpFileHandler.context ?: return Outcome.Error(NotInitializedException())
         val modeString = when (mode) {
             KMPFileWriteMode.Overwrite -> "wt"
             KMPFileWriteMode.Append -> "wa"

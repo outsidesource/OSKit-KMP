@@ -14,7 +14,7 @@ private val cbor = Cbor {
 }
 
 @Serializable
-data class KMPFileRef internal constructor(
+data class KmpFileRef internal constructor(
     @SerialName("1")
     internal val ref: String,
     @SerialName("2")
@@ -34,19 +34,19 @@ data class KMPFileRef internal constructor(
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
-        fun fromPersistableString(value: String): KMPFileRef {
-            return cbor.decodeFromByteArray<KMPFileRef>(value.decodeBase64Bytes())
+        fun fromPersistableString(value: String): KmpFileRef {
+            return cbor.decodeFromByteArray<KmpFileRef>(value.decodeBase64Bytes())
         }
 
         @OptIn(ExperimentalSerializationApi::class)
-        fun fromPersistableData(value: ByteArray): KMPFileRef {
-            return cbor.decodeFromByteArray<KMPFileRef>(value)
+        fun fromPersistableData(value: ByteArray): KmpFileRef {
+            return cbor.decodeFromByteArray<KmpFileRef>(value)
         }
     }
 }
 
-expect fun KMPFileRef.source(): Outcome<Source, Exception>
-expect fun KMPFileRef.sink(mode: KMPFileWriteMode = KMPFileWriteMode.Overwrite): Outcome<Sink, Exception>
+expect fun KmpFileRef.source(): Outcome<Source, Exception>
+expect fun KmpFileRef.sink(mode: KMPFileWriteMode = KMPFileWriteMode.Overwrite): Outcome<Sink, Exception>
 
 enum class KMPFileWriteMode {
     Append,
