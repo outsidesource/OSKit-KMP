@@ -18,7 +18,7 @@ internal expect class KmpKVStoreContext
 
 internal expect fun createDatabaseDriver(context: KmpKVStoreContext, nodeName: String): SqlDriver
 
-class KmpKvStoreNode internal constructor(
+class KmpKVStoreNode internal constructor(
     context: KmpKVStoreContext,
     private val name: String
 ) : IKmpKVStoreNode {

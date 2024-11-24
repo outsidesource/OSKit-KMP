@@ -8,7 +8,7 @@ import com.outsidesource.oskitkmp.storage.sqldelight.KmpKVStoreDatabase
 
 class AndroidKmpKVStore(private val appContext: Context) : IKmpKVStore {
     override fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> = try {
-        Outcome.Ok(KmpKvStoreNode(KmpKVStoreContext(appContext), nodeName))
+        Outcome.Ok(KmpKVStoreNode(KmpKVStoreContext(appContext), nodeName))
     } catch (e: Exception) {
         Outcome.Error(e)
     }

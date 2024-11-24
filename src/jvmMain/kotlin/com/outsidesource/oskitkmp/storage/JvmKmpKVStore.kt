@@ -7,9 +7,9 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKVStoreDatabase
 import java.io.File
 
-class DesktopKmpKVStore(private val appName: String) : IKmpKVStore {
+class JvmKmpKVStore(private val appName: String) : IKmpKVStore {
     override fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> = try {
-        Outcome.Ok(KmpKvStoreNode(KmpKVStoreContext(appName), nodeName))
+        Outcome.Ok(KmpKVStoreNode(KmpKVStoreContext(appName), nodeName))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
