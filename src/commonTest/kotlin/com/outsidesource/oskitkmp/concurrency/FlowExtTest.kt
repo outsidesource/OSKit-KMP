@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.concurrency
 
+import com.outsidesource.oskitkmp.test.runBlockingTest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -8,7 +9,7 @@ import kotlin.test.assertEquals
 
 class FlowExtTest {
     @Test
-    fun throttleTest() = blockingTest {
+    fun throttleTest() = runBlockingTest {
         val emissions = mutableListOf<Int>()
         val flow = flow {
             for (i in 0..10) {
@@ -22,7 +23,7 @@ class FlowExtTest {
     }
 
     @Test
-    fun flowInTest() = blockingTest {
+    fun flowInTest() = runBlockingTest {
         val flow = flow {
             for (i in 0..10) {
                 emit(i)
@@ -42,11 +43,5 @@ class FlowExtTest {
         }
 
         // If this test doest not block indefinitely, the test passes
-    }
-}
-
-private fun blockingTest(block: suspend CoroutineScope.() -> Unit) = runTest {
-    withContext(Dispatchers.Default) {
-        block()
     }
 }

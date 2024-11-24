@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.storage
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.tuples.Tup2
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.reentrantLock
@@ -9,39 +8,42 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 
-class InMemoryKMPStorage : IKMPStorage {
+class InMemoryKmpKVStore : IKmpKVStore {
     private val lock = SynchronizedObject()
-    private val nodes = mutableMapOf<String, IKMPStorageNode>()
+    private val nodes = mutableMapOf<String, IKmpKVStoreNode>()
 
-    override fun openNode(nodeName: String): Outcome<IKMPStorageNode, Exception> {
+    override fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> {
         synchronized(lock) {
-            if (!nodes.contains(nodeName)) nodes[nodeName] = InMemoryKMPStorageNode()
+            if (!nodes.contains(nodeName)) nodes[nodeName] = InMemoryKmpKVStoreNode(nodeName)
             return Outcome.Ok(nodes[nodeName]!!)
         }
     }
 }
 
 /**
- * InMemoryKMPStorageNode provides a thread-safe, fallback, in-memory storage node
+ * [InMemoryKmpKVStoreNode] provides a thread-safe, fallback, in-memory storage node
  */
-class InMemoryKMPStorageNode : IKMPStorageNode {
+class InMemoryKmpKVStoreNode(
+    private val name: String
+) : IKmpKVStoreNode {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val storage = atomic(mapOf<String, Any>())
     private val transaction = atomic<Map<String, Any?>?>(null)
     private val transactionLock = reentrantLock()
-    private val observer = MutableSharedFlow<Tup2<String, Any>>()
 
     override fun clear(): Outcome<Unit, Exception> {
         storage.update { it.toMutableMap().apply { clear() } }
+        KmpKVStoreObserverRegistry.notifyClear(name)
         return Outcome.Ok(Unit)
     }
 
@@ -68,17 +70,18 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
         }
     }
 
-    override fun observeBoolean(key: String): Flow<Boolean> = observe(key)
-    override fun observeBytes(key: String): Flow<ByteArray> = observe(key)
-    override fun observeDouble(key: String): Flow<Double> = observe(key)
-    override fun observeFloat(key: String): Flow<Float> = observe(key)
-    override fun observeInt(key: String): Flow<Int> = observe(key)
-    override fun observeLong(key: String): Flow<Long> = observe(key)
-    override fun observeString(key: String): Flow<String> = observe(key)
+    override fun observeBoolean(key: String): Flow<Boolean?> = observe(key)
+    override fun observeBytes(key: String): Flow<ByteArray?> = observe(key)
+    override fun observeDouble(key: String): Flow<Double?> = observe(key)
+    override fun observeFloat(key: String): Flow<Float?> = observe(key)
+    override fun observeInt(key: String): Flow<Int?> = observe(key)
+    override fun observeLong(key: String): Flow<Long?> = observe(key)
+    override fun observeString(key: String): Flow<String?> = observe(key)
 
     @OptIn(ExperimentalSerializationApi::class)
-    override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T> =
-        observe<ByteArray>(key).mapNotNull {
+    override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T?> =
+        observe<ByteArray?>(key).map {
+            if (it == null) return@map null
             try {
                 Cbor.decodeFromByteArray(deserializer, it)
             } catch (_: Exception) {
@@ -112,20 +115,14 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
         transactionLock.withLock {
             try {
                 transaction.update { mutableMapOf() }
-                val rollback = { throw KMPStorageRollbackException() }
+                val rollback = { throw KmpKVStoreRollbackException() }
                 block(rollback)
             } catch (_: Exception) {
-                storage.update {
-                    it.toMutableMap().apply {
-                        transaction.value?.forEach { (k, v) ->
-                            if (v == null) {
-                                remove(k)
-                            } else {
-                                put(k, v)
-                            }
-
-                            if (v != null) scope.launch { observer.emit(Tup2(k, v)) }
-                        }
+                transaction.value?.forEach { (k, v) ->
+                    if (v == null) {
+                        this@InMemoryKmpKVStoreNode.remove(k)
+                    } else {
+                        this@InMemoryKmpKVStoreNode.put(k, v)
                     }
                 }
                 transaction.update { null }
@@ -147,12 +144,20 @@ class InMemoryKMPStorageNode : IKMPStorageNode {
             }
         }
 
-        if (transaction.value == null && value != null) scope.launch { observer.emit(Tup2(key, value)) }
+        KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
         return Outcome.Ok(Unit)
     }
 
-    private inline fun <reified T> observe(key: String): Flow<T> =
-        observer.filter { it.v1 == key }.mapNotNull { it.v2 as? T }
+    private inline fun <reified T> observe(key: String): Flow<T?> = channelFlow {
+        try {
+            val listener: KmpKVStoreObserver = listener@{ value: Any? ->
+                if (value !is T?) return@listener
+                send(value)
+            }
+            KmpKVStoreObserverRegistry.addListener(name, key, listener)
+            awaitClose { KmpKVStoreObserverRegistry.removeListener(name, key, listener) }
+        } catch (_: Exception) {
+            // NoOp
+        }
+    }.distinctUntilChanged()
 }
-
-private class KMPStorageRollbackException : Exception("Transaction Rolled Back")

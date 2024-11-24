@@ -6,14 +6,14 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import kotlin.Unit
 
-internal interface KMPStorageDatabase : Transacter {
-    public val kMPStorageDatabaseQueries: KMPStorageDatabaseQueries
+internal interface KmpKVStoreDatabase : Transacter {
+    public val kmpKVStoreDatabaseQueries: KmpKVStoreDatabaseQueries
 
     public companion object {
         public val Schema: SqlSchema<QueryResult.Value<Unit>>
-            get() = KMPStorageDatabase::class.schema
+            get() = KmpKVStoreDatabase::class.schema
 
-        public operator fun invoke(driver: SqlDriver): KMPStorageDatabase =
-            KMPStorageDatabase::class.newInstance(driver)
+        public operator fun invoke(driver: SqlDriver): KmpKVStoreDatabase =
+            KmpKVStoreDatabase::class.newInstance(driver)
     }
 }

@@ -38,7 +38,7 @@ plugins {
 
 //sqldelight {
 //    databases {
-//        create("KMPStorageDatabase") {
+//        create("KmpKVStoreDatabase") {
 //            packageName.set("com.outsidesource.oskitkmp.storage")
 //        }
 //    }

@@ -1,28 +1,29 @@
 package com.outsidesource.oskitkmp.storage
 
-import app.cash.sqldelight.Query
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.storage.sqldelight.KMPStorageDatabaseQueries
-import kotlinx.coroutines.channels.BufferOverflow
+import com.outsidesource.oskitkmp.storage.sqldelight.KmpKVStoreDatabaseQueries
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 import okio.Buffer
 
-internal expect class KMPStorageContext
+internal expect class KmpKVStoreContext
 
-internal expect fun createDatabaseDriver(context: KMPStorageContext, nodeName: String): SqlDriver
+internal expect fun createDatabaseDriver(context: KmpKVStoreContext, nodeName: String): SqlDriver
 
-class KMPStorageNode internal constructor(context: KMPStorageContext, name: String) : IKMPStorageNode {
+class KmpKvStoreNode internal constructor(
+    context: KmpKVStoreContext,
+    private val name: String
+) : IKmpKVStoreNode {
     private val driver = createDatabaseDriver(context, name)
-    private val queries = KMPStorageDatabaseQueries(driver)
+    private val queries = KmpKVStoreDatabaseQueries(driver)
 
     override fun close() = driver.close()
 
@@ -34,6 +35,7 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     override fun remove(key: String): Outcome<Unit, Exception> = try {
         queries.remove(key)
+        KmpKVStoreObserverRegistry.notifyValueChange(name, key, null)
         Outcome.Ok(Unit)
     } catch (e: Exception) {
         Outcome.Error(e)
@@ -41,6 +43,7 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     override fun clear(): Outcome<Unit, Exception> = try {
         queries.clear()
+        KmpKVStoreObserverRegistry.notifyClear(name)
         Outcome.Ok(Unit)
     } catch (e: Exception) {
         Outcome.Error(e)
@@ -106,31 +109,31 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     override fun getBytes(key: String): ByteArray? = get(key) { it }
 
-    override fun observeBytes(key: String): Flow<ByteArray> = observe(key) { it }
+    override fun observeBytes(key: String): Flow<ByteArray?> = observe(key) { it }
 
     override fun getBoolean(key: String): Boolean? = get(key) { it[0] == 0x01.toByte() }
 
-    override fun observeBoolean(key: String): Flow<Boolean> = observe(key) { it[0] == 0x01.toByte() }
+    override fun observeBoolean(key: String): Flow<Boolean?> = observe(key) { it[0] == 0x01.toByte() }
 
     override fun getString(key: String): String? = get(key) { Buffer().write(it).readUtf8() }
 
-    override fun observeString(key: String): Flow<String> = observe(key) { Buffer().write(it).readUtf8() }
+    override fun observeString(key: String): Flow<String?> = observe(key) { Buffer().write(it).readUtf8() }
 
     override fun getInt(key: String): Int? = get(key) { Buffer().write(it).readInt() }
 
-    override fun observeInt(key: String): Flow<Int> = observe(key) { Buffer().write(it).readInt() }
+    override fun observeInt(key: String): Flow<Int?> = observe(key) { Buffer().write(it).readInt() }
 
     override fun getLong(key: String): Long? = get(key) { Buffer().write(it).readLong() }
 
-    override fun observeLong(key: String): Flow<Long> = observe(key) { Buffer().write(it).readLong() }
+    override fun observeLong(key: String): Flow<Long?> = observe(key) { Buffer().write(it).readLong() }
 
     override fun getFloat(key: String): Float? = get(key) { Float.fromBits(Buffer().write(it).readInt()) }
 
-    override fun observeFloat(key: String): Flow<Float> = observe(key) { Float.fromBits(Buffer().write(it).readInt()) }
+    override fun observeFloat(key: String): Flow<Float?> = observe(key) { Float.fromBits(Buffer().write(it).readInt()) }
 
     override fun getDouble(key: String): Double? = get(key) { Double.fromBits(Buffer().write(it).readLong()) }
 
-    override fun observeDouble(key: String): Flow<Double> =
+    override fun observeDouble(key: String): Flow<Double?> =
         observe(key) { Double.fromBits(Buffer().write(it).readLong()) }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -138,7 +141,7 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
         get(key) { Cbor.decodeFromByteArray(deserializer, queries.get(key).executeAsOne()) }
 
     @OptIn(ExperimentalSerializationApi::class)
-    override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T> =
+    override fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T?> =
         observe(key) { Cbor.decodeFromByteArray(deserializer, it) }
 
     override fun transaction(block: (rollback: () -> Nothing) -> Unit) {
@@ -157,23 +160,30 @@ class KMPStorageNode internal constructor(context: KMPStorageContext, name: Stri
 
     private inline fun put(key: String, crossinline mapper: () -> ByteArray): Outcome<Unit, Exception> {
         return try {
-            queries.put(key, mapper())
+            val value = mapper()
+            queries.put(key, value)
+            KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
         }
     }
 
-    private inline fun <T> observe(key: String, crossinline mapper: (bytes: ByteArray) -> T): Flow<T> = channelFlow {
+    private inline fun <T> observe(key: String, crossinline mapper: (bytes: ByteArray) -> T?): Flow<T?> = channelFlow {
         try {
-            val listener = Query.Listener {
-                val newValueBytes = get(key) { it } ?: return@Listener
-                trySend(mapper(newValueBytes))
+            val listener: KmpKVStoreObserver = listener@{ value: Any? ->
+                if (value !is ByteArray?) return@listener
+                if (value == null) {
+                    send(null)
+                    return@listener
+                }
+                val mappedValue = mapper(value) ?: return@listener
+                send(mappedValue)
             }
-            queries.get(key).addListener(listener)
-            awaitClose { queries.get(key).removeListener(listener) }
-        } catch (e: Exception) {
+            KmpKVStoreObserverRegistry.addListener(name, key, listener)
+            awaitClose { KmpKVStoreObserverRegistry.removeListener(name, key, listener) }
+        } catch (_: Exception) {
             // NoOp
         }
-    }.buffer(1, BufferOverflow.DROP_OLDEST)
+    }.distinctUntilChanged()
 }
