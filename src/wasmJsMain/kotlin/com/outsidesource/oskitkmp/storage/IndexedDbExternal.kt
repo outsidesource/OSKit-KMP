@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.storage
 
+import com.outsidesource.oskitkmp.lib.JsResult
+import com.outsidesource.oskitkmp.lib.jsTry
 import com.outsidesource.oskitkmp.lib.jsTryOutcome
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.runOnError
@@ -43,54 +45,6 @@ external class IDBRequest<T : JsAny> : JsAny {
     var onerror: (Event) -> Unit
     var onsuccess: (Event) -> Unit
     val result: T
-}
-
-suspend fun IDBRequest<JsString>.await(): Outcome<String, Any> = suspendCoroutine { continuation ->
-    onsuccess = {
-        jsTryOutcome {
-            continuation.resume(Outcome.Ok(result.toString()))
-            (0).toJsNumber()
-        }.runOnError {
-            continuation.resume(Outcome.Error(it))
-        }
-    }
-    onerror = { continuation.resume(Outcome.Error(it)) }
-}
-
-suspend fun IDBRequest<JsNumber>.await(): Outcome<Int, Any> = suspendCoroutine { continuation ->
-    onsuccess = {
-        jsTryOutcome {
-            continuation.resume(Outcome.Ok(result.toInt()))
-            (0).toJsNumber()
-        }.runOnError {
-            continuation.resume(Outcome.Error(it))
-        }
-    }
-    onerror = { continuation.resume(Outcome.Error(it)) }
-}
-
-suspend fun IDBRequest<JsAny>.await(): Outcome<JsAny?, Any> = suspendCoroutine { continuation ->
-    onsuccess = {
-        jsTryOutcome {
-            continuation.resume(Outcome.Ok(result))
-            (0).toJsNumber()
-        }.runOnError {
-            continuation.resume(Outcome.Error(it))
-        }
-    }
-    onerror = { continuation.resume(Outcome.Error(it)) }
-}
-
-suspend fun <T> IDBRequest<JsAny>.await(mapper: (JsAny) -> T): Outcome<T, Any> = suspendCoroutine { continuation ->
-    onsuccess = {
-        jsTryOutcome {
-            continuation.resume(Outcome.Ok(mapper(result)))
-            (0).toJsNumber()
-        }.runOnError {
-            continuation.resume(Outcome.Error(it))
-        }
-    }
-    onerror = { continuation.resume(Outcome.Error(it)) }
 }
 
 external interface IDBOpenSuccessEvent : JsAny {
@@ -183,3 +137,26 @@ external class IDBIndex : JsAny {
 }
 
 external class IDBKeyRange : JsAny
+
+/***
+ * Helper functions
+ */
+
+suspend inline fun <T : JsAny> IDBDatabase.suspendRequest(
+    crossinline block: () -> IDBRequest<T>,
+): Outcome<T, Any> = jsTry { block() }.await()
+
+suspend fun <T : JsAny> JsResult<IDBRequest<T>>.await(): Outcome<T, Any> =
+    result?.await() ?: Outcome.Error(error as Any)
+
+suspend fun <T : JsAny> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
+    onsuccess = {
+        jsTryOutcome {
+            continuation.resume(Outcome.Ok(result))
+            (0).toJsNumber()
+        }.runOnError {
+            continuation.resume(Outcome.Error(it))
+        }
+    }
+    onerror = { continuation.resume(Outcome.Error(it)) }
+}
