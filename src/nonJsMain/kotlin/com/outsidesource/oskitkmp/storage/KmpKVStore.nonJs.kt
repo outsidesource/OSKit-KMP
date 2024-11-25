@@ -20,7 +20,7 @@ internal expect fun createDatabaseDriver(context: KmpKVStoreContext, nodeName: S
 
 class KmpKVStoreNode internal constructor(
     context: KmpKVStoreContext,
-    private val name: String
+    private val name: String,
 ) : IKmpKVStoreNode {
     private val driver = createDatabaseDriver(context, name)
     private val queries = KmpKVStoreDatabaseQueries(driver)

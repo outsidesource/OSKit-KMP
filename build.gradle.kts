@@ -134,7 +134,6 @@ kotlin {
                 implementation(libs.sqldelight.native.driver)
             }
         }
-        val iosTest by getting
         val jvmMain by getting {
             dependsOn(nonJsMain)
             dependencies {
@@ -144,7 +143,6 @@ kotlin {
                 implementation(libs.lwjgl.tinyfd)
             }
         }
-        val jvmTest by getting
         val wasmJsMain by getting
     }
 }

@@ -34,7 +34,7 @@ class InMemoryKmpKVStore : IKmpKVStore {
  * [InMemoryKmpKVStoreNode] provides a thread-safe, fallback, in-memory storage node
  */
 class InMemoryKmpKVStoreNode(
-    private val name: String
+    private val name: String,
 ) : IKmpKVStoreNode {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val storage = atomic(mapOf<String, Any>())

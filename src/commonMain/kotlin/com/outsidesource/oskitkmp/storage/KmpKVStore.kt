@@ -3,15 +3,11 @@ package com.outsidesource.oskitkmp.storage
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlin.coroutines.CoroutineContext
@@ -95,18 +91,18 @@ internal class KmpKVStoreRollbackException : Exception("Transaction Rolled Back"
 internal typealias KmpKVStoreObserver = suspend (Any?) -> Unit
 
 internal object KmpKVStoreObserverRegistry {
-    private data class ListenerContext(
-        val notificationContext: CoroutineContext = Dispatchers.Default.limitedParallelism(1),
-        val listeners: List<KmpKVStoreObserver> = emptyList()
+    private data class ValueListenerContext(
+        val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(1),
+        val listeners: List<KmpKVStoreObserver> = emptyList(),
     )
 
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val listeners: AtomicRef<Map<String, Map<String, ListenerContext>>> = atomic(emptyMap())
+    private val listeners: AtomicRef<Map<String, Map<String, ValueListenerContext>>> = atomic(emptyMap())
 
     fun addListener(node: String, key: String, listener: KmpKVStoreObserver) = listeners.update {
         it.toMutableMap().apply {
             this[node] = (this[node] ?: emptyMap()).toMutableMap().apply {
-                val context = (this[key] ?: ListenerContext()).let { it.copy(listeners = it.listeners + listener)  }
+                val context = (this[key] ?: ValueListenerContext()).let { it.copy(listeners = it.listeners + listener) }
                 this[key] = context
             }
         }
@@ -115,7 +111,8 @@ internal object KmpKVStoreObserverRegistry {
     fun removeListener(node: String, key: String, listener: KmpKVStoreObserver) = listeners.update {
         it.toMutableMap().apply {
             this[node] = (this[node] ?: emptyMap()).toMutableMap().apply {
-                val listeners = (this[key] ?: ListenerContext()).let { it.copy(listeners = it.listeners - listener)  }
+                val listeners = (this[key] ?: ValueListenerContext())
+                    .let { it.copy(listeners = it.listeners - listener) }
                 this[key] = listeners
             }
         }
@@ -123,7 +120,7 @@ internal object KmpKVStoreObserverRegistry {
 
     fun notifyValueChange(node: String, key: String, value: Any?) {
         val context = listeners.value[node]?.get(key) ?: return
-        scope.launch(context.notificationContext) {
+        scope.launch(context.coroutineContext) {
             context.listeners.forEach { it(value) }
         }
     }
@@ -132,7 +129,7 @@ internal object KmpKVStoreObserverRegistry {
         scope.launch {
             listeners.value[node]?.forEach { keyMapEntry ->
                 val context = keyMapEntry.value
-                scope.launch(context.notificationContext) {
+                scope.launch(context.coroutineContext) {
                     context.listeners.forEach { it(null) }
                 }
             }
