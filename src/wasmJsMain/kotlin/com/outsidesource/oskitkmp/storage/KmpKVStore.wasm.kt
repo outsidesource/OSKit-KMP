@@ -9,7 +9,7 @@ enum class WasmKmpKVStoreType {
 }
 
 class WasmKmpKVStore(
-    private val type: WasmKmpKVStoreType = WasmKmpKVStoreType.LocalStorage,
+    private val type: WasmKmpKVStoreType = WasmKmpKVStoreType.IndexedDb,
 ) : IKmpKVStore {
     override suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> = try {
         val node = when (type) {

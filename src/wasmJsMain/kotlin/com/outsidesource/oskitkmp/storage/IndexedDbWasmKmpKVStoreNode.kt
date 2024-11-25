@@ -4,12 +4,10 @@ import com.outsidesource.oskitkmp.lib.toSet
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import com.outsidesource.oskitkmp.storage.KmpKVStoreRollbackException
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.atomicfu.update
-import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -47,6 +45,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
     } == true
 
     override suspend fun remove(key: String): Outcome<Unit, Any> = db?.let { db ->
+        recordTransaction(key)
         db.suspendRequest {
             db.transaction(objectStoreName, "readwrite")
                 .objectStore(objectStoreName)
@@ -57,6 +56,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
     } ?: Outcome.Error(IndexedDbClosedException())
 
     override suspend fun clear(): Outcome<Unit, Any> = db?.let { db ->
+        recordClearTransaction()
         db.suspendRequest {
             db.transaction(objectStoreName, "readwrite")
                 .objectStore(objectStoreName)
@@ -156,7 +156,12 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
                     if (v == null) {
                         remove(k)
                     } else {
-                        put(k) { v }
+                        when (v) {
+                            is JsNumber -> put(k) { v }
+                            is JsString -> put(k) { v }
+                            is JsBoolean -> put(k) { v }
+                            is JsBigInt -> put(k) { v }
+                        }
                     }
                 }
                 transaction.update { null }
@@ -164,11 +169,11 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
         }
     }
 
-    private suspend inline fun put(key: String, crossinline mapper: () -> JsAny): Outcome<Unit, Any> =
+    private suspend inline fun <reified T : JsAny> put(key: String, crossinline mapper: () -> T): Outcome<Unit, Any> =
         db?.let { db ->
             try {
-                val value = mapper()
                 recordTransaction(key)
+                val value = mapper()
                 db.suspendRequest {
                     db.transaction(objectStoreName, "readwrite")
                         .objectStore(objectStoreName)
@@ -181,10 +186,15 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
             }
         } ?: Outcome.Error(IndexedDbClosedException())
 
-    private suspend inline fun <reified T: JsAny> recordTransaction(key: String) {
+    private suspend fun recordClearTransaction() {
         if (transaction.value == null) return
-        val currentValue = get<T, JsAny>(key) { it }
-        transaction.update { it?.toMutableMap()?.apply { put(key, currentValue) } }
+        keys().forEach { recordTransaction(it) }
+    }
+
+    private suspend fun recordTransaction(key: String) {
+        if (transaction.value == null) return
+        val currentValue = getRaw(key)
+        transaction.update { it?.toMutableMap()?.apply { this[key] = currentValue } }
     }
 
     private suspend inline fun <reified T : JsAny, R> get(
@@ -205,9 +215,22 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
         }
     }
 
+    private suspend inline fun getRaw(
+        key: String,
+    ): JsAny? = db?.let { db ->
+        try {
+            db.suspendRequest {
+                db.transaction(objectStoreName)
+                    .objectStore(objectStoreName)
+                    .get(key)
+            }.unwrapOrNull() ?: return@let null
+        } catch (t: Throwable) {
+            null
+        }
+    }
+
     private inline fun <reified T, R> observe(key: String, crossinline mapper: (rawValue: T) -> R?): Flow<R?> =
         KmpKVStoreObserverRegistry.observe<T, R>(nodeName = name, key = key, mapper)
 }
 
 class IndexedDbClosedException : Exception("IndexedDb is closed")
-private class KmpKVStoreRollbackException : Exception("Transaction Rolled Back")

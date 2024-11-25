@@ -162,5 +162,3 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
     fun normalizeKey(key: String) = "${normalizedNodeName()}$key"
     fun normalizedNodeName() = "__${name}__:"
 }
-
-private class KmpKVStoreRollbackException : Exception("Transaction Rolled Back")

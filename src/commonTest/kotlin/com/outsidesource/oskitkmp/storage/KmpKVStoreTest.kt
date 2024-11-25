@@ -294,41 +294,83 @@ interface IKmpKVStoreTest {
         val node = openNode()
         node.clear()
 
-        node.putInt("int", 0)
+        node.putInt("int", 1)
         node.putLong("long", 1L)
+        node.putFloat("float", 1.123f)
+        node.putDouble("double", 1.123)
+        node.putString("string", "hello")
+        node.putBoolean("boolean", true)
         node.putBytes("bytes", byteArrayOf(0x00, 0x01, 0x02))
-        node.putFloat("float", 2.123f)
-        node.putDouble("double", 3.123)
-        node.putString("string", "test string")
-        node.putSerializable("serializable", TestSerializable(1, "two"), TestSerializable.serializer())
+        node.putSerializable("serializable", TestSerializable(one = 1, two = "one"), TestSerializable.serializer())
 
-        node.transaction {
-            node.remove("int")
+        // Test reverting to previous values
+        node.transaction { rollback ->
+            node.putInt("int", 2)
             node.putLong("long", 2L)
-        }
+            node.putFloat("float", 2.123f)
+            node.putDouble("double", 2.123)
+            node.putString("string", "hello2")
+            node.putBoolean("boolean", false)
+            node.putBytes("bytes", byteArrayOf(0x01, 0x02, 0x03))
+            node.putSerializable("serializable", TestSerializable(one = 2, two = "two"), TestSerializable.serializer())
 
-        assertTrue("transaction 1") {
-            node.keyCount() == 6L &&
+            assertTrue("values not updated in transaction") {
+                println(node.getInt("int"))
+                println(node.getLong("long"))
+                println(node.getFloat("float"))
+                println(node.getDouble("double"))
+                println(node.getString("string"))
+                println(node.getBoolean("boolean"))
+                println(node.getBytes("bytes"))
+                println(node.getSerializable("serializable", TestSerializable.serializer()))
+
+
+                node.getInt("int") == 2 &&
                     node.getLong("long") == 2L &&
                     node.getFloat("float") == 2.123f &&
-                    !node.contains("testString")
-        }
-
-        node.transaction { rollback ->
-            node.remove("long")
-            node.putFloat("float", 10f)
-            node.putString("testString", "this should not exist")
-            node.putString("testString2", "this should not exist")
-
-            assertTrue("transactionValuesUpdated") { node.keyCount() == 7L && !node.contains("long") && node.getFloat("float") == 10f  }
+                    node.getDouble("double") == 2.123 &&
+                    node.getString("string") == "hello2" &&
+                    node.getBoolean("boolean") == false &&
+                    node.getBytes("bytes").contentEquals(byteArrayOf(0x01, 0x02, 0x03)) &&
+                    node.getSerializable("serializable", TestSerializable.serializer()) == TestSerializable(one = 2, two = "two")
+            }
             rollback()
         }
 
-        assertTrue("transaction 2") {
-            node.keyCount() == 6L &&
-                    node.getLong("long") == 2L &&
-                    node.getFloat("float") == 2.123f &&
-                    !node.contains("testString")
+        assertTrue("values were not changed when rolled back") {
+            node.getInt("int") == 1 &&
+                    node.getLong("long") == 1L &&
+                    node.getFloat("float") == 1.123f &&
+                    node.getDouble("double") == 1.123 &&
+                    node.getString("string") == "hello" &&
+                    node.getBoolean("boolean") == true &&
+                    node.getBytes("bytes").contentEquals(byteArrayOf(0x00, 0x01, 0x02)) &&
+                    node.getSerializable("serializable", TestSerializable.serializer()) == TestSerializable(one = 1, two = "one")
+        }
+
+        // Test reverting to removed value
+        node.clear()
+        node.transaction { rollback ->
+            node.putInt("int", 1)
+            node.putLong("long", 1L)
+            node.putFloat("float", 1.123f)
+            node.putDouble("double", 1.123)
+            node.putString("string", "hello")
+            node.putBoolean("boolean", true)
+            node.putBytes("bytes", byteArrayOf(0x00, 0x01, 0x02))
+            node.putSerializable("serializable", TestSerializable(one = 1, two = "one"), TestSerializable.serializer())
+            rollback()
+        }
+
+        assertTrue("values were not deleted when rolled back") {
+            node.getInt("int") == null &&
+                node.getLong("long") == null &&
+                node.getFloat("float") == null &&
+                node.getDouble("double") == null &&
+                node.getString("string") == null &&
+                node.getBoolean("boolean") == null &&
+                node.getBytes("bytes") == null &&
+                node.getSerializable("serializable", TestSerializable.serializer()) == null
         }
     }
 
