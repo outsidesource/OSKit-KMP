@@ -1,5 +1,5 @@
 package com.outsidesource.oskitkmp.storage
 
-actual fun createKmpKVStore(): IKmpKVStore {
-    return IosKmpKVStore()
+class IosKmpKVStoreTest : IKmpKVStoreTest {
+    override val kvStore: IKmpKVStore = IosKmpKVStore()
 }

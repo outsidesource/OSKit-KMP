@@ -1,5 +1,9 @@
 package com.outsidesource.oskitkmp.storage
 
-actual fun createKmpKVStore(): IKmpKVStore {
-    return WasmKmpKVStore(WasmKmpKVStoreType.LocalStorage)
+class LocalStorageWasmKmpKVStoreTest : IKmpKVStoreTest {
+    override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.LocalStorage)
+}
+
+class IndexedDbLWasmKmpKVStoreTest : IKmpKVStoreTest {
+    override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.IndexedDb)
 }

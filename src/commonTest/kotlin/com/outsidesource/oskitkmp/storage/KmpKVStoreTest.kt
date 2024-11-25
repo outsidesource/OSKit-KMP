@@ -15,21 +15,18 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-class InMemoryKmpKVStoreTest : KmpKVStoreTest() {
-    override val storage: IKmpKVStore = InMemoryKmpKVStore()
-
-    @Test
-    fun noOp() {}
+class InMemoryKmpKVStoreTest : IKmpKVStoreTest {
+    override val kvStore: IKmpKVStore = InMemoryKmpKVStore()
 }
 
-open class KmpKVStoreTest {
-    internal open val storage: IKmpKVStore = createKmpKVStore()
+interface IKmpKVStoreTest {
+    val kvStore: IKmpKVStore
 
-    private fun openNode() = storage.openNode("Test").unwrapOrReturn { fail("Could not open node") }
+    private suspend fun openNode() = kvStore.openNode("Test").unwrapOrReturn { fail("Could not open node") }
     
     @Test
     fun createNode() = runBlockingTest {
-        val outcome = storage.openNode("Test")
+        val outcome = kvStore.openNode("Test")
         if (outcome is Outcome.Error) fail("Could not open node: ${outcome.error}")
     }
 
@@ -270,7 +267,7 @@ open class KmpKVStoreTest {
         node.clear()
         node.putString("test1", "Hello 1")
         node.putString("test2", "Hello 2")
-        assertTrue { node.getKeys() == setOf("test1", "test2") }
+        assertTrue { node.keys() == setOf("test1", "test2") }
     }
 
     @Test
@@ -283,7 +280,7 @@ open class KmpKVStoreTest {
     }
 
     @Test
-    fun testTransaction() {
+    fun testTransaction() = runBlockingTest {
         val node = openNode()
         node.clear()
 
@@ -326,7 +323,7 @@ open class KmpKVStoreTest {
     }
 
     @Test
-    fun testWrongTypes() {
+    fun testWrongTypes() = runBlockingTest {
         val node = InMemoryKmpKVStoreNode("test")
         node.putString("test", "Test")
         assertTrue { node.getLong("test") == null }
@@ -337,5 +334,3 @@ open class KmpKVStoreTest {
 
 @Serializable
 internal data class TestSerializable(val one: Int, val two: String)
-
-expect fun createKmpKVStore(): IKmpKVStore
