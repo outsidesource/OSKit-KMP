@@ -37,7 +37,7 @@ suspend fun IDBOpenDBRequest.await(
     }
 }
 
-external class IDBRequest<T : JsAny> : JsAny {
+external class IDBRequest<T : JsAny?> : JsAny {
     val error: JsAny
     val readyState: JsAny
     val source: JsAny
@@ -71,6 +71,7 @@ external interface IDBRequestEventTarget : JsAny {
 }
 
 external class IDBDatabase : JsAny {
+    fun close()
     fun createObjectStore(name: String): IDBObjectStore
     fun createObjectStore(name: String, options: JsAny): IDBObjectStore
     fun deleteObjectStore(name: String)
@@ -95,13 +96,13 @@ external class IDBObjectStore : JsAny {
 
     fun add(value: JsAny): IDBRequest<JsString>
     fun add(value: JsAny, key: String): IDBRequest<JsString>
-    fun clear(): IDBRequest<JsAny>
+    fun clear(): IDBRequest<JsAny?>
     fun count(): IDBRequest<JsNumber>
     fun count(query: String): IDBRequest<JsNumber>
     fun count(query: IDBKeyRange): IDBRequest<JsNumber>
     fun createIndex(indexName: String, keyPath: String): IDBIndex
     fun createIndex(indexName: String, keyPath: String, options: JsAny): IDBIndex
-    fun delete(key: String): IDBRequest<JsAny>
+    fun delete(key: String): IDBRequest<JsAny?>
     fun delete(key: IDBKeyRange): IDBRequest<JsAny>
     fun deleteIndex(indexName: String)
     fun get(key: String): IDBRequest<JsAny>
@@ -109,7 +110,7 @@ external class IDBObjectStore : JsAny {
     fun getKey(key: String): IDBRequest<JsString>
     fun getKey(key: IDBKeyRange): IDBRequest<JsString>
     fun getAll(): IDBRequest<JsAny>
-    fun getAllKeys(): IDBRequest<JsAny>
+    fun getAllKeys(): IDBRequest<JsArray<JsString>>
     fun index(name: String): IDBIndex
     fun openCursor(): IDBRequest<JsAny>
     fun openKeyCursor(): IDBRequest<JsAny>
@@ -142,14 +143,14 @@ external class IDBKeyRange : JsAny
  * Helper functions
  */
 
-suspend inline fun <T : JsAny> IDBDatabase.suspendRequest(
+suspend inline fun <T : JsAny?> IDBDatabase.suspendRequest(
     crossinline block: () -> IDBRequest<T>,
 ): Outcome<T, Any> = jsTry { block() }.await()
 
-suspend fun <T : JsAny> JsResult<IDBRequest<T>>.await(): Outcome<T, Any> =
+suspend fun <T : JsAny?> JsResult<IDBRequest<T>>.await(): Outcome<T, Any> =
     result?.await() ?: Outcome.Error(error as Any)
 
-suspend fun <T : JsAny> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
+suspend fun <T : JsAny?> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
     onsuccess = {
         jsTryOutcome {
             continuation.resume(Outcome.Ok(result))

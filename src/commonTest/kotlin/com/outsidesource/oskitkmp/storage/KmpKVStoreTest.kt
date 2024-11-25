@@ -190,6 +190,16 @@ interface IKmpKVStoreTest {
     }
 
     @Test
+    fun testRemove() = runBlockingTest {
+        val node = openNode()
+        node.clear()
+        node.putInt("testInt", 1)
+        assertTrue("Write didn't work") { node.contains("testInt") }
+        node.remove("testInt").unwrapOrReturn { fail("result was an error") }
+        assertTrue("Remove didn't work") { !node.contains("testInt") }
+    }
+
+    @Test
     fun testObserveRemoval() = runBlockingTest {
         val node = openNode()
         node.clear()
@@ -248,7 +258,7 @@ interface IKmpKVStoreTest {
         node.putInt("test2", 1).unwrapOrReturn { fail("Could not insert") }
         node.putInt("test3", 1).unwrapOrReturn { fail("Could not insert") }
         assertTrue(message = "Insert didn't work") { node.keyCount() == 3L }
-        node.clear()
+        node.clear().unwrapOrReturn { fail("result was error") }
         assertTrue(message = "Clear didn't work") { node.keyCount() == 0L }
     }
 

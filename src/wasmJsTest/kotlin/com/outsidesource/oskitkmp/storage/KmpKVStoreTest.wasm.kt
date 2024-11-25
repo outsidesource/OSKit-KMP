@@ -4,6 +4,6 @@ class LocalStorageWasmKmpKVStoreTest : IKmpKVStoreTest {
     override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.LocalStorage)
 }
 
-class IndexedDbLWasmKmpKVStoreTest : IKmpKVStoreTest {
+class IndexedDbWasmKmpKVStoreTest : IKmpKVStoreTest {
     override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.IndexedDb)
 }

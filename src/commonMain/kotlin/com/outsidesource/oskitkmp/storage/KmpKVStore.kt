@@ -41,44 +41,44 @@ import kotlin.coroutines.CoroutineContext
  * https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
  */
 interface IKmpKVStore {
-    suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception>
+    suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Any>
 }
 
 interface IKmpKVStoreNode {
     suspend fun close()
     suspend fun contains(key: String): Boolean
-    suspend fun remove(key: String): Outcome<Unit, Exception>
-    suspend fun clear(): Outcome<Unit, Exception>
-    suspend fun vacuum(): Outcome<Unit, Exception>
+    suspend fun remove(key: String): Outcome<Unit, Any>
+    suspend fun clear(): Outcome<Unit, Any>
+    suspend fun vacuum(): Outcome<Unit, Any>
     suspend fun keys(): Set<String>
     suspend fun keyCount(): Long
     suspend fun dbFileSize(): Long
 
-    suspend fun putBytes(key: String, value: ByteArray): Outcome<Unit, Exception>
+    suspend fun putBytes(key: String, value: ByteArray): Outcome<Unit, Any>
     suspend fun getBytes(key: String): ByteArray?
     suspend fun observeBytes(key: String): Flow<ByteArray?>
 
-    suspend fun putBoolean(key: String, value: Boolean): Outcome<Unit, Exception>
+    suspend fun putBoolean(key: String, value: Boolean): Outcome<Unit, Any>
     suspend fun getBoolean(key: String): Boolean?
     suspend fun observeBoolean(key: String): Flow<Boolean?>
 
-    suspend fun putString(key: String, value: String): Outcome<Unit, Exception>
+    suspend fun putString(key: String, value: String): Outcome<Unit, Any>
     suspend fun getString(key: String): String?
     suspend fun observeString(key: String): Flow<String?>
 
-    suspend fun putInt(key: String, value: Int): Outcome<Unit, Exception>
+    suspend fun putInt(key: String, value: Int): Outcome<Unit, Any>
     suspend fun getInt(key: String): Int?
     suspend fun observeInt(key: String): Flow<Int?>
 
-    suspend fun putLong(key: String, value: Long): Outcome<Unit, Exception>
+    suspend fun putLong(key: String, value: Long): Outcome<Unit, Any>
     suspend fun getLong(key: String): Long?
     suspend fun observeLong(key: String): Flow<Long?>
 
-    suspend fun putFloat(key: String, value: Float): Outcome<Unit, Exception>
+    suspend fun putFloat(key: String, value: Float): Outcome<Unit, Any>
     suspend fun getFloat(key: String): Float?
     suspend fun observeFloat(key: String): Flow<Float?>
 
-    suspend fun putDouble(key: String, value: Double): Outcome<Unit, Exception>
+    suspend fun putDouble(key: String, value: Double): Outcome<Unit, Any>
     suspend fun getDouble(key: String): Double?
     suspend fun observeDouble(key: String): Flow<Double?>
 
@@ -86,7 +86,7 @@ interface IKmpKVStoreNode {
         key: String,
         value: T,
         serializer: SerializationStrategy<T>,
-    ): Outcome<Unit, Exception>
+    ): Outcome<Unit, Any>
     suspend fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T?
     suspend fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T?>
 

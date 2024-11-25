@@ -125,9 +125,9 @@ class InMemoryKmpKVStoreNode(
             } catch (_: Exception) {
                 transaction.value?.forEach { (k, v) ->
                     if (v == null) {
-                        this@InMemoryKmpKVStoreNode.remove(k)
+                        remove(k)
                     } else {
-                        this@InMemoryKmpKVStoreNode.put(k, v)
+                        put(k, v)
                     }
                 }
                 transaction.update { null }
