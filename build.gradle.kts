@@ -4,6 +4,7 @@ import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.konan.target.linker
 import java.io.FileInputStream
 import java.util.*
 
@@ -74,8 +75,12 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "oskitkmp"
+        iosTarget.binaries {
+            framework {
+                baseName = "oskitkmp"
+//                linkerOpts("-lsqlite3") // I might be able to include this and not have to have consumers include it
+            }
+            getTest("DEBUG").linkerOpts("-lsqlite3")
         }
     }
 

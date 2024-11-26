@@ -1,9 +1,9 @@
 package com.outsidesource.oskitkmp.storage
 
-class LocalStorageWasmKmpKVStoreTest : IKmpKVStoreTest {
+class LocalStorageWasmKmpKVStoreTest : KmpKVStoreTestBase() {
     override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.LocalStorage)
 }
 
-class IndexedDbWasmKmpKVStoreTest : IKmpKVStoreTest {
+class IndexedDbWasmKmpKVStoreTest : KmpKVStoreTestBase() {
     override val kvStore: IKmpKVStore = WasmKmpKVStore(WasmKmpKVStoreType.IndexedDb)
 }

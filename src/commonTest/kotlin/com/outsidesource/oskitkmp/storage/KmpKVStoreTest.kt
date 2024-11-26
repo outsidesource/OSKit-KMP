@@ -16,12 +16,12 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.uuid.ExperimentalUuidApi
 
-class InMemoryKmpKVStoreTest : IKmpKVStoreTest {
+class InMemoryKmpKVStoreTest : KmpKVStoreTestBase() {
     override val kvStore: IKmpKVStore = InMemoryKmpKVStore()
 }
 
-interface IKmpKVStoreTest {
-    val kvStore: IKmpKVStore
+open class KmpKVStoreTestBase {
+    open val kvStore: IKmpKVStore = InMemoryKmpKVStore()
 
     private suspend fun openNode() = kvStore.openNode("Test").unwrapOrReturn { fail("Could not open node") }
 
@@ -329,16 +329,6 @@ interface IKmpKVStoreTest {
             node.putSerializable("serializable", TestSerializable(one = 2, two = "two"), TestSerializable.serializer())
 
             assertTrue("values not updated in transaction") {
-                println(node.getInt("int"))
-                println(node.getLong("long"))
-                println(node.getFloat("float"))
-                println(node.getDouble("double"))
-                println(node.getString("string"))
-                println(node.getBoolean("boolean"))
-                println(node.getBytes("bytes"))
-                println(node.getSerializable("serializable", TestSerializable.serializer()))
-
-
                 node.getInt("int") == 2 &&
                     node.getLong("long") == 2L &&
                     node.getFloat("float") == 2.123f &&
