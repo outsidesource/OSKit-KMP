@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * TODO: Implement this properly for MacOS, Linux, and Windows
+ * TODO: Implement this properly for WASM
  */
 class LocationCapability(private val flags: Array<LocationCapabilityFlags>) : IInitializableCapability, ICapability {
     override fun init(context: CapabilityContext) {}
