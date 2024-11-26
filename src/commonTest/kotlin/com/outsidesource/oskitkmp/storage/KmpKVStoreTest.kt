@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.uuid.ExperimentalUuidApi
 
 class InMemoryKmpKVStoreTest : IKmpKVStoreTest {
     override val kvStore: IKmpKVStore = InMemoryKmpKVStore()
@@ -23,7 +24,20 @@ interface IKmpKVStoreTest {
     val kvStore: IKmpKVStore
 
     private suspend fun openNode() = kvStore.openNode("Test").unwrapOrReturn { fail("Could not open node") }
-    
+
+    @OptIn(ExperimentalUuidApi::class, ExperimentalStdlibApi::class)
+    @Test
+    fun keyGeneration() = runBlockingTest {
+        val node = openNode()
+
+        val keys = mutableSetOf<String>()
+        for (i in 0..1_000_000) {
+            val newKey = node.createUniqueKey()
+            if (keys.contains(newKey)) fail("Key was not unique")
+            keys.add(newKey)
+        }
+    }
+
     @Test
     fun createNode() = runBlockingTest {
         val outcome = kvStore.openNode("Test")

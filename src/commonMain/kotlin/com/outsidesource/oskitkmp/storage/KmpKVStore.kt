@@ -11,9 +11,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlin.coroutines.CoroutineContext
+import kotlin.random.Random
 
 /**
  * [KmpKVStore] is a multiplatform key value store that allows persistent storage of any data
@@ -22,9 +24,10 @@ import kotlin.coroutines.CoroutineContext
  * [Dispatchers.IO]
  *
  * To use [KmpKVStore] create an instance of each platform independent implementation, [AndroidKmpKVStore],
- * [IosKmpKVStore], [DesktopKmpKVStore], [WasmKmpKVStore] (JVM). Each implementation implements [IKmpKVStore].
+ * [IosKmpKVStore], [JvmKmpKVStore], [WasmKmpKVStore]. Each implementation implements [IKmpKVStore].
  *
- * Desktop/JVM Note: You may need to add the `java.sql` module:
+ * Desktop/JVM:
+ * You may need to add the `java.sql` module:
  * ```
  * compose.desktop {
  *    nativeDistributions {
@@ -33,9 +36,10 @@ import kotlin.coroutines.CoroutineContext
  * }
  * ```
  *
- * iOS Note: You may need to add the linker flag `-lsqlite3`
+ * iOS:
+ * You may need to add the linker flag `-lsqlite3`
  *
- * WASM Note:
+ * WASM:
  * Using LocalStorage has a limited amount of storage (5MiB). IndexedDB can use more storage but the exact amount
  * depends on the browser.
  * https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
@@ -45,6 +49,8 @@ interface IKmpKVStore {
 }
 
 interface IKmpKVStoreNode {
+    fun createUniqueKey(): String = KmpKVStoreKeyGenerator.createUniqueKey()
+
     suspend fun close()
     suspend fun contains(key: String): Boolean
     suspend fun remove(key: String): Outcome<Unit, Any>
@@ -82,11 +88,7 @@ interface IKmpKVStoreNode {
     suspend fun getDouble(key: String): Double?
     suspend fun observeDouble(key: String): Flow<Double?>
 
-    suspend fun <T> putSerializable(
-        key: String,
-        value: T,
-        serializer: SerializationStrategy<T>,
-    ): Outcome<Unit, Any>
+    suspend fun <T> putSerializable(key: String, value: T, serializer: SerializationStrategy<T>): Outcome<Unit, Any>
     suspend fun <T> getSerializable(key: String, deserializer: DeserializationStrategy<T>): T?
     suspend fun <T> observeSerializable(key: String, deserializer: DeserializationStrategy<T>): Flow<T?>
 
@@ -96,6 +98,14 @@ interface IKmpKVStoreNode {
 internal class KmpKVStoreRollbackException : Exception("Transaction Rolled Back")
 
 internal typealias KmpKVStoreObserver = suspend (Any?) -> Unit
+
+internal object KmpKVStoreKeyGenerator {
+    private val counter = atomic(Random(Clock.System.now().toEpochMilliseconds()).nextLong())
+
+    @OptIn(ExperimentalStdlibApi::class)
+    fun createUniqueKey(): String =
+        Clock.System.now().epochSeconds.toHexString().takeLast(10) + counter.incrementAndGet().toHexString()
+}
 
 internal object KmpKVStoreObserverRegistry {
     private data class ValueListenerContext(
