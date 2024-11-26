@@ -19,7 +19,8 @@ testrunner = "1.6.2"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
-core = { module = "androidx.test:core", version.ref = "testcore" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "testcore" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "testrunner" }
 documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
@@ -33,7 +34,6 @@ lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.r
 lwjgl = { module = "org.lwjgl:lwjgl" }
 lwjgl-tinyfd = { module = "org.lwjgl:lwjgl-tinyfd" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-testrunner = { module = "androidx.test:runner", version.ref = "testrunner" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 sqldelight-jvm-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }

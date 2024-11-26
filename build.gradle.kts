@@ -121,10 +121,11 @@ kotlin {
                 implementation(libs.documentfile)
             }
         }
-        val androidUnitTest by getting {
+        val androidInstrumentedTest by getting {
+            dependsOn(commonTest)
             dependencies {
-                implementation(libs.testrunner)
-                implementation(libs.core)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.androidx.test.core)
                 implementation(libs.junit)
             }
         }
@@ -154,6 +155,7 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
