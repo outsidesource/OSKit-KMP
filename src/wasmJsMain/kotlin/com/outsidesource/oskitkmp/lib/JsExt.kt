@@ -21,7 +21,7 @@ fun <T : JsAny> jsTryOutcome(block: () -> T): Outcome<T, Any> {
     return Outcome.Ok(result as T)
 }
 
-fun <T : JsAny> jsTry(block: () -> T): JsResult<T> = js(
+fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
     """{
         try {
             return { result: block() }
@@ -31,7 +31,7 @@ fun <T : JsAny> jsTry(block: () -> T): JsResult<T> = js(
     }""",
 )
 
-external interface JsResult<T : JsAny> : JsAny {
+external interface JsResult<T : JsAny?> : JsAny {
     val error: JsAny?
     val result: T?
 }
