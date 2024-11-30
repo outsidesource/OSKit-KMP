@@ -14,7 +14,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNode {
+internal class LocalStorageWasmKmpKvStoreNode(val name: String) : IKmpKvStoreNode {
 
     private val transaction = atomic<Map<String, String?>?>(null)
     private val transactionLock = reentrantLock()
@@ -26,7 +26,7 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
     override suspend fun remove(key: String): Outcome<Unit, Exception> {
         recordTransaction(key)
         localStorage.removeItem(normalizeKey(key))
-        KmpKVStoreObserverRegistry.notifyValueChange(name, key, null)
+        KmpKvStoreObserverRegistry.notifyValueChange(name, key, null)
         return Outcome.Ok(Unit)
     }
 
@@ -34,7 +34,7 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
         keys().forEach {
             recordTransaction(it)
             localStorage.removeItem(normalizeKey(it))
-            KmpKVStoreObserverRegistry.notifyValueChange(name, it, null)
+            KmpKvStoreObserverRegistry.notifyValueChange(name, it, null)
         }
         return Outcome.Ok(Unit)
     }
@@ -114,7 +114,7 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
         transactionLock.withLock {
             try {
                 transaction.update { mutableMapOf() }
-                val rollback = { throw KmpKVStoreRollbackException() }
+                val rollback = { throw KmpKvStoreRollbackException() }
                 block(rollback)
             } catch (_: Exception) {
                 transaction.value?.forEach { (k, v) ->
@@ -134,7 +134,7 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
             recordTransaction(key)
             val value = mapper()
             localStorage.setItem(normalizeKey(key), value)
-            KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
+            KmpKvStoreObserverRegistry.notifyValueChange(name, key, value)
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -157,7 +157,7 @@ internal class LocalStorageWasmKmpKVStoreNode(val name: String) : IKmpKVStoreNod
     }
 
     private inline fun <T> observe(key: String, crossinline mapper: (rawValue: String) -> T?): Flow<T?> =
-        KmpKVStoreObserverRegistry.observe<String, T>(nodeName = name, key = key, mapper)
+        KmpKvStoreObserverRegistry.observe<String, T>(nodeName = name, key = key, mapper)
 
     fun normalizeKey(key: String) = "${normalizedNodeName()}$key"
     fun normalizedNodeName() = "__${name}__:"

@@ -16,12 +16,12 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.uuid.ExperimentalUuidApi
 
-class InMemoryKmpKVStoreTest : KmpKVStoreTestBase() {
-    override val kvStore: IKmpKVStore = InMemoryKmpKVStore()
+class InMemoryKmpKvStoreTest : KmpKvStoreTestBase() {
+    override val kvStore: IKmpKvStore = InMemoryKmpKvStore()
 }
 
-open class KmpKVStoreTestBase {
-    open val kvStore: IKmpKVStore = InMemoryKmpKVStore()
+open class KmpKvStoreTestBase {
+    open val kvStore: IKmpKvStore = InMemoryKmpKvStore()
 
     private suspend fun openNode() = kvStore.openNode("Test").unwrapOrReturn { fail("Could not open node") }
 
@@ -380,7 +380,7 @@ open class KmpKVStoreTestBase {
 
     @Test
     fun testWrongTypes() = runBlockingTest {
-        val node = InMemoryKmpKVStoreNode("test")
+        val node = InMemoryKmpKvStoreNode("test")
         node.putString("test", "Test")
         assertTrue { node.getLong("test") == null }
         node.putLong("test", 1L)

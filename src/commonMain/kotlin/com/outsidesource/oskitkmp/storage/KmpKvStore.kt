@@ -18,13 +18,13 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
 /**
- * [KmpKVStore] is a multiplatform key value store that allows persistent storage of any data
+ * [KmpKvStore] is a multiplatform key value store that allows persistent storage of any data
  *
- * All [KmpKVStore] and [KmpKVStoreNode] methods are blocking and should be run in a coroutine on
+ * All [KmpKvStore] and [KmpKvStoreNode] methods are blocking and should be run in a coroutine on
  * [Dispatchers.IO]
  *
- * To use [KmpKVStore] create an instance of each platform independent implementation, [AndroidKmpKVStore],
- * [IosKmpKVStore], [JvmKmpKVStore], [WasmKmpKVStore]. Each implementation implements [IKmpKVStore].
+ * To use [KmpKvStore] create an instance of each platform independent implementation, [AndroidKmpKvStore],
+ * [IosKmpKvStore], [JvmKmpKvStore], [WasmKmpKvStore]. Each implementation implements [IKmpKvStore].
  *
  * Desktop/JVM:
  * You may need to add the `java.sql` module:
@@ -44,12 +44,12 @@ import kotlin.random.Random
  * depends on the browser.
  * https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
  */
-interface IKmpKVStore {
-    suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Any>
+interface IKmpKvStore {
+    suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Any>
 }
 
-interface IKmpKVStoreNode {
-    fun createUniqueKey(): String = KmpKVStoreKeyGenerator.createUniqueKey()
+interface IKmpKvStoreNode {
+    fun createUniqueKey(): String = KmpKvStoreKeyGenerator.createUniqueKey()
 
     suspend fun close()
     suspend fun contains(key: String): Boolean
@@ -95,11 +95,11 @@ interface IKmpKVStoreNode {
     suspend fun transaction(block: suspend (rollback: () -> Nothing) -> Unit)
 }
 
-internal class KmpKVStoreRollbackException : Exception("Transaction Rolled Back")
+internal class KmpKvStoreRollbackException : Exception("Transaction Rolled Back")
 
-internal typealias KmpKVStoreObserver = suspend (Any?) -> Unit
+internal typealias KmpKvStoreObserver = suspend (Any?) -> Unit
 
-internal object KmpKVStoreKeyGenerator {
+internal object KmpKvStoreKeyGenerator {
     private val counter = atomic(Random(Clock.System.now().toEpochMilliseconds()).nextLong())
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -107,16 +107,16 @@ internal object KmpKVStoreKeyGenerator {
         Clock.System.now().epochSeconds.toHexString().takeLast(10) + counter.incrementAndGet().toHexString()
 }
 
-internal object KmpKVStoreObserverRegistry {
+internal object KmpKvStoreObserverRegistry {
     private data class ValueListenerContext(
         val coroutineContext: CoroutineContext = Dispatchers.Default.limitedParallelism(1),
-        val listeners: List<KmpKVStoreObserver> = emptyList(),
+        val listeners: List<KmpKvStoreObserver> = emptyList(),
     )
 
     private val scope = CoroutineScope(Dispatchers.Default)
     private val listeners: AtomicRef<Map<String, Map<String, ValueListenerContext>>> = atomic(emptyMap())
 
-    private fun addListener(node: String, key: String, listener: KmpKVStoreObserver) = listeners.update {
+    private fun addListener(node: String, key: String, listener: KmpKvStoreObserver) = listeners.update {
         it.toMutableMap().apply {
             this[node] = (this[node] ?: emptyMap()).toMutableMap().apply {
                 val context = (this[key] ?: ValueListenerContext()).let { it.copy(listeners = it.listeners + listener) }
@@ -125,7 +125,7 @@ internal object KmpKVStoreObserverRegistry {
         }
     }
 
-    private fun removeListener(node: String, key: String, listener: KmpKVStoreObserver) = listeners.update {
+    private fun removeListener(node: String, key: String, listener: KmpKvStoreObserver) = listeners.update {
         it.toMutableMap().apply {
             this[node] = (this[node] ?: emptyMap()).toMutableMap().apply {
                 val listeners = (this[key] ?: ValueListenerContext())
@@ -159,7 +159,7 @@ internal object KmpKVStoreObserverRegistry {
         crossinline mapper: (rawValue: V) -> R?,
     ): Flow<R?> = channelFlow {
         try {
-            val listener: KmpKVStoreObserver = listener@{ value: Any? ->
+            val listener: KmpKvStoreObserver = listener@{ value: Any? ->
                 if (value !is V?) return@listener
                 if (value == null) {
                     send(null)

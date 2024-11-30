@@ -9,17 +9,17 @@ import kotlin.Long
 import kotlin.Unit
 import kotlin.reflect.KClass
 
-internal val KClass<KmpKVStoreDatabase>.schema: SqlSchema<QueryResult.Value<Unit>>
-    get() = KmpKVStoreDatabaseImpl.Schema
+internal val KClass<KmpKvStoreDatabase>.schema: SqlSchema<QueryResult.Value<Unit>>
+    get() = KmpKvStoreDatabaseImpl.Schema
 
-internal fun KClass<KmpKVStoreDatabase>.newInstance(driver: SqlDriver): KmpKVStoreDatabase =
-    KmpKVStoreDatabaseImpl(driver)
+internal fun KClass<KmpKvStoreDatabase>.newInstance(driver: SqlDriver): KmpKvStoreDatabase =
+    KmpKvStoreDatabaseImpl(driver)
 
-private class KmpKVStoreDatabaseImpl(
+private class KmpKvStoreDatabaseImpl(
     driver: SqlDriver,
-) : TransacterImpl(driver), KmpKVStoreDatabase {
-    override val kmpKVStoreDatabaseQueries: KmpKVStoreDatabaseQueries =
-        KmpKVStoreDatabaseQueries(driver)
+) : TransacterImpl(driver), KmpKvStoreDatabase {
+    override val kmpKvStoreDatabaseQueries: KmpKvStoreDatabaseQueries =
+        KmpKvStoreDatabaseQueries(driver)
 
     public object Schema : SqlSchema<QueryResult.Value<Unit>> {
         override val version: Long

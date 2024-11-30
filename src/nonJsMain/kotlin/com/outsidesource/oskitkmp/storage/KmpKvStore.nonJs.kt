@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.storage
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.storage.sqldelight.KmpKVStoreDatabaseQueries
+import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabaseQueries
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.DeserializationStrategy
@@ -12,16 +12,16 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 import okio.Buffer
 
-internal expect class KmpKVStoreContext
+internal expect class KmpKvStoreContext
 
-internal expect fun createDatabaseDriver(context: KmpKVStoreContext, nodeName: String): SqlDriver
+internal expect fun createDatabaseDriver(context: KmpKvStoreContext, nodeName: String): SqlDriver
 
-class KmpKVStoreNode internal constructor(
-    context: KmpKVStoreContext,
+class KmpKvStoreNode internal constructor(
+    context: KmpKvStoreContext,
     private val name: String,
-) : IKmpKVStoreNode {
+) : IKmpKvStoreNode {
     private val driver = createDatabaseDriver(context, name)
-    private val queries = KmpKVStoreDatabaseQueries(driver)
+    private val queries = KmpKvStoreDatabaseQueries(driver)
 
     override suspend fun close() = driver.close()
 
@@ -33,7 +33,7 @@ class KmpKVStoreNode internal constructor(
 
     override suspend fun remove(key: String): Outcome<Unit, Exception> = try {
         queries.remove(key)
-        KmpKVStoreObserverRegistry.notifyValueChange(name, key, null)
+        KmpKvStoreObserverRegistry.notifyValueChange(name, key, null)
         Outcome.Ok(Unit)
     } catch (e: Exception) {
         Outcome.Error(e)
@@ -41,7 +41,7 @@ class KmpKVStoreNode internal constructor(
 
     override suspend fun clear(): Outcome<Unit, Exception> = try {
         queries.clear()
-        KmpKVStoreObserverRegistry.notifyClear(name)
+        KmpKvStoreObserverRegistry.notifyClear(name)
         Outcome.Ok(Unit)
     } catch (e: Exception) {
         Outcome.Error(e)
@@ -148,7 +148,7 @@ class KmpKVStoreNode internal constructor(
         return try {
             val value = mapper()
             queries.put(key, value)
-            KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
+            KmpKvStoreObserverRegistry.notifyValueChange(name, key, value)
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -156,5 +156,5 @@ class KmpKVStoreNode internal constructor(
     }
 
     private inline fun <T> observe(key: String, crossinline mapper: (rawValue: ByteArray) -> T?): Flow<T?> =
-        KmpKVStoreObserverRegistry.observe<ByteArray, T>(nodeName = name, key = key, mapper)
+        KmpKvStoreObserverRegistry.observe<ByteArray, T>(nodeName = name, key = key, mapper)
 }

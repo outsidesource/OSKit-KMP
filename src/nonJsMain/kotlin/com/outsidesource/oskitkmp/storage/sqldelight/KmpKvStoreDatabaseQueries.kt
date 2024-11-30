@@ -10,14 +10,14 @@ import kotlin.ByteArray
 import kotlin.Long
 import kotlin.String
 
-public class KmpKVStoreDatabaseQueries(
+public class KmpKvStoreDatabaseQueries(
     driver: SqlDriver,
 ) : TransacterImpl(driver) {
     public fun getKeys(): Query<String> = Query(
         937_429_086,
         arrayOf("kmp_storage"),
         driver,
-        "KmpKVStoreDatabase.sq",
+        "KmpKvStoreDatabase.sq",
         "getKeys",
         "SELECT key FROM kmp_storage",
     ) { cursor ->
@@ -28,7 +28,7 @@ public class KmpKVStoreDatabaseQueries(
         -1_151_829_158,
         arrayOf("kmp_storage"),
         driver,
-        "KmpKVStoreDatabase.sq",
+        "KmpKvStoreDatabase.sq",
         "getKeyCount",
         "SELECT COUNT(*) FROM kmp_storage",
     ) { cursor ->
@@ -94,7 +94,7 @@ public class KmpKVStoreDatabaseQueries(
                 bindString(0, key)
             }
 
-        override fun toString(): String = "KmpKVStoreDatabase.sq:exists"
+        override fun toString(): String = "KmpKvStoreDatabase.sq:exists"
     }
 
     private inner class GetQuery<out T : Any>(
@@ -119,6 +119,6 @@ public class KmpKVStoreDatabaseQueries(
                 bindString(0, key)
             }
 
-        override fun toString(): String = "KmpKVStoreDatabase.sq:get"
+        override fun toString(): String = "KmpKvStoreDatabase.sq:get"
     }
 }

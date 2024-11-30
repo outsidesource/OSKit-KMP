@@ -18,24 +18,24 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.cbor.Cbor
 
-class InMemoryKmpKVStore : IKmpKVStore {
+class InMemoryKmpKvStore : IKmpKvStore {
     private val lock = SynchronizedObject()
-    private val nodes = mutableMapOf<String, IKmpKVStoreNode>()
+    private val nodes = mutableMapOf<String, IKmpKvStoreNode>()
 
-    override suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> {
+    override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> {
         synchronized(lock) {
-            if (!nodes.contains(nodeName)) nodes[nodeName] = InMemoryKmpKVStoreNode(nodeName)
+            if (!nodes.contains(nodeName)) nodes[nodeName] = InMemoryKmpKvStoreNode(nodeName)
             return Outcome.Ok(nodes[nodeName]!!)
         }
     }
 }
 
 /**
- * [InMemoryKmpKVStoreNode] provides a thread-safe, fallback, in-memory storage node
+ * [InMemoryKmpKvStoreNode] provides a thread-safe, fallback, in-memory storage node
  */
-class InMemoryKmpKVStoreNode(
+class InMemoryKmpKvStoreNode(
     private val name: String,
-) : IKmpKVStoreNode {
+) : IKmpKvStoreNode {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val storage = atomic(mapOf<String, Any>())
     private val transaction = atomic<Map<String, Any?>?>(null)
@@ -43,7 +43,7 @@ class InMemoryKmpKVStoreNode(
 
     override suspend fun clear(): Outcome<Unit, Exception> {
         storage.update { it.toMutableMap().apply { clear() } }
-        KmpKVStoreObserverRegistry.notifyClear(name)
+        KmpKvStoreObserverRegistry.notifyClear(name)
         return Outcome.Ok(Unit)
     }
 
@@ -120,7 +120,7 @@ class InMemoryKmpKVStoreNode(
         transactionLock.withLock {
             try {
                 transaction.update { mutableMapOf() }
-                val rollback = { throw KmpKVStoreRollbackException() }
+                val rollback = { throw KmpKvStoreRollbackException() }
                 block(rollback)
             } catch (_: Exception) {
                 transaction.value?.forEach { (k, v) ->
@@ -147,10 +147,10 @@ class InMemoryKmpKVStoreNode(
             }
         }
 
-        KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
+        KmpKvStoreObserverRegistry.notifyValueChange(name, key, value)
         return Outcome.Ok(Unit)
     }
 
     private inline fun <reified T> observe(key: String): Flow<T?> =
-        KmpKVStoreObserverRegistry.observe<T, T>(nodeName = name, key = key) { it }
+        KmpKvStoreObserverRegistry.observe<T, T>(nodeName = name, key = key) { it }
 }

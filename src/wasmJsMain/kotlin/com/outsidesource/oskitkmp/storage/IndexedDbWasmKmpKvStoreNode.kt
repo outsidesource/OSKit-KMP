@@ -16,7 +16,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVStoreNode {
+internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvStoreNode {
     private var db: IDBDatabase? = null
 
     private val objectStoreName = "kmp_kv_store"
@@ -51,7 +51,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
                 .objectStore(objectStoreName)
                 .delete(key)
         }.unwrapOrReturn { return@let this }
-        KmpKVStoreObserverRegistry.notifyValueChange(name, key, null)
+        KmpKvStoreObserverRegistry.notifyValueChange(name, key, null)
         Outcome.Ok(Unit)
     } ?: Outcome.Error(IndexedDbClosedException())
 
@@ -62,7 +62,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
                 .objectStore(objectStoreName)
                 .clear()
         }.unwrapOrReturn { return@let this }
-        KmpKVStoreObserverRegistry.notifyClear(name)
+        KmpKvStoreObserverRegistry.notifyClear(name)
         Outcome.Ok(Unit)
     } ?: Outcome.Error(IndexedDbClosedException())
 
@@ -149,7 +149,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
         transactionLock.withLock {
             try {
                 transaction.update { mutableMapOf() }
-                val rollback = { throw KmpKVStoreRollbackException() }
+                val rollback = { throw KmpKvStoreRollbackException() }
                 block(rollback)
             } catch (_: Exception) {
                 transaction.value?.forEach { (k, v) ->
@@ -179,7 +179,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
                         .objectStore(objectStoreName)
                         .put(key = key, item = value)
                 }.unwrapOrReturn { return this }
-                KmpKVStoreObserverRegistry.notifyValueChange(name, key, value)
+                KmpKvStoreObserverRegistry.notifyValueChange(name, key, value)
                 Outcome.Ok(Unit)
             } catch (t: Throwable) {
                 Outcome.Error(t)
@@ -230,7 +230,7 @@ internal class IndexedDbWasmKmpKVStoreNode(private val name: String) : IKmpKVSto
     }
 
     private inline fun <reified T, R> observe(key: String, crossinline mapper: (rawValue: T) -> R?): Flow<R?> =
-        KmpKVStoreObserverRegistry.observe<T, R>(nodeName = name, key = key, mapper)
+        KmpKvStoreObserverRegistry.observe<T, R>(nodeName = name, key = key, mapper)
 }
 
 class IndexedDbClosedException : Exception("IndexedDb is closed")

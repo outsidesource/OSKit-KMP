@@ -3,18 +3,18 @@ package com.outsidesource.oskitkmp.storage
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
-enum class WasmKmpKVStoreType {
+enum class WasmKmpKvStoreType {
     LocalStorage,
     IndexedDb,
 }
 
-class WasmKmpKVStore(
-    private val type: WasmKmpKVStoreType = WasmKmpKVStoreType.IndexedDb,
-) : IKmpKVStore {
-    override suspend fun openNode(nodeName: String): Outcome<IKmpKVStoreNode, Exception> = try {
+class WasmKmpKvStore(
+    private val type: WasmKmpKvStoreType = WasmKmpKvStoreType.IndexedDb,
+) : IKmpKvStore {
+    override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> = try {
         val node = when (type) {
-            WasmKmpKVStoreType.LocalStorage -> LocalStorageWasmKmpKVStoreNode(nodeName)
-            WasmKmpKVStoreType.IndexedDb -> IndexedDbWasmKmpKVStoreNode(nodeName).apply {
+            WasmKmpKvStoreType.LocalStorage -> LocalStorageWasmKmpKvStoreNode(nodeName)
+            WasmKmpKvStoreType.IndexedDb -> IndexedDbWasmKmpKvStoreNode(nodeName).apply {
                 open().unwrapOrReturn { return Outcome.Error(Exception("Could not open node")) }
             }
         }
