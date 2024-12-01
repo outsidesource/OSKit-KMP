@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.lib
+package com.outsidesource.oskitkmp.systemui
 
 /**
  * Disables the Screen Idle Timeout preventing the screen from sleeping

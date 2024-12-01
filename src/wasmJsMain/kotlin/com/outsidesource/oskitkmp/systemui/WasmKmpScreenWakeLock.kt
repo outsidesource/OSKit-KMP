@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.lib
+package com.outsidesource.oskitkmp.systemui
 
 import kotlinx.coroutines.await
 import kotlin.js.Promise

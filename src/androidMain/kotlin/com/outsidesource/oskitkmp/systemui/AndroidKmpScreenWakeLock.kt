@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.lib
+package com.outsidesource.oskitkmp.systemui
 
 import android.app.Activity
 import android.content.Context
