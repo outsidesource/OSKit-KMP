@@ -148,7 +148,11 @@ kotlin {
                 implementation(libs.lwjgl.tinyfd)
             }
         }
-        val wasmJsMain by getting
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
+        }
     }
 }
 
