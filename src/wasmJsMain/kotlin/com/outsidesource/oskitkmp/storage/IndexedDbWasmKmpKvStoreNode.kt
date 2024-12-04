@@ -1,6 +1,5 @@
 package com.outsidesource.oskitkmp.storage
 
-import com.outsidesource.oskitkmp.lib.toSet
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
@@ -234,3 +233,11 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
 }
 
 class IndexedDbClosedException : Exception("IndexedDb is closed")
+
+private fun JsArray<JsString>.toSet(): Set<String> = buildSet {
+    apply {
+        for (i in 0 until length) {
+            get(i)?.let { add(it.toString()) }
+        }
+    }
+}

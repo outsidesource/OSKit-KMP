@@ -33,7 +33,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             if (Platform.current == Platform.Linux) return nativeOpenFilePicker(startingDir, filter)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(NotInitializedException())
+            val context = context ?: return Outcome.Error(NotInitializedError())
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
@@ -85,7 +85,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             if (Platform.current == Platform.Linux) return nativeOpenFilesPicker(startingDir, filter)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(NotInitializedException())
+            val context = context ?: return Outcome.Error(NotInitializedError())
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             dialog.isMultipleMode = true
@@ -165,7 +165,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             if (Platform.current == Platform.Linux) return nativeSaveFilePicker(fileName, startingDir)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(NotInitializedException())
+            val context = context ?: return Outcome.Error(NotInitializedError())
             val dialog = FileDialog(context.window, "Save File", FileDialog.SAVE)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             dialog.file = fileName
@@ -210,7 +210,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
-            if (!exists && !create) return Outcome.Error(FileNotFoundException())
+            if (!exists && !create) return Outcome.Error(FileNotFoundError())
             if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
             return Outcome.Ok(KmpFileRef(ref = path.pathString, name = name, isDirectory = false))
@@ -228,7 +228,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
-            if (!exists && !create) return Outcome.Error(FileNotFoundException())
+            if (!exists && !create) return Outcome.Error(FileNotFoundError())
             if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
             return Outcome.Ok(KmpFileRef(ref = path.pathString, name = name, isDirectory = true))
@@ -242,7 +242,7 @@ actual class KmpFileHandler : IKmpFileHandler {
             val localPath = path.toPath()
             val exists = FileSystem.SYSTEM.exists(localPath)
 
-            if (!exists) return Outcome.Error(FileNotFoundException())
+            if (!exists) return Outcome.Error(FileNotFoundError())
             val metadata = FileSystem.SYSTEM.metadata(localPath)
 
             val ref = KmpFileRef(ref = localPath.pathString, name = localPath.name, isDirectory = metadata.isDirectory)
@@ -290,7 +290,7 @@ actual class KmpFileHandler : IKmpFileHandler {
         return try {
             val path = ref.ref.toPath()
             val metadata = FileSystem.SYSTEM.metadata(path)
-            val size = metadata.size ?: return Outcome.Error(FileMetadataException())
+            val size = metadata.size ?: return Outcome.Error(FileMetadataError())
             Outcome.Ok(KMPFileMetadata(size = size))
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -311,18 +311,18 @@ actual class KmpFileHandler : IKmpFileHandler {
         dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
-actual fun KmpFileRef.source(): Outcome<Source, Exception> {
+actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     return try {
-        if (isDirectory) return Outcome.Error(SourceException())
+        if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
         Outcome.Ok(FileSystem.SYSTEM.source(ref.toPath()))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
 }
 
-actual fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
     return try {
-        if (isDirectory) return Outcome.Error(SinkException())
+        if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
         if (mode == KMPFileWriteMode.Append) {
             Outcome.Ok(FileSystem.SYSTEM.appendingSink(ref.toPath()))
         } else {

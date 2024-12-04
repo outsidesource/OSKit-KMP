@@ -19,7 +19,22 @@ expect class KmpFileHandlerContext
  * [resolveFile] and [resolveDirectory] will return a file or directory reference if it exists with an optional
  * parameter to create.
  *
- * Desktop/JVM NOTE: Using KMPFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath
+ * WASM:
+ * Due to browser constraints, [KmpFileHandler] on WASM only supports a subset of functionality available in other targets.
+ *  * Reading files in WASM loads the entire file contents into memory when using `KmpFileRef.sink()`
+ *  * All `startingDirectory` parameters are ignored
+ *  * Supported features:
+ *     * Picking files
+ *     * Picking directories
+ *     * Reading files
+ *     * Reading file metadata
+ *  * Unsupported features:
+ *     * Creating files
+ *     * Resolving files
+ *     * Walking a directory tree
+ *
+ * Desktop/JVM:
+ * Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath
  * ```
  * val lwjglVersion = "3.3.3"
  * val lwjglNatives = Pair(
@@ -160,7 +175,7 @@ interface IKmpFileHandler {
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
      */
     suspend fun moveFile(from: KmpFileRef, to: KmpFileRef): Outcome<Unit, Exception> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveException())
+        if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveError())
         val source = from.source().unwrapOrReturn { return this }
         val sink = to.sink().unwrapOrReturn { return this }
 
@@ -176,7 +191,7 @@ interface IKmpFileHandler {
     }
 
     suspend fun copyFile(from: KmpFileRef, to: KmpFileRef): Outcome<Unit, Exception> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(FileCopyException())
+        if (from.isDirectory || to.isDirectory) return Outcome.Error(FileCopyError())
         val source = from.source().unwrapOrReturn { return this }
         val sink = to.sink().unwrapOrReturn { return this }
 
@@ -260,14 +275,14 @@ data class KMPFileMetadata(
     val size: Long,
 )
 
-class SourceException : Exception("Cannot read from file. It is a directory")
-class SinkException : Exception("Cannot write to file. It is a directory")
-class NotInitializedException : Exception("KMPFileHandler has not been initialized")
-class FileOpenException : Exception("KMPFileHandler could not open the specified file")
-class FileCreateException : Exception("KMPFileHandler could not create the specified file")
-class FileDeleteException : Exception("KMPFileHandler could not delete the specified file")
-class FileNotFoundException : Exception("KMPFileHandler could not find the specified file")
-class FileMetadataException : Exception("KMPFileHandler could not fetch metadata for the specified file")
-class FileListException : Exception("KMPFileHandler could not list directory contents for the specified directory")
-class FileMoveException : Exception("KMPFileHandler could not move the specified file")
-class FileCopyException : Exception("KMPFileHandler could not copy the specified file")
+class RefIsDirectoryReadWriteError : Exception("Cannot read/write from ref. It is a directory")
+class NotInitializedError : Exception("KmpFileHandler has not been initialized")
+class FileOpenError : Exception("KmpFileHandler could not open the specified file")
+class FileCreateError : Exception("KmpFileHandler could not create the specified file")
+class FileDeleteError : Exception("KmpFileHandler could not delete the specified file")
+class FileNotFoundError : Exception("KmpFileHandler could not find the specified file")
+class FileMetadataError : Exception("KmpFileHandler could not fetch metadata for the specified file")
+class FileListError : Exception("KmpFileHandler could not list directory contents for the specified directory")
+class FileMoveError : Exception("KmpFileHandler could not move the specified file")
+class FileCopyError : Exception("KmpFileHandler could not copy the specified file")
+class NotSupportedError : Exception("KmpFileHandler does not support this operation on this platform")
