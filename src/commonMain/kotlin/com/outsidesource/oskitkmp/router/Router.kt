@@ -11,7 +11,7 @@ import kotlin.reflect.KClass
  */
 class Router(
     initialRoute: IRoute,
-    private val defaultTransition: IRouteTransition = object : IRouteTransition {},
+    private val defaultTransition: IRouteTransition = DefaultTransition,
 ) : IRouter {
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
     private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
@@ -249,3 +249,7 @@ class Router(
 }
 
 internal expect fun handleNewRouteForPlatform(route: IRoute)
+
+// Kotlin 2.1.0 has an issue with an anonymous object being created in a class constructor on iOS preventing compilation
+// of any project using OSKit-KMP
+private val DefaultTransition = object : IRouteTransition {}
