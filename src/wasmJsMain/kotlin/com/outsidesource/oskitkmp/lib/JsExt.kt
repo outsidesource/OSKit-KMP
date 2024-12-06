@@ -2,6 +2,11 @@ package com.outsidesource.oskitkmp.lib
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 
+external object JSON {
+    fun stringify(data: JsAny): String
+    fun parse(text: String): JsAny?
+}
+
 @Suppress("UNCHECKED_CAST")
 fun <T : JsAny> jsTryOutcome(block: () -> T): Outcome<T, Any> {
     val result = jsTry(block = block)

@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.file
+package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.lib.Platform
 import com.outsidesource.oskitkmp.lib.current
@@ -254,7 +254,7 @@ actual class KmpFileHandler : IKmpFileHandler {
 
     actual override suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception> {
         return try {
-            FileSystem.SYSTEM.delete(ref.ref.toPath())
+            FileSystem.SYSTEM.deleteRecursively(ref.ref.toPath())
             Outcome.Ok(Unit)
         } catch (e: Exception) {
             Outcome.Error(e)
@@ -286,12 +286,12 @@ actual class KmpFileHandler : IKmpFileHandler {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception> {
         return try {
             val path = ref.ref.toPath()
             val metadata = FileSystem.SYSTEM.metadata(path)
             val size = metadata.size ?: return Outcome.Error(FileMetadataError())
-            Outcome.Ok(KMPFileMetadata(size = size))
+            Outcome.Ok(KmpFileMetadata(size = size))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -320,10 +320,10 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     }
 }
 
-actual suspend fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        if (mode == KMPFileWriteMode.Append) {
+        if (mode == KmpFileWriteMode.Append) {
             Outcome.Ok(FileSystem.SYSTEM.appendingSink(ref.toPath()))
         } else {
             Outcome.Ok(FileSystem.SYSTEM.sink(ref.toPath()))

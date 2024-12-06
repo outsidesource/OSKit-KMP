@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.file
+package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.lib.Deferrer
 import com.outsidesource.oskitkmp.outcome.Outcome
@@ -286,7 +286,7 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception> {
         val deferrer = Deferrer()
 
         try {
@@ -306,7 +306,7 @@ actual class KmpFileHandler : IKmpFileHandler {
 
             val size = attributes[NSFileSize] ?: return Outcome.Error(FileMetadataError())
 
-            return Outcome.Ok(KMPFileMetadata(size = size as Long))
+            return Outcome.Ok(KmpFileMetadata(size = size as Long))
         } catch (e: Exception) {
             return Outcome.Error(e)
         } finally {
@@ -375,7 +375,7 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     }
 }
 
-actual suspend fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
     val deferrer = Deferrer()
 
     return try {
@@ -385,7 +385,7 @@ actual suspend fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Except
         url.startAccessingSecurityScopedResource()
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
-        Outcome.Ok(NSOutputStream(uRL = url, append = mode == KMPFileWriteMode.Append).sink())
+        Outcome.Ok(NSOutputStream(uRL = url, append = mode == KmpFileWriteMode.Append).sink())
     } catch (e: Exception) {
         Outcome.Error(e)
     } finally {

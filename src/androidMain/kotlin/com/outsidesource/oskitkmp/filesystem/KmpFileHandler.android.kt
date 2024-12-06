@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.file
+package com.outsidesource.oskitkmp.filesystem
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -289,7 +289,7 @@ actual class KmpFileHandler : IKmpFileHandler {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedError())
             val size: Long
@@ -308,7 +308,7 @@ actual class KmpFileHandler : IKmpFileHandler {
                 size = it.getLong(sizeIndex)
             }
 
-            Outcome.Ok(KMPFileMetadata(size = size))
+            Outcome.Ok(KmpFileMetadata(size = size))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -341,13 +341,13 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
 }
 
 @SuppressLint("Recycle")
-actual suspend fun KmpFileRef.sink(mode: KMPFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
         val context = KmpFileHandler.context ?: return Outcome.Error(NotInitializedError())
         val modeString = when (mode) {
-            KMPFileWriteMode.Overwrite -> "wt"
-            KMPFileWriteMode.Append -> "wa"
+            KmpFileWriteMode.Overwrite -> "wt"
+            KmpFileWriteMode.Append -> "wa"
         }
 
         val outputStream = context.applicationContext.contentResolver.openOutputStream(ref.toUri(), modeString)

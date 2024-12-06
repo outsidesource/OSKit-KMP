@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.file
+package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 import io.ktor.util.*
@@ -22,6 +22,7 @@ data class KmpFileRef internal constructor(
     @SerialName("3")
     val isDirectory: Boolean,
 ) {
+
     @OptIn(ExperimentalSerializationApi::class)
     fun toPersistableString(): String {
         return cbor.encodeToByteArray(this).encodeBase64()
@@ -46,9 +47,9 @@ data class KmpFileRef internal constructor(
 }
 
 expect suspend fun KmpFileRef.source(): Outcome<Source, Exception>
-expect suspend fun KmpFileRef.sink(mode: KMPFileWriteMode = KMPFileWriteMode.Overwrite): Outcome<Sink, Exception>
+expect suspend fun KmpFileRef.sink(mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite): Outcome<Sink, Exception>
 
-enum class KMPFileWriteMode {
+enum class KmpFileWriteMode {
     Append,
     Overwrite,
 }

@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.file
+package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
@@ -23,15 +23,10 @@ expect class KmpFileHandlerContext
  * Due to browser constraints, [KmpFileHandler] on WASM only supports a subset of functionality available in other targets.
  *  * Reading files in WASM loads the entire file contents into memory when using `KmpFileRef.sink()`
  *  * All `startingDirectory` parameters are ignored
- *  * Supported features:
- *     * Picking files
- *     * Picking directories
- *     * Reading files
- *     * Reading file metadata
+ *  * Persisting file/directory references is not supported
+ *  * Only Chrome and its derivatives support all other features
  *  * Unsupported features:
- *     * Creating files
- *     * Resolving files
- *     * Walking a directory tree
+ *     * Persistable strings
  *
  * Desktop/JVM:
  * Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath
@@ -115,7 +110,7 @@ expect class KmpFileHandler() : IKmpFileHandler {
         isRecursive: Boolean,
     ): Outcome<List<KmpFileRef>, Exception>
 
-    override suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception>
+    override suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception>
     override suspend fun exists(ref: KmpFileRef): Boolean
 }
 
@@ -164,7 +159,7 @@ interface IKmpFileHandler {
 
     suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception>
     suspend fun list(dir: KmpFileRef, isRecursive: Boolean = false): Outcome<List<KmpFileRef>, Exception>
-    suspend fun readMetadata(ref: KmpFileRef): Outcome<KMPFileMetadata, Exception>
+    suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception>
     suspend fun exists(ref: KmpFileRef): Boolean
 
     /**
@@ -211,7 +206,7 @@ interface IKmpFileHandler {
         }
     }
 
-    suspend fun readMetadata(dir: KmpFileRef, name: String): Outcome<KMPFileMetadata, Exception> {
+    suspend fun readMetadata(dir: KmpFileRef, name: String): Outcome<KmpFileMetadata, Exception> {
         return when (val outcome = resolveFile(dir, name)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
@@ -260,18 +255,18 @@ interface IKmpFileHandler {
 //    ): Outcome<KMPFileRef, Exception> {}
 }
 
-typealias KmpFileFilter = List<KMPFileMimeType>
+typealias KmpFileFilter = List<KmpFileMimetype>
 
 /**
  * [extension] defines the file extension used i.e. "txt", "png", "jpg"
  * [mimeType] defined the mimetype used i.e. "text/plain", "image/png", "image/jpeg"
  */
-data class KMPFileMimeType(
+data class KmpFileMimetype(
     val extension: String,
     val mimeType: String,
 )
 
-data class KMPFileMetadata(
+data class KmpFileMetadata(
     val size: Long,
 )
 

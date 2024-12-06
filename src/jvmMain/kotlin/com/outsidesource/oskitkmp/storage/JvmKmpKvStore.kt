@@ -2,7 +2,7 @@ package com.outsidesource.oskitkmp.storage
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.outsidesource.oskitkmp.file.FileUtil
+import com.outsidesource.oskitkmp.filesystem.FileUtil
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabase
 import java.io.File
