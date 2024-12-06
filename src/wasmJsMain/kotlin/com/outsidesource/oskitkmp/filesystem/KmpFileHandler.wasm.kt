@@ -42,7 +42,6 @@ actual class KmpFileHandler : IKmpFileHandler {
             val element = document.createElement("input") as HTMLInputElement
             element.type = "file"
             filter?.let { element.accept = it.joinToString(", ") { it.mimeType } }
-            println(element.accept)
             element.click()
             element.addEventListener("cancel") { continuation.resume(Outcome.Ok(null)) }
             element.addEventListener("change") { continuation.resume(Outcome.Ok(element.files?.get(0))) }

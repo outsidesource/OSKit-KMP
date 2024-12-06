@@ -219,40 +219,6 @@ interface IKmpFileHandler {
             is Outcome.Error -> outcome
         }
     }
-
-    /**
-     * Roadmap
-     *
-     * 1. renameDirectory
-     * 2. hasAccess() to show if access to the ref was lost due to permission change
-     * 3. resolve with file segments for deeply nested file ref resolution
-     */
-
-    /**
-     * It is difficult to create a common API for Moving/renaming a directory. Each platform handles things differently.
-     * iOS can move an item to anywhere as long as permission is granted for the destination URL meaning the user
-     * needs a valid KMPFileRef for both the source and the destination. However, the destination directory cannot exist
-     * or iOS will cancel the move operation.
-     * Android can only rename directories and cannot move them.
-     * The current API is hierarchy agnostic so there is no way to make this a simple rename function because the API
-     * can't determine if the src and dst are siblings.
-     *
-     * This functionality could be manually achieved by recursively listing and moving files. However, it would
-     * perform poorly because each file is copied individually byte-for-byte instead of a direct filesystem command.
-     */
-//    suspend fun renameDirectory(from: KMPFileRef, to: KMPFileRef): Outcome<Unit, Exception>
-
-//    suspend fun resolveFile(
-//        dir: KMPFileRef,
-//        segments: List<String>,
-//        create: Boolean = false
-//    ): Outcome<KMPFileRef, Exception> {}
-//
-//    suspend fun resolveDirectory(
-//        dir: KMPFileRef,
-//        segments: List<String>,
-//        create: Boolean = false
-//    ): Outcome<KMPFileRef, Exception> {}
 }
 
 typealias KmpFileFilter = List<KmpFileMimetype>
