@@ -4,6 +4,7 @@ import com.outsidesource.oskitkmp.lib.Platform
 import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -318,6 +319,11 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     } catch (e: Exception) {
         Outcome.Error(e)
     }
+}
+
+actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
+    val source = source().unwrapOrReturn { return this }
+    return Outcome.Ok(KmpFsOkIoAsyncSource(source))
 }
 
 actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {

@@ -375,6 +375,11 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     }
 }
 
+actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
+    val source = source().unwrapOrReturn { return this }
+    return Outcome.Ok(KmpFsOkIoAsyncSource(source))
+}
+
 actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
     val deferrer = Deferrer()
 

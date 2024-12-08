@@ -247,3 +247,4 @@ class FileListError : Exception("KmpFileHandler could not list directory content
 class FileMoveError : Exception("KmpFileHandler could not move the specified file")
 class FileCopyError : Exception("KmpFileHandler could not copy the specified file")
 class NotSupportedError : Exception("KmpFileHandler does not support this operation on this platform")
+class EofError : Exception("End of File")

@@ -47,6 +47,7 @@ data class KmpFileRef internal constructor(
 }
 
 expect suspend fun KmpFileRef.source(): Outcome<Source, Exception>
+expect suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception>
 expect suspend fun KmpFileRef.sink(mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite): Outcome<Sink, Exception>
 
 enum class KmpFileWriteMode {

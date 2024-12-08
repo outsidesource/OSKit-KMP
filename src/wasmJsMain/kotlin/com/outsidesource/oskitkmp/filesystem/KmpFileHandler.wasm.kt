@@ -225,16 +225,14 @@ actual class KmpFileHandler : IKmpFileHandler {
 
 actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-
-    val file = if (supportsFileSystemApi) {
-        val handle = FileHandleRegister.getHandle(ref)
-            as? FileSystemFileHandle ?: return Outcome.Error(FileNotFoundError())
-        handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(FileOpenError()) }
-    } else {
-        FileHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(FileNotFoundError())
-    }
-
+    val file = getFile().unwrapOrReturn { return this }
     return createSourceFromJsFile(file)
+}
+
+actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
+    if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
+    val file = getFile().unwrapOrReturn { return this }
+    return Outcome.Ok(KmpFsAsyncSource(file))
 }
 
 actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
@@ -247,6 +245,18 @@ actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Except
         .unwrapOrReturn { return Outcome.Error(FileOpenError()) }
     // TODO
     return Outcome.Error(NotSupportedError())
+}
+
+private suspend fun KmpFileRef.getFile(): Outcome<File, Exception> {
+    val file = if (supportsFileSystemApi) {
+        val handle = FileHandleRegister.getHandle(ref)
+            as? FileSystemFileHandle ?: return Outcome.Error(FileNotFoundError())
+        handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(FileOpenError()) }
+    } else {
+        FileHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(FileNotFoundError())
+    }
+
+    return Outcome.Ok(file)
 }
 
 private object FileHandleRegister {

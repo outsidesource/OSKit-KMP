@@ -1,6 +1,9 @@
 package com.outsidesource.oskitkmp.lib
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
+import org.khronos.webgl.get
 
 external object JSON {
     fun stringify(data: JsAny): String
@@ -23,6 +26,22 @@ fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
         }
     }""",
 )
+
+fun ArrayBuffer.toByteArray(): ByteArray {
+    val uint8Array = Uint8Array(this)
+    return ByteArray(uint8Array.length) { uint8Array[it] }
+}
+
+fun ArrayBuffer.toUint8Array(): Uint8Array = Uint8Array(this)
+
+fun Uint8Array.copyInto(
+    destination: ByteArray,
+    destinationOffset: Int = 0,
+    startIndex: Int = 0,
+    endIndex: Int = length,
+) {
+    for (i in startIndex until endIndex) { destination[destinationOffset + i] = this[i] }
+}
 
 external interface JsResult<T : JsAny?> : JsAny {
     val error: JsAny?

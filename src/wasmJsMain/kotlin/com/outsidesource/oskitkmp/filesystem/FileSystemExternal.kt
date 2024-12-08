@@ -97,5 +97,14 @@ internal external class FileSystemWritableFileStream : JsAny {
 }
 
 internal external class Blob {
+    val size: JsNumber
+    val type: String
+    val isClosed: Boolean
     fun arrayBuffer(): Promise<ArrayBuffer>
+    fun slice(
+        start: JsNumber = definedExternally,
+        end: JsNumber = definedExternally,
+        contentType: String = definedExternally,
+    ): Blob
+    fun close()
 }

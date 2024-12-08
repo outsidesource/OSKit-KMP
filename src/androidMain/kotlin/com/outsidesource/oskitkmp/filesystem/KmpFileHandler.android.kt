@@ -12,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -338,6 +339,11 @@ actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
     } catch (e: Exception) {
         Outcome.Error(e)
     }
+}
+
+actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
+    val source = source().unwrapOrReturn { return this }
+    return Outcome.Ok(KmpFsOkIoAsyncSource(source))
 }
 
 @SuppressLint("Recycle")
