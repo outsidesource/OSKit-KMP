@@ -10,8 +10,6 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.browser.document
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.Clock
-import okio.Sink
-import okio.Source
 import org.w3c.dom.HTMLInputElement
 import org.w3c.files.File
 import org.w3c.files.get
@@ -223,19 +221,13 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 }
 
-actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
-    if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-    val file = getFile().unwrapOrReturn { return this }
-    return createSourceFromJsFile(file)
-}
-
-actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
+actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
     if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
     val file = getFile().unwrapOrReturn { return this }
     return Outcome.Ok(KmpFsAsyncSource(file))
 }
 
-actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncSink, Exception> {
     if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
     if (!supportsFileSystemApi) return Outcome.Error(NotSupportedError())
 

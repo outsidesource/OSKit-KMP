@@ -4,12 +4,9 @@ import com.outsidesource.oskitkmp.lib.Platform
 import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
-import okio.Sink
-import okio.Source
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
@@ -312,28 +309,25 @@ actual class KmpFileHandler : IKmpFileHandler {
         dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
-actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
+actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        Outcome.Ok(FileSystem.SYSTEM.source(ref.toPath()))
+        val source = FileSystem.SYSTEM.source(ref.toPath())
+        Outcome.Ok(KmpFsOkIoAsyncSource(source))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
 }
 
-actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
-    val source = source().unwrapOrReturn { return this }
-    return Outcome.Ok(KmpFsOkIoAsyncSource(source))
-}
-
-actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncSink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        if (mode == KmpFileWriteMode.Append) {
-            Outcome.Ok(FileSystem.SYSTEM.appendingSink(ref.toPath()))
+        val sink = if (mode == KmpFileWriteMode.Append) {
+            FileSystem.SYSTEM.appendingSink(ref.toPath())
         } else {
-            Outcome.Ok(FileSystem.SYSTEM.sink(ref.toPath()))
+            FileSystem.SYSTEM.sink(ref.toPath())
         }
+        Outcome.Ok(KmpFsOkIoAsyncSink(sink))
     } catch (e: Exception) {
         Outcome.Error(e)
     }

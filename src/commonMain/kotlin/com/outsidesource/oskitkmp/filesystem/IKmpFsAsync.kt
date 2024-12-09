@@ -18,6 +18,20 @@ interface IKmpFsAsyncSource : IKmpFsClosable {
     suspend fun readLong(sink: ByteArray = ByteArray(8)): Long = sink.apply { read(this) }.toLong()
     suspend fun readUtf8(byteCount: Int, sink: ByteArray = ByteArray(byteCount)): String =
         sink.apply { read(this) }.decodeToString()
+
+    suspend fun readAll(sink: IKmpFsAsyncSink, bufferSize: Int = 16384): Long {
+        require(bufferSize > 0)
+        val buffer = ByteArray(bufferSize)
+        var totalBytesRead = 0L
+
+        while (!isExhausted()) {
+            val bytesRead = read(buffer)
+            if (bytesRead == -1) return totalBytesRead
+            totalBytesRead += bytesRead
+        }
+
+        return totalBytesRead
+    }
 }
 
 interface IKmpFsAsyncSink : IKmpFsClosable {
@@ -32,6 +46,7 @@ interface IKmpFsAsyncSink : IKmpFsClosable {
     suspend fun writeDouble(value: Double): IKmpFsAsyncSink = write(value.toBytes())
     suspend fun writeLong(value: Long): IKmpFsAsyncSink = write(value.toBytes())
     suspend fun writeUtf8(value: String): IKmpFsAsyncSink = write(value.encodeToByteArray())
+    suspend fun writeAll(source: IKmpFsAsyncSource, bufferSize: Int = 16384): Long = source.readAll(this)
 }
 
 // TODO: Read returns -1 when exhausted. This will break all read helpers by returning a bogus value.

@@ -2,7 +2,6 @@ package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import okio.buffer
 import okio.use
 
 expect class KmpFileHandlerContext
@@ -175,7 +174,7 @@ interface IKmpFileHandler {
         val sink = to.sink().unwrapOrReturn { return this }
 
         try {
-            sink.buffer().use { it.writeAll(source) }
+            sink.use { it.writeAll(source) }
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
@@ -191,7 +190,7 @@ interface IKmpFileHandler {
         val sink = to.sink().unwrapOrReturn { return this }
 
         try {
-            sink.buffer().use { it.writeAll(source) }
+            sink.use { it.writeAll(source) }
         } catch (e: Exception) {
             return Outcome.Error(e)
         }

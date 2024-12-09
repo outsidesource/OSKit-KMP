@@ -4,8 +4,6 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import io.ktor.util.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
-import okio.Sink
-import okio.Source
 
 @OptIn(ExperimentalSerializationApi::class)
 private val cbor = Cbor {
@@ -46,9 +44,10 @@ data class KmpFileRef internal constructor(
     }
 }
 
-expect suspend fun KmpFileRef.source(): Outcome<Source, Exception>
-expect suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception>
-expect suspend fun KmpFileRef.sink(mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite): Outcome<Sink, Exception>
+expect suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception>
+expect suspend fun KmpFileRef.sink(
+    mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite,
+): Outcome<IKmpFsAsyncSink, Exception>
 
 enum class KmpFileWriteMode {
     Append,

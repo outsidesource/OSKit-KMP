@@ -12,7 +12,6 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,8 +19,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import okio.Sink
-import okio.Source
 import okio.sink
 import okio.source
 
@@ -329,25 +326,21 @@ actual class KmpFileHandler : IKmpFileHandler {
 }
 
 @SuppressLint("Recycle")
-actual suspend fun KmpFileRef.source(): Outcome<Source, Exception> {
+actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
         val context = KmpFileHandler.context ?: return Outcome.Error(NotInitializedError())
         val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
             ?: return Outcome.Error(FileOpenError())
-        Outcome.Ok(stream.source())
+        val source = stream.source()
+        Outcome.Ok(KmpFsOkIoAsyncSource(source))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
 }
 
-actual suspend fun KmpFileRef.asyncSource(): Outcome<IKmpFsAsyncSource, Exception> {
-    val source = source().unwrapOrReturn { return this }
-    return Outcome.Ok(KmpFsOkIoAsyncSource(source))
-}
-
 @SuppressLint("Recycle")
-actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Exception> {
+actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncSink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
         val context = KmpFileHandler.context ?: return Outcome.Error(NotInitializedError())
@@ -358,7 +351,8 @@ actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<Sink, Except
 
         val outputStream = context.applicationContext.contentResolver.openOutputStream(ref.toUri(), modeString)
             ?: return Outcome.Error(FileCreateError())
-        Outcome.Ok(outputStream.sink())
+        val sink = outputStream.sink()
+        Outcome.Ok(KmpFsOkIoAsyncSink(sink))
     } catch (e: Exception) {
         Outcome.Error(e)
     }
