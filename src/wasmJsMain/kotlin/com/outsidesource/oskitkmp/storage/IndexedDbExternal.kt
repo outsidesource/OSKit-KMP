@@ -1,10 +1,9 @@
 package com.outsidesource.oskitkmp.storage
 
-import com.outsidesource.oskitkmp.lib.JsResult
-import com.outsidesource.oskitkmp.lib.jsTry
 import com.outsidesource.oskitkmp.lib.jsTryOutcome
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.runOnError
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -145,10 +144,10 @@ external class IDBKeyRange : JsAny
 
 suspend inline fun <T : JsAny?> IDBDatabase.suspendRequest(
     crossinline block: () -> IDBRequest<T>,
-): Outcome<T, Any> = jsTry { block() }.await()
+): Outcome<T, Any> = jsTryOutcome { block() }.await()
 
-suspend fun <T : JsAny?> JsResult<IDBRequest<T>>.await(): Outcome<T, Any> =
-    result?.await() ?: Outcome.Error(error as Any)
+suspend fun <T : JsAny?> Outcome<IDBRequest<T>, Any>.await(): Outcome<T, Any> =
+    unwrapOrReturn { return this }.await()
 
 suspend fun <T : JsAny?> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
     onsuccess = {

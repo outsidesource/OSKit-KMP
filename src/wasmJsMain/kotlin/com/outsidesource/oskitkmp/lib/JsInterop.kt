@@ -18,7 +18,7 @@ fun <T : JsAny> jsTryOutcome(block: () -> T): Outcome<T, Any> {
     return Outcome.Ok(result as T)
 }
 
-fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
+private fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
     """{
         try {
             return { result: block() }
@@ -27,6 +27,11 @@ fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
         }
     }""",
 )
+
+external interface JsResult<T : JsAny?> : JsAny {
+    val error: JsAny?
+    val result: T?
+}
 
 fun ArrayBuffer.toByteArray(): ByteArray {
     val uint8Array = Uint8Array(this)
@@ -51,7 +56,16 @@ fun Uint8Array.copyInto(
     for (i in startIndex until endIndex) { destination[destinationOffset + i] = this[i] }
 }
 
-external interface JsResult<T : JsAny?> : JsAny {
-    val error: JsAny?
-    val result: T?
-}
+/**
+ * Converts a JsNumber to Long
+ * Note: this potentially loses precision just like the int versions. JsNumbers are 64-bit floating values that can
+ * support higher numbers with less precision than Kotlin Long
+ */
+fun JsNumber.toLong() = toDouble().toLong()
+
+/**
+ * Converts a Long to a JsNumber
+ * Note: this potentially loses precision just like the int versions. JsNumbers are 64-bit floating values that can
+ * support higher numbers with less precision than Kotlin Long
+ */
+fun Long.toJsNumber() = toDouble().toJsNumber()
