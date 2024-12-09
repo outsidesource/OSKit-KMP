@@ -14,7 +14,10 @@ class KmpFsAsyncSource(file: File) : IKmpFsAsyncSource {
     private val blob = file as Blob
     private var position: Long = 0L
     private val size: Long = blob.size.toDouble().toLong()
+
     private val newline = '\n'.code.toByte()
+    private val carriageReturn = '\r'.code.toByte()
+    private val sb = StringBuilder()
 
     override suspend fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
         if (position >= size) return -1
@@ -27,12 +30,24 @@ class KmpFsAsyncSource(file: File) : IKmpFsAsyncSource {
     }
 
     override suspend fun readUtf8Line(sink: ByteArray): String? {
-        val bytesRead = read(sink)
-        if (bytesRead == -1) return null
-        val index = sink.indexOf(newline)
-        if (position >= size || index == -1) return sink.decodeToString(0, bytesRead)
-        position = position - (sink.size - index - 1) // -1 for consuming '\n' character
-        return sink.decodeToString(0, index)
+        sb.clear()
+        while (true) {
+            val initialPosition = position
+            val bytesRead = read(sink)
+            if (bytesRead == -1) return null
+            val index = sink.indexOf(newline)
+            if (index == -1) {
+                val skip = if (bytesRead > 0 && sink[bytesRead - 1] == carriageReturn) 1 else 0
+                sb.append(sink.decodeToString(0, bytesRead - skip))
+                if (isExhausted()) break
+            } else {
+                position = initialPosition + index + 1
+                val skip = if (index > 0 && sink[index - 1] == carriageReturn) 1 else 0
+                sb.append(sink.decodeToString(0, index - skip))
+                break
+            }
+        }
+        return sb.toString()
     }
 
     override suspend fun readAll(): ByteArray {
