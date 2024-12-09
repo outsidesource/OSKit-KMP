@@ -19,10 +19,10 @@ import platform.UniformTypeIdentifiers.UTTypeFolder
 import platform.UniformTypeIdentifiers.UTTypeItem
 import platform.darwin.NSObject
 
-actual data class KmpFileHandlerContext(val rootController: UIViewController)
+actual data class KmpFsContext(val rootController: UIViewController)
 
-actual class KmpFileHandler : IKmpFileHandler {
-    private var context: KmpFileHandlerContext? = null
+actual class KmpFs : IKmpFs {
+    private var context: KmpFsContext? = null
 
     private val documentPickerDelegate = IOSPickerDelegate()
 
@@ -34,14 +34,14 @@ actual class KmpFileHandler : IKmpFileHandler {
         allowsMultipleSelection = false
     }
 
-    actual override fun init(fileHandlerContext: KmpFileHandlerContext) {
+    actual override fun init(fileHandlerContext: KmpFsContext) {
         context = fileHandlerContext
     }
 
     actual override suspend fun pickFile(
-        startingDir: KmpFileRef?,
+        startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
-    ): Outcome<KmpFileRef?, Exception> {
+    ): Outcome<KmpFsRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedError())
 
@@ -72,9 +72,9 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     actual override suspend fun pickFiles(
-        startingDir: KmpFileRef?,
+        startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
-    ): Outcome<List<KmpFileRef>?, Exception> {
+    ): Outcome<List<KmpFsRef>?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedError())
 
@@ -108,13 +108,13 @@ actual class KmpFileHandler : IKmpFileHandler {
 
     actual override suspend fun pickSaveFile(
         fileName: String,
-        startingDir: KmpFileRef?,
-    ): Outcome<KmpFileRef?, Exception> {
+        startingDir: KmpFsRef?,
+    ): Outcome<KmpFsRef?, Exception> {
         val directory = pickDirectory(startingDir).unwrapOrReturn { return this } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 
-    actual override suspend fun pickDirectory(startingDir: KmpFileRef?): Outcome<KmpFileRef?, Exception> {
+    actual override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedError())
 
@@ -135,10 +135,10 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     actual override suspend fun resolveFile(
-        dir: KmpFileRef,
+        dir: KmpFsRef,
         name: String,
         create: Boolean,
-    ): Outcome<KmpFileRef, Exception> {
+    ): Outcome<KmpFsRef, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -169,10 +169,10 @@ actual class KmpFileHandler : IKmpFileHandler {
 
     @OptIn(ExperimentalForeignApi::class)
     actual override suspend fun resolveDirectory(
-        dir: KmpFileRef,
+        dir: KmpFsRef,
         name: String,
         create: Boolean,
-    ): Outcome<KmpFileRef, Exception> {
+    ): Outcome<KmpFsRef, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -202,7 +202,7 @@ actual class KmpFileHandler : IKmpFileHandler {
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFileRef, Exception> {
+    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val url = NSURL(fileURLWithPath = path)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
@@ -216,7 +216,7 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun delete(ref: KmpFileRef): Outcome<Unit, Exception> {
+    actual override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -238,7 +238,7 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun list(dir: KmpFileRef, isRecursive: Boolean): Outcome<List<KmpFileRef>, Exception> {
+    actual override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -284,7 +284,7 @@ actual class KmpFileHandler : IKmpFileHandler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun readMetadata(ref: KmpFileRef): Outcome<KmpFileMetadata, Exception> {
+    actual override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
         val deferrer = Deferrer()
 
         try {
@@ -312,7 +312,7 @@ actual class KmpFileHandler : IKmpFileHandler {
         }
     }
 
-    actual override suspend fun exists(ref: KmpFileRef): Boolean {
+    actual override suspend fun exists(ref: KmpFsRef): Boolean {
         val deferrer = Deferrer()
 
         return try {
@@ -355,7 +355,7 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
     }
 }
 
-actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
+actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception> {
     val deferrer = Deferrer()
 
     return try {
@@ -366,7 +366,7 @@ actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val source = NSInputStream(uRL = url).source()
-        Outcome.Ok(KmpFsOkIoAsyncSource(source))
+        Outcome.Ok(OkIoKmpFsSource(source))
     } catch (e: Exception) {
         Outcome.Error(e)
     } finally {
@@ -374,7 +374,7 @@ actual suspend fun KmpFileRef.source(): Outcome<IKmpFsAsyncSource, Exception> {
     }
 }
 
-actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncSink, Exception> {
+actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Exception> {
     val deferrer = Deferrer()
 
     return try {
@@ -385,7 +385,7 @@ actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncS
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val sink = NSOutputStream(uRL = url, append = mode == KmpFileWriteMode.Append).sink()
-        Outcome.Ok(KmpFsOkIoAsyncSink(sink))
+        Outcome.Ok(OkIoKmpFsSink(sink))
     } catch (e: Exception) {
         Outcome.Error(e)
     } finally {
@@ -394,7 +394,7 @@ actual suspend fun KmpFileRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsAsyncS
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun NSURL.toKMPFileRef(isDirectory: Boolean): KmpFileRef {
+private fun NSURL.toKMPFileRef(isDirectory: Boolean): KmpFsRef {
     startAccessingSecurityScopedResource()
 
     val ref = memScoped {
@@ -410,7 +410,7 @@ private fun NSURL.toKMPFileRef(isDirectory: Boolean): KmpFileRef {
 
     stopAccessingSecurityScopedResource()
 
-    return KmpFileRef(
+    return KmpFsRef(
         ref = ref ?: "",
         name = path?.split("/")?.lastOrNull() ?: "",
         isDirectory = isDirectory,
@@ -418,7 +418,7 @@ private fun NSURL.toKMPFileRef(isDirectory: Boolean): KmpFileRef {
 }
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-private fun KmpFileRef.toNSURL(): NSURL? {
+private fun KmpFsRef.toNSURL(): NSURL? {
     val data = NSMutableData()
     ref.decodeBase64Bytes().usePinned {
         data.appendBytes(it.addressOf(0).reinterpret(), it.get().size.convert())
