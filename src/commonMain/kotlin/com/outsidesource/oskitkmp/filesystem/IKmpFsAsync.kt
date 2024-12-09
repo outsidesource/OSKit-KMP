@@ -26,11 +26,11 @@ interface IKmpFsAsyncSink : IKmpFsClosable {
     override suspend fun close()
 
     suspend fun writeByte(value: Byte): IKmpFsAsyncSink = write(byteArrayOf(value))
-    suspend fun writeShort(value: Short): IKmpFsAsyncSink = write(value.toByteArray())
-    suspend fun writeInt(value: Int): IKmpFsAsyncSink = write(value.toByteArray())
-    suspend fun writeFloat(value: Float): IKmpFsAsyncSink = write(value.toByteArray())
-    suspend fun writeDouble(value: Double): IKmpFsAsyncSink = write(value.toByteArray())
-    suspend fun writeLong(value: Long): IKmpFsAsyncSink = write(value.toByteArray())
+    suspend fun writeShort(value: Short): IKmpFsAsyncSink = write(value.toBytes())
+    suspend fun writeInt(value: Int): IKmpFsAsyncSink = write(value.toBytes())
+    suspend fun writeFloat(value: Float): IKmpFsAsyncSink = write(value.toBytes())
+    suspend fun writeDouble(value: Double): IKmpFsAsyncSink = write(value.toBytes())
+    suspend fun writeLong(value: Long): IKmpFsAsyncSink = write(value.toBytes())
     suspend fun writeUtf8(value: String): IKmpFsAsyncSink = write(value.encodeToByteArray())
 }
 
