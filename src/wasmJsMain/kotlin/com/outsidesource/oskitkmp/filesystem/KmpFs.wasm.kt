@@ -235,8 +235,13 @@ actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Ex
         as? FileSystemFileHandle ?: return Outcome.Error(FileNotFoundError())
     val writable = handle.createWritable(createWritableOptions(mode == KmpFileWriteMode.Append)).kmpAwaitOutcome()
         .unwrapOrReturn { return Outcome.Error(FileOpenError()) }
-    // TODO
-    return Outcome.Error(NotSupportedError())
+
+    if (mode == KmpFileWriteMode.Append) {
+        val file = handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(FileOpenError()) }
+        writable.seek(file.size).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(FileOpenError()) }
+    }
+
+    return Outcome.Ok(WasmKmpFsSink(writable))
 }
 
 private suspend fun KmpFsRef.getFile(): Outcome<File, Exception> {

@@ -13,7 +13,7 @@ import platform.posix.uint8_tVar
 
 fun NSOutputStream.sink(): Sink = OutputStreamSink(this)
 
-private open class OutputStreamSink(
+private class OutputStreamSink(
     private val out: NSOutputStream,
 ) : Sink {
 

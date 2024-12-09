@@ -4,6 +4,7 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import org.khronos.webgl.set
 
 external object JSON {
     fun stringify(data: JsAny): String
@@ -33,6 +34,13 @@ fun ArrayBuffer.toByteArray(): ByteArray {
 }
 
 fun ArrayBuffer.toUint8Array(): Uint8Array = Uint8Array(this)
+
+fun ByteArray.toArrayBuffer(): ArrayBuffer {
+    val buffer = ArrayBuffer(size)
+    val array = Uint8Array(buffer)
+    for (i in 0 until size) array[i] = this[i]
+    return buffer
+}
 
 fun Uint8Array.copyInto(
     destination: ByteArray,

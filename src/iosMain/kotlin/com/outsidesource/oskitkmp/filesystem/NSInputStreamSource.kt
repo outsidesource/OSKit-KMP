@@ -12,7 +12,7 @@ import platform.posix.uint8_tVar
 
 fun NSInputStream.source(): Source = NSInputStreamSource(this)
 
-private open class NSInputStreamSource(
+private class NSInputStreamSource(
     private val input: NSInputStream,
 ) : Source {
 

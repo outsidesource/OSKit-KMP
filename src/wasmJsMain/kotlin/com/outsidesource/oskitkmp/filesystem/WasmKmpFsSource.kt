@@ -8,7 +8,7 @@ import com.outsidesource.oskitkmp.lib.toUint8Array
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import org.w3c.files.File
 
-class WasmKmpFsSource(file: File) : IKmpFsSource {
+internal class WasmKmpFsSource(file: File) : IKmpFsSource {
 
     @Suppress("CAST_NEVER_SUCCEEDS")
     private val blob = file as Blob

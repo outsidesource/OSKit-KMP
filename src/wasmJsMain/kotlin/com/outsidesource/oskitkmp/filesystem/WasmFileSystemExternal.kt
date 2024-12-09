@@ -93,8 +93,23 @@ private fun directoryEntries(
 internal external class FileSystemWritableFileStream : JsAny {
     fun write(data: JsAny): Promise<JsAny?>
     fun seek(position: JsNumber): Promise<JsAny?>
+    fun truncate(size: JsNumber): Promise<JsAny?>
     fun close(): Promise<JsAny?>
 }
+
+fun writeOptions(
+    type: String,
+    data: ArrayBuffer,
+    position: JsNumber? = null,
+    size: JsNumber? = null,
+): JsAny = js(
+    """({
+        "type": type,
+        "data": data,
+        ...(() => { if (position) return { "position": position } })(),
+        ...(() => { if (size) return { "size": size } })(),
+    })""",
+)
 
 internal external class Blob {
     val size: JsNumber
