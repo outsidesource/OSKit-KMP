@@ -19,12 +19,12 @@ expect class KmpFsContext
  *
  * WASM:
  * Due to browser constraints, [KmpFs] on WASM only supports a subset of functionality available in other targets.
- *  * Reading files in WASM loads the entire file contents into memory when using `KmpFileRef.sink()`
+ *  * Directory existence checks will always return true
  *  * All `startingDirectory` parameters are ignored
- *  * Persisting file/directory references is not supported
- *  * Only Chrome and its derivatives support all other features
- *  * Unsupported features:
- *     * Persistable strings
+ *  * Chrome and derivatives support all other functionality
+ *  * Firefox and Safari have the following limitations:
+ *      * Only file picking and reading is supported
+ *      * Persisting KmpFileRefs does not work
  *
  * Desktop/JVM:
  * Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath

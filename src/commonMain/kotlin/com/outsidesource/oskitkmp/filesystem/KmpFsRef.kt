@@ -22,14 +22,22 @@ data class KmpFsRef internal constructor(
 ) {
 
     @OptIn(ExperimentalSerializationApi::class)
-    fun toPersistableString(): String {
+    suspend fun toPersistableString(): String {
+        onKmpFileRefPersisted(this)
         return cbor.encodeToByteArray(this).encodeBase64()
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    fun toPersistableData(): ByteArray {
+    suspend fun toPersistableData(): ByteArray {
+        onKmpFileRefPersisted(this)
         return cbor.encodeToByteArray(this)
     }
+
+    /**
+     * Clears any cached data for a given ref. The WASM target requires caching ref data in a specific way to persist
+     * references. This will clear any cache data and render the persisted ref useless after the current session.
+     */
+    suspend fun clearPersistedDataCache() = internalClearPersistedDataCache(this)
 
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
@@ -41,8 +49,17 @@ data class KmpFsRef internal constructor(
         fun fromPersistableData(value: ByteArray): KmpFsRef {
             return cbor.decodeFromByteArray<KmpFsRef>(value)
         }
+
+        /**
+         * Clears any cached data for all refs. The WASM target requires caching ref data in a specific way to persist
+         * references. This will clear any cache data and render all persisted refs useless after the current session.
+         */
+        suspend fun clearPersistedDataCache() = internalClearPersistedDataCache(null)
     }
 }
+
+internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
+internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
 expect suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception>
 expect suspend fun KmpFsRef.sink(

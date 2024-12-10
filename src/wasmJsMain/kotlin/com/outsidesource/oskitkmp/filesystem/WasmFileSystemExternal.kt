@@ -50,9 +50,11 @@ internal open external class FileSystemHandle : JsAny {
     val kind: String
     val name: String
     fun queryPermission(descriptor: JsAny?): Promise<JsString>
+    fun requestPermission(descriptor: JsAny?): Promise<JsString>
     fun remove(options: JsAny?): Promise<JsAny?>
 }
 
+internal fun permissionOptions(mode: String): JsAny = js("""({"mode": mode})""")
 internal fun removeOptions(recursive: Boolean): JsAny = js("""({"recursive": recursive})""")
 
 internal external class FileSystemFileHandle : FileSystemHandle {
