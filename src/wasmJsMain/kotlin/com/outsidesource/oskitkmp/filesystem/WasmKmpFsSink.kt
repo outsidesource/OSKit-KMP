@@ -8,12 +8,16 @@ internal class WasmKmpFsSink(
     private val writableFileStream: FileSystemWritableFileStream,
 ) : IKmpFsSink {
 
+    private var isClosed = false
+
     override suspend fun write(
         source: ByteArray,
-        offset: Int,
+        sourceOffset: Int,
         byteCount: Int,
     ): IKmpFsSink {
-        val options = writeOptions(type = "write", data = source.toArrayBuffer())
+        check(!isClosed) { "closed" }
+        val data = source.toArrayBuffer(startIndex = sourceOffset, byteCount = byteCount)
+        val options = writeOptions(type = "write", data = data)
         writableFileStream.write(options).kmpAwaitOutcome().unwrapOrReturn { throw WriteError() }
         return this
     }
@@ -22,5 +26,6 @@ internal class WasmKmpFsSink(
 
     override suspend fun close() {
         writableFileStream.close().kmpAwaitOutcome()
+        isClosed = true
     }
 }

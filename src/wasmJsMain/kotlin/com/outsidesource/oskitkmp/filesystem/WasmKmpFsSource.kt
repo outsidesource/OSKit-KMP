@@ -14,16 +14,22 @@ internal class WasmKmpFsSource(file: File) : IKmpFsSource {
     private val blob = file as Blob
     private var position: Long = 0L
     private val size: Long = blob.size.toDouble().toLong()
+    private var isClosed: Boolean = false
 
     private val newline = '\n'.code.toByte()
     private val carriageReturn = '\r'.code.toByte()
     private val sb = StringBuilder()
 
-    override suspend fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
+    override suspend fun require(byteCount: Long) {
+        if (byteCount > size - position) throw EofError()
+    }
+
+    override suspend fun read(sink: ByteArray, sinkOffset: Int, byteCount: Int): Int {
         if (position >= size) return -1
+        check(!isClosed) { "closed" }
         val end = minOf(position + byteCount, size)
         val slice = blob.slice(start = position.toDouble().toJsNumber(), end = end.toDouble().toJsNumber())
-        slice.arrayBuffer().kmpAwait().toUint8Array().copyInto(sink, offset)
+        slice.arrayBuffer().kmpAwait().toUint8Array().copyInto(sink, sinkOffset)
         val read = (end - position)
         position += read
         return read.toInt()
@@ -56,6 +62,6 @@ internal class WasmKmpFsSource(file: File) : IKmpFsSource {
         return bytes
     }
 
-    override suspend fun close() = blob.close()
+    override suspend fun close() { /* Noop in WASM */ }
     override suspend fun isExhausted(): Boolean = position >= size
 }

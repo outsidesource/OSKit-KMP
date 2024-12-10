@@ -40,10 +40,10 @@ fun ArrayBuffer.toByteArray(): ByteArray {
 
 fun ArrayBuffer.toUint8Array(): Uint8Array = Uint8Array(this)
 
-fun ByteArray.toArrayBuffer(): ArrayBuffer {
-    val buffer = ArrayBuffer(size)
+fun ByteArray.toArrayBuffer(startIndex: Int = 0, byteCount: Int = size - startIndex): ArrayBuffer {
+    val buffer = ArrayBuffer(byteCount)
     val array = Uint8Array(buffer)
-    for (i in 0 until size) array[i] = this[i]
+    for (i in startIndex until size) array[i] = this[i]
     return buffer
 }
 
