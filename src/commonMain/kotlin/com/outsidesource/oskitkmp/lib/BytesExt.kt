@@ -115,10 +115,20 @@ fun Long.toBytesLe(buffer: ByteArray = ByteArray(8), start: Int = 0): ByteArray 
 
 fun ByteArray.toFloat(start: Int = 0): Float = Float.fromBits(toInt(start))
 
+fun ByteArray.toFloatLe(start: Int = 0): Float = Float.fromBits(toIntLe(start))
+
 fun Float.toBytes(buffer: ByteArray = ByteArray(4), start: Int = 0): ByteArray =
     toRawBits().toBytes(buffer, start)
 
+fun Float.toBytesLe(buffer: ByteArray = ByteArray(4), start: Int = 0): ByteArray =
+    toRawBits().toBytesLe(buffer, start)
+
 fun ByteArray.toDouble(start: Int = 0): Double = Double.fromBits(toLong(start))
+
+fun ByteArray.toDoubleLe(start: Int = 0): Double = Double.fromBits(toLongLe(start))
 
 fun Double.toBytes(buffer: ByteArray = ByteArray(8), start: Int = 0): ByteArray =
     toRawBits().toBytes(buffer, start)
+
+fun Double.toBytesLe(buffer: ByteArray = ByteArray(8), start: Int = 0): ByteArray =
+    toRawBits().toBytesLe(buffer, start)

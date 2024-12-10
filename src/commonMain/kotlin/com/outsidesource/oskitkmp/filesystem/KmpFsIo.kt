@@ -13,10 +13,15 @@ interface IKmpFsSource : IKmpFsClosable {
     suspend fun readAllUtf8(): String = readAll().decodeToString()
     suspend fun readByte(sink: ByteArray = ByteArray(1)): Byte = sink.apply { checkedRead(1, this) }[0]
     suspend fun readShort(sink: ByteArray = ByteArray(2)): Short = sink.apply { checkedRead(2, this) }.toShort()
+    suspend fun readShortLe(sink: ByteArray = ByteArray(2)): Short = sink.apply { checkedRead(2, this) }.toShortLe()
     suspend fun readInt(sink: ByteArray = ByteArray(4)): Int = sink.apply { checkedRead(4, this) }.toInt()
+    suspend fun readIntLe(sink: ByteArray = ByteArray(4)): Int = sink.apply { checkedRead(4, this) }.toIntLe()
     suspend fun readFloat(sink: ByteArray = ByteArray(4)): Float = sink.apply { checkedRead(4, this) }.toFloat()
+    suspend fun readFloatLe(sink: ByteArray = ByteArray(4)): Float = sink.apply { checkedRead(4, this) }.toFloatLe()
     suspend fun readDouble(sink: ByteArray = ByteArray(8)): Double = sink.apply { checkedRead(8, this) }.toDouble()
+    suspend fun readDoubleLe(sink: ByteArray = ByteArray(8)): Double = sink.apply { checkedRead(8, this) }.toDoubleLe()
     suspend fun readLong(sink: ByteArray = ByteArray(8)): Long = sink.apply { checkedRead(8, this) }.toLong()
+    suspend fun readLongLe(sink: ByteArray = ByteArray(8)): Long = sink.apply { checkedRead(8, this) }.toLongLe()
     suspend fun readUtf8(byteCount: Int, sink: ByteArray = ByteArray(byteCount)): String =
         sink.apply { checkedRead(byteCount.toLong(), this) }.decodeToString()
 
@@ -47,10 +52,15 @@ interface IKmpFsSink : IKmpFsClosable {
 
     suspend fun writeByte(value: Byte): IKmpFsSink = write(byteArrayOf(value))
     suspend fun writeShort(value: Short): IKmpFsSink = write(value.toBytes())
+    suspend fun writeShortLe(value: Short): IKmpFsSink = write(value.toBytesLe())
     suspend fun writeInt(value: Int): IKmpFsSink = write(value.toBytes())
+    suspend fun writeIntLe(value: Int): IKmpFsSink = write(value.toBytesLe())
     suspend fun writeFloat(value: Float): IKmpFsSink = write(value.toBytes())
+    suspend fun writeFloatLe(value: Float): IKmpFsSink = write(value.toBytesLe())
     suspend fun writeDouble(value: Double): IKmpFsSink = write(value.toBytes())
+    suspend fun writeDoubleLe(value: Double): IKmpFsSink = write(value.toBytesLe())
     suspend fun writeLong(value: Long): IKmpFsSink = write(value.toBytes())
+    suspend fun writeLongLe(value: Long): IKmpFsSink = write(value.toBytesLe())
     suspend fun writeUtf8(value: String): IKmpFsSink = write(value.encodeToByteArray())
     suspend fun writeAll(source: IKmpFsSource, bufferSize: Int = 16384): Long = source.readAll(this)
 }
