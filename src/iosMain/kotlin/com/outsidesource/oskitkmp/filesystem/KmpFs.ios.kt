@@ -110,7 +110,7 @@ actual class KmpFs : IKmpFs {
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, Exception> {
-        val directory = pickDirectory(startingDir).unwrapOrReturn { return this } ?: return Outcome.Ok(null)
+        val directory = pickDirectory(startingDir).unwrapOrReturn { return it } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 

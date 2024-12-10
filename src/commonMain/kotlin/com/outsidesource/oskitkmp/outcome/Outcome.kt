@@ -24,7 +24,7 @@ fun <V, E> Outcome<V, E>.unwrapOrNull(): V? = when (this) {
     else -> null
 }
 
-inline fun <T, E> Outcome<T, E>.unwrapOrReturn(block: Outcome.Error<E>.() -> Nothing): T {
+inline fun <T, E> Outcome<T, E>.unwrapOrReturn(block: (Outcome.Error<E>) -> Nothing): T {
     when (this) {
         is Outcome.Ok -> return value
         is Outcome.Error -> block(this)

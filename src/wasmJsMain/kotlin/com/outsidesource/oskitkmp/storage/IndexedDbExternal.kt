@@ -147,7 +147,7 @@ suspend inline fun <T : JsAny?> IDBDatabase.suspendRequest(
 ): Outcome<T, Any> = jsTryOutcome { block() }.await()
 
 suspend fun <T : JsAny?> Outcome<IDBRequest<T>, Any>.await(): Outcome<T, Any> =
-    unwrapOrReturn { return this }.await()
+    unwrapOrReturn { return it }.await()
 
 suspend fun <T : JsAny?> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
     onsuccess = {

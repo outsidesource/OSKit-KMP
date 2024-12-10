@@ -25,7 +25,7 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
     internal suspend fun open(): Outcome<Unit, Any> {
         db = indexedDB.open(name, 1)
             .await { db, oldVersion, newVersion -> db.createObjectStore(objectStoreName) }
-            .unwrapOrReturn { return this }
+            .unwrapOrReturn { return it }
 
         return Outcome.Ok(Unit)
     }
@@ -49,7 +49,7 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
             db.transaction(objectStoreName, "readwrite")
                 .objectStore(objectStoreName)
                 .delete(key)
-        }.unwrapOrReturn { return@let this }
+        }.unwrapOrReturn { return@let it }
         KmpKvStoreObserverRegistry.notifyValueChange(name, key, null)
         Outcome.Ok(Unit)
     } ?: Outcome.Error(IndexedDbClosedException())
@@ -60,7 +60,7 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
             db.transaction(objectStoreName, "readwrite")
                 .objectStore(objectStoreName)
                 .clear()
-        }.unwrapOrReturn { return@let this }
+        }.unwrapOrReturn { return@let it }
         KmpKvStoreObserverRegistry.notifyClear(name)
         Outcome.Ok(Unit)
     } ?: Outcome.Error(IndexedDbClosedException())
@@ -177,7 +177,7 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
                     db.transaction(objectStoreName, "readwrite")
                         .objectStore(objectStoreName)
                         .put(key = key, item = value)
-                }.unwrapOrReturn { return this }
+                }.unwrapOrReturn { return it }
                 KmpKvStoreObserverRegistry.notifyValueChange(name, key, value)
                 Outcome.Ok(Unit)
             } catch (t: Throwable) {

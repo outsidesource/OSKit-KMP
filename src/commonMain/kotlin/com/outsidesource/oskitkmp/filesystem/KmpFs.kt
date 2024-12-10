@@ -169,8 +169,8 @@ interface IKmpFs {
      */
     suspend fun moveFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileMoveError())
-        val source = from.source().unwrapOrReturn { return this }
-        val sink = to.sink().unwrapOrReturn { return this }
+        val source = from.source().unwrapOrReturn { return it }
+        val sink = to.sink().unwrapOrReturn { return it }
 
         try {
             sink.use { it.writeAll(source) }
@@ -178,15 +178,15 @@ interface IKmpFs {
             return Outcome.Error(e)
         }
 
-        delete(from).unwrapOrReturn { return this }
+        delete(from).unwrapOrReturn { return it }
 
         return Outcome.Ok(Unit)
     }
 
     suspend fun copyFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, Exception> {
         if (from.isDirectory || to.isDirectory) return Outcome.Error(FileCopyError())
-        val source = from.source().unwrapOrReturn { return this }
-        val sink = to.sink().unwrapOrReturn { return this }
+        val source = from.source().unwrapOrReturn { return it }
+        val sink = to.sink().unwrapOrReturn { return it }
 
         try {
             sink.use { it.writeAll(source) }

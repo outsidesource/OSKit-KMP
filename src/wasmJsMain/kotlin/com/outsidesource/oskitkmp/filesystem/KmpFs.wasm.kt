@@ -45,7 +45,7 @@ actual class KmpFs : IKmpFs {
             element.click()
             element.addEventListener("cancel") { continuation.resume(Outcome.Ok(null)) }
             element.addEventListener("change") { continuation.resume(Outcome.Ok(element.files?.get(0))) }
-        }.unwrapOrReturn { return this }
+        }.unwrapOrReturn { return it }
 
         if (file == null) return Outcome.Ok(null)
         val key = FileHandleRegister.putHandle(file)
@@ -81,7 +81,7 @@ actual class KmpFs : IKmpFs {
             element.click()
             element.addEventListener("cancel") { continuation.resume(Outcome.Ok(null)) }
             element.addEventListener("change") { continuation.resume(Outcome.Ok(element.files)) }
-        }.unwrapOrReturn { return this }
+        }.unwrapOrReturn { return it }
 
         if (files == null) return Outcome.Ok(null)
         val fileRefs = buildList {
@@ -109,7 +109,7 @@ actual class KmpFs : IKmpFs {
             element.click()
             element.addEventListener("cancel") { continuation.resume(Outcome.Ok(null)) }
             element.addEventListener("change") { continuation.resume(Outcome.Ok(element.files?.get(0))) }
-        }.unwrapOrReturn { return this }
+        }.unwrapOrReturn { return it }
 
         if (directory == null) return Outcome.Ok(null)
         val key = FileHandleRegister.putHandle(directory)
@@ -227,7 +227,7 @@ actual class KmpFs : IKmpFs {
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception> {
     if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-    val file = getFile().unwrapOrReturn { return this }
+    val file = getFile().unwrapOrReturn { return it }
     return Outcome.Ok(WasmKmpFsSource(file))
 }
 
