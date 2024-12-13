@@ -46,7 +46,7 @@ internal class LocationCapability(
     }
 
     private val isCapabilityRequiredForFlags = when (flags.size) {
-        1 -> flags[0] == LocationCapabilityFlags.BluetoothAccess
+        1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess
         else -> true
     }
 
