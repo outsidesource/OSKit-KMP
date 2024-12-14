@@ -234,7 +234,6 @@ class Router(
 
     private fun notifyRouteFlowListeners() {
         routeFlow.value = _routeStack.value.last()
-        handleNewRouteForPlatform(routeFlow.value.route)
     }
 
     private fun notifyRouteStopped() {
