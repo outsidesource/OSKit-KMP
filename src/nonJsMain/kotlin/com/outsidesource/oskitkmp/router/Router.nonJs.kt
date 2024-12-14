@@ -1,3 +1,4 @@
 package com.outsidesource.oskitkmp.router
 
-actual fun handleNewRouteForPlatform(route: IRoute) {}
+actual fun handleNewRouteForPlatform(router: Router, entry: RouteStackEntry) {}
+actual fun initForPlatform(router: Router) {}

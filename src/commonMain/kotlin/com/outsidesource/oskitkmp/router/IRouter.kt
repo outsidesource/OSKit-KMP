@@ -15,8 +15,17 @@ private fun uid(): Int = routeUid.incrementAndGet()
 interface IRoute
 
 /**
- * [IAnimatedRoute] the empty interface that defines an animated route. This must be unique and implement equals().
- * This is normally a data class.
+ * [IWebRoute] defines a route that supports Web Browsers and allows a router to update the title and URL bar.
+ * Note: When using [IWebRoute] with Compose Multiplatform your application and web server must be configured to handle
+ * paths via [configureWebResources.resourcePathMapping] and potentially web server path rewrites to avoid 404s and errors
+ */
+interface IWebRoute : IRoute {
+    val title: String?
+    val path: String?
+}
+
+/**
+ * [IAnimatedRoute] defines an animated route.
  */
 interface IAnimatedRoute : IRoute {
     val transition: IRouteTransition
