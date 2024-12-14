@@ -26,7 +26,6 @@ class Router(
         val initialStackEntry = RouteStackEntry(initialRoute)
         _routeStack = atomic(listOf(initialStackEntry))
         routeFlow = MutableStateFlow(initialStackEntry)
-        handleNewRouteForPlatform(this, initialStackEntry)
         initForPlatform(this)
     }
 
@@ -79,7 +78,6 @@ class Router(
             transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition,
         )
         _routeStack.update { it + entry }
-        handleNewRouteForPlatform(this, entry)
     }
 
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
@@ -131,14 +129,12 @@ class Router(
         )
         destroyTopStackEntry()
         _routeStack.update { it + entry }
-        handleNewRouteForPlatform(this, entry)
     }
 
     override fun pop(force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running && !force) return
         if (_routeStack.value.size <= 1) return
         destroyTopStackEntry()
-        handleNewRouteForPlatform(this, _routeStack.value.last())
         notifyRouteFlowListeners()
         notifyRouteStarted()
     }
@@ -202,7 +198,6 @@ class Router(
             if (!block(_routeStack.value.last().route)) break
             destroyTopStackEntry(callOnStop = false)
         }
-        handleNewRouteForPlatform(this, _routeStack.value.last())
     }
 
     override fun hasBackStack(): Boolean = _routeStack.value.size > 1
@@ -254,7 +249,6 @@ class Router(
 }
 
 internal expect fun initForPlatform(router: Router)
-internal expect fun handleNewRouteForPlatform(router: Router, entry: RouteStackEntry)
 
 // Kotlin 2.1.0 has an issue with an anonymous object being created in a class constructor on iOS preventing compilation
 // of any project using OSKit-KMP
