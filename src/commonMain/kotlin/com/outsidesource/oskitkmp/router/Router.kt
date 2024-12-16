@@ -71,6 +71,12 @@ class Router(
         notifyRouteFlowListeners()
     }
 
+    internal fun push(entry: RouteStackEntry) {
+        notifyRouteStopped()
+        _routeStack.update { it + entry }
+        notifyRouteFlowListeners()
+    }
+
     private fun pushInternal(route: IRoute, transition: IRouteTransition?, force: Boolean) {
         if (transitionStatus == RouteTransitionStatus.Running && !force) return
         val entry = RouteStackEntry(
