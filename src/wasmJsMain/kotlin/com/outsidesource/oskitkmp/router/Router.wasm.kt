@@ -1,6 +1,5 @@
 package com.outsidesource.oskitkmp.router
 
-import com.outsidesource.oskitkmp.lib.printAll
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
@@ -12,11 +11,8 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.PopStateEvent
 import org.w3c.dom.events.Event
 
-private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-// TODO: Need to allow cleanup of listeners
-
 actual fun initForPlatform(router: Router) {
+    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     var handleNewRoute = true
     var handlePopState = true
     var routeCache = listOf<RouteStackEntry>()
@@ -36,8 +32,6 @@ actual fun initForPlatform(router: Router) {
                 previousRouteStack = router.routeStack
                 return@collect
             }
-
-            printAll("handling new route")
 
             when {
                 router.routeStack.size < previousRouteStack.size -> {
@@ -61,8 +55,6 @@ actual fun initForPlatform(router: Router) {
                 }
             }
 
-            printAll("Stack", router.routeStack.joinToString(", ") { it.route.toString() })
-            printAll("Cache", routeCache.joinToString(", ") { it.route.toString() })
             previousRouteStack = router.routeStack
         }
     }
@@ -75,7 +67,6 @@ actual fun initForPlatform(router: Router) {
             }
             currentIndex = routeCache.indexOfFirst { it.id == router.current.id }
             val newIndex = routeCache.indexOfFirst { it.id == (ev.state as? JsNumber?)?.toInt() }
-            printAll("handling pop state", currentIndex, newIndex)
 
             handleNewRoute = false
             when {
@@ -85,8 +76,6 @@ actual fun initForPlatform(router: Router) {
             }
 
             currentIndex = newIndex
-            printAll("Stack", router.routeStack.joinToString(", ") { it.route.toString() })
-            printAll("Cache", routeCache.joinToString(", ") { it.route.toString() })
         }
     }
 }
