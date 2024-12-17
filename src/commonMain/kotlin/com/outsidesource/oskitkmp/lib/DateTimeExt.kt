@@ -23,7 +23,7 @@ fun LocalDateTime.kmpFormat(format: String): String {
                 'a' -> append(twelveHour.second.name)
                 '@' -> append("at")
                 'd' -> when (characterCount) {
-                    2 -> append(if (dayOfMonth < 10) "0${dayOfMonth}" else dayOfMonth.toString())
+                    2 -> append(if (dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth.toString())
                     1 -> append(dayOfMonth)
                 }
                 'D' -> when (characterCount) {
@@ -32,7 +32,7 @@ fun LocalDateTime.kmpFormat(format: String): String {
                 'M' -> when (characterCount) {
                     4 -> append(month.getDisplayName(DateTextFormat.Full))
                     3 -> append(month.getDisplayName(DateTextFormat.Short))
-                    2 -> append(if (monthNumber < 10) "0${monthNumber}" else monthNumber.toString())
+                    2 -> append(if (monthNumber < 10) "0$monthNumber" else monthNumber.toString())
                     1 -> append(monthNumber)
                 }
                 'y' -> when (characterCount) {
@@ -72,7 +72,7 @@ fun LocalDateTime.kmpFormat(format: String): String {
 private fun LocalTime.convertTo12HourFormat(): Pair<Int, Meridiem> {
     val hour = this.hour
     val period = if (hour < 12) Meridiem.AM else Meridiem.PM
-    var hour12 = (hour % 12).let { if (it == 0) 12 else it   }
+    var hour12 = (hour % 12).let { if (it == 0) 12 else it }
     return Pair(hour12, period)
 }
 
