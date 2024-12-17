@@ -4,92 +4,75 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
 
-fun LocalDateTime.kmpFormatDateTime(format: String): String {
-    val hourAmPmMode = this.time.convertTo12HourFormat()
-    val stringBuilder = StringBuilder()
+fun LocalDateTime.kmpFormat(format: String): String {
+    val twelveHour = time.convertTo12HourFormat()
 
-    var i = 0
-    while (i < format.length) {
-        when (val currentChar = format[i]) {
-            'a' -> stringBuilder.append(hourAmPmMode.second.name)
-            '@' -> stringBuilder.append("at")
-            'd' -> {
-                if (i + 1 < format.length && format[i + 1] == 'd') {
-                    stringBuilder.append(
-                        if (this.dayOfMonth < 10) "0${this.dayOfMonth}" else this.dayOfMonth.toString(),
-                    )
-                    i++
-                } else {
-                    stringBuilder.append(this.dayOfMonth.toString())
-                }
+    var lastCharacter: Char? = null
+    var characterCount = 0
+
+    return buildString {
+        for (i in 0..format.length) { // Iterate passed the last character to flush the last pattern
+            val currentChar = format.getOrNull(i)
+            if (currentChar == lastCharacter || lastCharacter == null) {
+                characterCount++
+                lastCharacter = currentChar
+                continue
             }
-            'M' -> {
-                if (i + 3 < format.length && format.substring(i, i + 4) == "MMMM") {
-                    stringBuilder.append(this.month.getDisplayName(DateTextFormat.Full))
-                    i += 3
-                } else if (i + 2 < format.length && format.substring(i, i + 3) == "MMM") {
-                    stringBuilder.append(this.month.getDisplayName(DateTextFormat.Short))
-                    i += 2
-                } else if (i + 1 < format.length && format[i + 1] == 'M') {
-                    stringBuilder.append(
-                        if (this.monthNumber < 10) "0${this.monthNumber}" else this.monthNumber.toString(),
-                    )
-                    i++
-                } else {
-                    stringBuilder.append(this.monthNumber.toString())
+
+            when (lastCharacter) {
+                'a' -> append(twelveHour.second.name)
+                '@' -> append("at")
+                'd' -> when (characterCount) {
+                    2 -> append(if (dayOfMonth < 10) "0${dayOfMonth}" else dayOfMonth.toString())
+                    1 -> append(dayOfMonth)
                 }
-            }
-            'y' -> {
-                if (i + 3 < format.length && format.substring(i, i + 4) == "yyyy") {
-                    stringBuilder.append(this.year.toString())
-                    i += 3
-                } else if (i + 1 < format.length && format[i + 1] == 'y') {
-                    stringBuilder.append((this.year % 100).toString().padStart(2, '0'))
-                    i++
+                'D' -> when (characterCount) {
+                    1 -> append(dayOfYear)
                 }
-            }
-            'h' -> {
-                if (i + 1 < format.length && format[i + 1] == 'h') {
-                    stringBuilder.append(hourAmPmMode.first.toString().padStart(2, '0'))
-                    i++
-                } else {
-                    stringBuilder.append(hourAmPmMode.first.toString())
+                'M' -> when (characterCount) {
+                    4 -> append(month.getDisplayName(DateTextFormat.Full))
+                    3 -> append(month.getDisplayName(DateTextFormat.Short))
+                    2 -> append(if (monthNumber < 10) "0${monthNumber}" else monthNumber.toString())
+                    1 -> append(monthNumber)
                 }
-            }
-            'm' -> {
-                if (i + 1 < format.length && format[i + 1] == 'm') {
-                    stringBuilder.append(this.minute.toString().padStart(2, '0'))
-                    i++
-                } else {
-                    stringBuilder.append(this.minute.toString())
+                'y' -> when (characterCount) {
+                    4 -> append(year)
+                    2 -> append((year % 100).toString().padStart(2, '0'))
                 }
-            }
-            's' -> {
-                if (i + 1 < format.length && format[i + 1] == 's') {
-                    stringBuilder.append(this.second.toString().padStart(2, '0'))
-                    i++
-                } else {
-                    stringBuilder.append(this.second.toString())
+                'H' -> when (characterCount) {
+                    2 -> append(hour.toString().padStart(2, '0'))
+                    1 -> append(hour)
                 }
+                'h' -> when (characterCount) {
+                    2 -> append(twelveHour.first.toString().padStart(2, '0'))
+                    1 -> append(twelveHour.first)
+                }
+                'm' -> when (characterCount) {
+                    2 -> append(minute.toString().padStart(2, '0'))
+                    1 -> append(minute)
+                }
+                's' -> when (characterCount) {
+                    2 -> append(second.toString().padStart(2, '0'))
+                    1 -> append(second)
+                }
+                'E' -> when (characterCount) {
+                    4 -> append(dayOfWeek.name.lowercase().replaceFirstChar { it.titlecase() })
+                    3 -> append(dayOfWeek.name.take(3).lowercase().replaceFirstChar { it.titlecase() })
+                    1 -> append(dayOfWeek.name.take(1))
+                }
+                else -> append(lastCharacter)
             }
-            'w' -> stringBuilder.append(this.dayOfWeek.name.lowercase().replaceFirstChar { it.titlecase() })
-            else -> stringBuilder.append(currentChar)
+
+            characterCount = 1
+            lastCharacter = currentChar
         }
-        i++
     }
-
-    return stringBuilder.toString()
 }
 
 private fun LocalTime.convertTo12HourFormat(): Pair<Int, Meridiem> {
     val hour = this.hour
     val period = if (hour < 12) Meridiem.AM else Meridiem.PM
-    var hour12 = hour % 12
-
-    if (hour12 == 0) {
-        hour12 = 12
-    }
-
+    var hour12 = (hour % 12).let { if (it == 0) 12 else it   }
     return Pair(hour12, period)
 }
 
