@@ -38,7 +38,7 @@ suspend fun IDBOpenDBRequest.await(
 
 external class IDBRequest<T : JsAny?> : JsAny {
     val error: JsAny
-    val readyState: JsAny
+    val readyState: JsString
     val source: JsAny
     val transaction: JsAny
     var onerror: (Event) -> Unit
@@ -146,8 +146,7 @@ suspend inline fun <T : JsAny?> IDBDatabase.suspendRequest(
     crossinline block: () -> IDBRequest<T>,
 ): Outcome<T, Any> = jsTryOutcome { block() }.await()
 
-suspend fun <T : JsAny?> Outcome<IDBRequest<T>, Any>.await(): Outcome<T, Any> =
-    unwrapOrReturn { return it }.await()
+suspend fun <T : JsAny?> Outcome<IDBRequest<T>, Any>.await(): Outcome<T, Any> = unwrapOrReturn { return it }.await()
 
 suspend fun <T : JsAny?> IDBRequest<T>.await(): Outcome<T, Any> = suspendCoroutine { continuation ->
     onsuccess = {
