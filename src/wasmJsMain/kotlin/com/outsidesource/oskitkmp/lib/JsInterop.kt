@@ -15,7 +15,7 @@ external object JSON {
 fun <T : JsAny> jsTryOutcome(block: () -> T): Outcome<T, Any> {
     val result = jsTry(block = block)
     result.error?.let { return Outcome.Error(it) }
-    return Outcome.Ok(result as T)
+    return Outcome.Ok(result.result as T)
 }
 
 private fun <T : JsAny?> jsTry(block: () -> T): JsResult<T> = js(
