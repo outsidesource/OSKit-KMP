@@ -172,11 +172,6 @@ interface IRouter {
  */
 interface IRouteLifecycleListener {
     /**
-     * [onRouteDestroyed] called when the route is popped off the stack
-     */
-    fun onRouteDestroyed()
-
-    /**
      * [onRouteCreated] called immediately after adding a listener
      */
     fun onRouteCreated() {}
@@ -188,12 +183,22 @@ interface IRouteLifecycleListener {
     fun onRouteStarted() {}
 
     /**
-     * [onRouteDestroyed] called when the route is placed in the back stack or when it is about to be destroyed
+     * [onRouteStopped] called when the route is placed in the back stack or is about to be destroyed
      */
     fun onRouteStopped() {}
 
     /**
-     * [onRouteDestroyed] called when the route's enter transition is complete
+     * [onRouteDestroyed] called when the route is popped off the stack
+     */
+    fun onRouteDestroyed() {}
+
+    /**
+     * [onRouteDestroyedTransitionComplete] called when the route is destroyed and the exit transition is complete
+     */
+    fun onRouteDestroyedTransitionComplete() {}
+
+    /**
+     * [onRouteEnterTransitionComplete] called when the route's enter transition is complete
      */
     fun onRouteEnterTransitionComplete() {}
 }

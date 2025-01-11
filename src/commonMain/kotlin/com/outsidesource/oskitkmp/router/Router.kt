@@ -13,14 +13,15 @@ class Router(
     initialRoute: IRoute,
     private val defaultTransition: IRouteTransition = DefaultTransition,
 ) : IRouter {
-    private val _routeStack: AtomicRef<List<RouteStackEntry>>
-    private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
-    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
-
     override val routeFlow: MutableStateFlow<RouteStackEntry>
     override val current get() = _routeStack.value.last()
     override val routeStack: List<RouteStackEntry>
         get() = _routeStack.value
+
+    private val _routeStack: AtomicRef<List<RouteStackEntry>>
+    private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
+    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
+    private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
 
     init {
         val initialStackEntry = RouteStackEntry(initialRoute)
@@ -36,6 +37,7 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         notifyRouteStopped()
         popToInternal(popTo, popToInclusive, force)
         push(route = route, transition = transition, force = force)
@@ -48,12 +50,14 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         notifyRouteStopped()
         popToInternal(popTo, popToInclusive, force)
         push(route = route, transition = transition, force = force)
     }
 
     override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         notifyRouteStopped()
         pushInternal(route, transition, force)
         notifyRouteFlowListeners()
@@ -65,6 +69,7 @@ class Router(
         force: Boolean,
         popWhile: (entry: IRoute) -> Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         notifyRouteStopped()
         popWhileInternal(force, popWhile)
         pushInternal(route, transition, force)
@@ -87,6 +92,7 @@ class Router(
     }
 
     override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         replaceInternal(route, transition, force)
         notifyRouteFlowListeners()
     }
@@ -97,6 +103,7 @@ class Router(
         force: Boolean,
         popWhile: (entry: IRoute) -> Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popWhileInternal(force, popWhile)
         replaceInternal(route, transition, force)
         notifyRouteFlowListeners()
@@ -109,6 +116,7 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popToInternal(popTo, popToInclusive, force)
         replaceInternal(route, transition, force)
         notifyRouteFlowListeners()
@@ -121,6 +129,7 @@ class Router(
         transition: IRouteTransition?,
         force: Boolean,
     ) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popToInternal(popTo, popToInclusive, force)
         replaceInternal(route, transition, force)
         notifyRouteFlowListeners()
@@ -146,12 +155,14 @@ class Router(
     }
 
     override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popToInternal(to, inclusive, force)
         notifyRouteFlowListeners()
         notifyRouteStarted()
     }
 
     override fun popTo(to: IRoute, inclusive: Boolean, force: Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popToInternal(to, inclusive, force)
         notifyRouteFlowListeners()
         notifyRouteStarted()
@@ -190,6 +201,7 @@ class Router(
     }
 
     override fun popWhile(force: Boolean, block: (route: IRoute) -> Boolean) {
+        if (transitionStatus == RouteTransitionStatus.Running && !force) return
         popWhileInternal(force, block)
         notifyRouteFlowListeners()
         notifyRouteStarted()
@@ -213,6 +225,13 @@ class Router(
         transitionStatus = status
 
         if (status == RouteTransitionStatus.Completed && previousStatus != status) {
+            val routeDestroyedCallbacks = onRouteDestroyedTransitionCompletedCallbacks.value
+            onRouteDestroyedTransitionCompletedCallbacks.value = emptyList()
+
+            for (callback in routeDestroyedCallbacks) {
+                callback()
+            }
+
             val top = _routeStack.value.last()
             routeLifecycleListeners.value[top.id]?.forEach { it.onRouteEnterTransitionComplete() }
         }
@@ -232,9 +251,10 @@ class Router(
     private fun destroyTopStackEntry(callOnStop: Boolean = true) {
         val top = _routeStack.value.last()
         _routeStack.update { it.toMutableList().apply { remove(top) } }
-        routeLifecycleListeners.value[top.id]?.forEach {
-            if (callOnStop) it.onRouteStopped()
-            it.onRouteDestroyed()
+        routeLifecycleListeners.value[top.id]?.forEach { listener ->
+            if (callOnStop) listener.onRouteStopped()
+            onRouteDestroyedTransitionCompletedCallbacks.update { it + listener::onRouteDestroyedTransitionComplete }
+            listener.onRouteDestroyed()
         }
         routeLifecycleListeners.update { it.toMutableMap().apply { remove(top.id) } }
     }
