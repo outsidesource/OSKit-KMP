@@ -70,7 +70,7 @@ internal class LocationKmpCapability(
     override fun init(context: CapabilityContext) {}
 
     private fun getCurrentStatus(): CapabilityStatus {
-        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported
+        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
         if (!isCapabilityRequiredForFlags) return CapabilityStatus.Ready
 
         val hasAuthorization = when (CLLocationManager.authorizationStatus()) {

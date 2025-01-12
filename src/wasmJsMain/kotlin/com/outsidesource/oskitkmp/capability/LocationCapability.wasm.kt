@@ -24,8 +24,8 @@ class LocationKmpCapability(
         if (hardwareSupportsCapability()) {
             CapabilityStatus.Unknown
         } else {
-            CapabilityStatus.Unsupported
-        }
+            CapabilityStatus.Unsupported()
+        },
     )
 
     override val status: CapabilityStatus

@@ -120,7 +120,7 @@ internal class LocationKmpCapability(
     private fun getCurrentStatus(): CapabilityStatus {
         val activity = context?.activity ?: return CapabilityStatus.Unknown
 
-        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported
+        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
 
         val hasAuthorization = permissions
             .all { ContextCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED }

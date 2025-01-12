@@ -85,10 +85,15 @@ interface IKmpCapability {
 
 sealed class CapabilityStatus {
     data object Unknown : CapabilityStatus()
-    data object Unsupported : CapabilityStatus()
+    data class Unsupported(val reason: UnsupportedReason = UnsupportedReason.InvalidHardware) : CapabilityStatus()
     data class NoPermission(val reason: NoPermissionReason = NoPermissionReason.NotRequested) : CapabilityStatus()
     data object NotEnabled : CapabilityStatus()
     data object Ready : CapabilityStatus()
+}
+
+enum class UnsupportedReason {
+    UnsupportedPlatform,
+    InvalidHardware,
 }
 
 enum class NoPermissionReason {

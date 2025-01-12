@@ -12,7 +12,7 @@ class BluetoothKmpCapability(
     override val status: CapabilityStatus = if (hardwareSupportsCapability()) {
         CapabilityStatus.Ready
     } else {
-        CapabilityStatus.Unsupported
+        CapabilityStatus.Unsupported()
     }
 
     override val statusFlow: Flow<CapabilityStatus> = flowOf(status)

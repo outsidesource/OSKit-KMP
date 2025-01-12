@@ -60,7 +60,7 @@ internal class BluetoothKmpCapability(
     override fun init(context: CapabilityContext) {}
 
     private fun getCurrentStatus(): CapabilityStatus {
-        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported
+        if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
 
         val hasAuthorization = when (CBManager.authorization) {
             CBManagerAuthorizationAllowedAlways -> true
