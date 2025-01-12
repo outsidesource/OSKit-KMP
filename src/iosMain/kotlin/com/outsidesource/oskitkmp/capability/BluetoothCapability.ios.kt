@@ -22,9 +22,9 @@ import platform.CoreBluetooth.CBManagerAuthorizationAllowedAlways
 import platform.CoreBluetooth.CBManagerAuthorizationRestricted
 import platform.darwin.NSObject
 
-internal class BluetoothCapability(
+internal class BluetoothKmpCapability(
     private val flags: Array<BluetoothCapabilityFlags>,
-) : IInitializableCapability, ICapability {
+) : IInitializableKmpCapability, IKmpCapability {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val internalStateFlow =
@@ -92,10 +92,10 @@ internal class BluetoothCapability(
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(null)
 }

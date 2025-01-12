@@ -27,9 +27,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal class LocationCapability(
+internal class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
-) : IInitializableCapability, ICapability {
+) : IInitializableKmpCapability, IKmpCapability {
 
     private var context: CapabilityContext? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -146,7 +146,7 @@ internal class LocationCapability(
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> {
         try {
-            context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+            context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             withContext(Dispatchers.Main) { permissionResultLauncher?.launch(permissions) }
             permissionsResultFlow.firstOrNull()
             hasRequestedPermissions = true
@@ -157,12 +157,12 @@ internal class LocationCapability(
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> {
-        return Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        return Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
     }
 
     override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> {
         try {
-            val activity = context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+            val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             val openEnableSettings = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             activity.startActivity(openEnableSettings)
             return Outcome.Ok(Unit)

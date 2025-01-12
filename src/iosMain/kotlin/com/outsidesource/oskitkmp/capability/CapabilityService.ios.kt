@@ -9,11 +9,11 @@ import platform.UIKit.UIApplicationOpenSettingsURLString
 
 actual class CapabilityContext()
 
-internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): ICapability =
-    BluetoothCapability(flags)
+internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability =
+    BluetoothKmpCapability(flags)
 
-internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): ICapability =
-    LocationCapability(flags)
+internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
+    LocationKmpCapability(flags)
 
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: CapabilityContext?,

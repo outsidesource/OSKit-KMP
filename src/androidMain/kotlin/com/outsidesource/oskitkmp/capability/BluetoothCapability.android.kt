@@ -28,9 +28,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal class BluetoothCapability(
+internal class BluetoothKmpCapability(
     private val flags: Array<BluetoothCapabilityFlags>,
-) : IInitializableCapability, ICapability {
+) : IInitializableKmpCapability, IKmpCapability {
 
     private var context: CapabilityContext? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -141,7 +141,7 @@ internal class BluetoothCapability(
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> {
         try {
-            context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+            context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             withContext(Dispatchers.Main) { permissionResultLauncher?.launch(permissions) }
             permissionsResultFlow.firstOrNull()
             hasRequestedPermissions = true
@@ -153,7 +153,7 @@ internal class BluetoothCapability(
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> {
         try {
-            context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+            context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             enableResultLauncher?.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
             enableResultFlow.firstOrNull()
             return Outcome.Ok(getCurrentStatus())
@@ -164,7 +164,7 @@ internal class BluetoothCapability(
 
     override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> {
         try {
-            val activity = context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+            val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             val openEnableSettings = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             activity.startActivity(openEnableSettings)
             return Outcome.Ok(Unit)

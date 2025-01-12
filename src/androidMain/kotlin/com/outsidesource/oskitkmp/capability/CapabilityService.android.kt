@@ -10,15 +10,15 @@ actual class CapabilityContext(
     var activity: ComponentActivity,
 )
 
-internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): ICapability =
-    BluetoothCapability(flags)
+internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability =
+    BluetoothKmpCapability(flags)
 
-internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): ICapability =
-    LocationCapability(flags)
+internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
+    LocationKmpCapability(flags)
 
 internal actual suspend fun internalOpenAppSettingsScreen(context: CapabilityContext?): Outcome<Unit, Any> {
     try {
-        val activity = context?.activity ?: return Outcome.Error(CapabilityServiceError.Uninitialized)
+        val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", activity.packageName, null)
         }

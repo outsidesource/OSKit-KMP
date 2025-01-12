@@ -23,9 +23,9 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.darwin.NSObject
 
-internal class LocationCapability(
+internal class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
-) : IInitializableCapability, ICapability {
+) : IInitializableKmpCapability, IKmpCapability {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val internalStateFlow =
@@ -41,7 +41,7 @@ internal class LocationCapability(
     private val locationManager by lazy {
         // CLLocationManager needs to be initialized on the main thread
         runBlocking(Dispatchers.Main) {
-            CLLocationManager().apply { this.delegate = this@LocationCapability.delegate }
+            CLLocationManager().apply { this.delegate = this@LocationKmpCapability.delegate }
         }
     }
 
@@ -110,10 +110,10 @@ internal class LocationCapability(
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(null)
 }

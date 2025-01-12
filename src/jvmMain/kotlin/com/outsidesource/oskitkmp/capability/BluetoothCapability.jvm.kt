@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.flowOf
 /**
  * TODO: Implement this properly for MacOS, Linux, and Windows
  */
-class BluetoothCapability(private val flags: Array<BluetoothCapabilityFlags>) : IInitializableCapability, ICapability {
+class BluetoothKmpCapability(
+    private val flags: Array<BluetoothCapabilityFlags>,
+) : IInitializableKmpCapability, IKmpCapability {
     override fun init(context: CapabilityContext) {}
 
     override val status: CapabilityStatus = CapabilityStatus.Ready
@@ -23,11 +25,11 @@ class BluetoothCapability(private val flags: Array<BluetoothCapabilityFlags>) : 
         Outcome.Ok(CapabilityStatus.Ready)
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(CapabilityServiceError.UnsupportedOperation)
+        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 }

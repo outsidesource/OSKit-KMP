@@ -10,22 +10,12 @@ internal interface ICapabilityContextScope {
 }
 
 internal expect suspend fun internalOpenAppSettingsScreen(context: CapabilityContext?): Outcome<Unit, Any>
-internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): ICapability
-internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): ICapability
-// internal expect fun createPlatformStorageCapability(flags: Array<StorageCapabilityFlags>): ICapability
-// internal expect fun createPlatformCameraCapability(): ICapability
-// internal expect fun createPlatformNetworkCapability(): ICapability
+internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability
+internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability
 
-/**
- * TODO: Document each flag and what it corresponds to
- * TODO: Document the respective ios plist and Android permissions to include
- * TODO: Desktop support - Should everything be a noop?
- * TODO: Clear context listeners on activity destroy
- */
-class CapabilityService(
+class KmpCapabilities(
     bluetoothFlags: Array<BluetoothCapabilityFlags> = emptyArray(),
     locationFlags: Array<LocationCapabilityFlags> = emptyArray(),
-//    storageCapabilityFlags: Array<StorageCapabilityFlags> = emptyArray(),
 ) {
     private var context: CapabilityContext? = null
 
@@ -35,7 +25,7 @@ class CapabilityService(
      *      NSBluetoothAlwaysUsageDescription
      *      NSBluetoothPeripheralUsageDescription
      */
-    val bluetooth: ICapability = createPlatformBluetoothCapability(bluetoothFlags)
+    val bluetooth: IKmpCapability = createPlatformBluetoothCapability(bluetoothFlags)
 
     /**
      * 	Android:
@@ -45,40 +35,16 @@ class CapabilityService(
      * 	    NSLocationUsageDescription
      * 	    NSLocationWhenInUseUsageDescription
      */
-    val location: ICapability = createPlatformLocationCapability(locationFlags)
-//    val storage: ICapability = createPlatformStorageCapability(storageCapabilityFlags)
-//    val camera: ICapability = createPlatformCameraCapability()
-//    val network: ICapability = createPlatformNetworkCapability()
-//    val wifi: ICapability = createPlatformWifiCapability()
+    val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
 
     fun init(context: CapabilityContext) {
         this.context = context
-        (bluetooth as? IInitializableCapability)?.init(context)
-        (location as? IInitializableCapability)?.init(context)
-//        (storage as? IInitializableCapability)?.init(context)
-//        (camera as? IInitializableCapability)?.init(context)
-//        (network as? IInitializableCapability)?.init(context)
+        (bluetooth as? IInitializableKmpCapability)?.init(context)
+        (location as? IInitializableKmpCapability)?.init(context)
     }
 }
 
-// Potential Permissions
-
-// NFC
-
-// INTERNET
-// ACCESS_NETWORK_STATE
-// ACCESS_WIFI_STATE
-// NEARBY_WIFI_DEVICES - runtime
-
-// POST_NOTIFICATIONS - runtime
-
-// RECORD_AUDIO - runtime
-
-// USE_BIOMETRIC
-
-// VIBRATE
-
-enum class CapabilityServiceError {
+enum class KmpCapabilitiesError {
     Unknown,
     Uninitialized,
     UnsupportedOperation,
@@ -97,26 +63,11 @@ enum class LocationCapabilityFlags {
     FineLocation,
 }
 
-enum class StorageCapabilityFlags {
-    ReadExternal,
-    WriteExternal,
-    ReadMedia,
-    WriteMedia,
-
-// ACCESS_MEDIA_LOCATION - runtime
-// READ_EXTERNAL_STORAGE - runtime - <33
-// READ_MEDIA_AUDIO - runtime >=33
-// READ_MEDIA_IMAGES - runtime >=33
-// READ_MEDIA_VIDEO - runtime >=33
-// READ_MEDIA_VISUAL_USER_SELECTED - runtime
-// WRITE_EXTERNAL_STORAGE - runtime (< Android R no effect) (>=19 not needed)
-}
-
-internal interface IInitializableCapability : ICapability {
+internal interface IInitializableKmpCapability : IKmpCapability {
     fun init(context: CapabilityContext)
 }
 
-interface ICapability {
+interface IKmpCapability {
     val status: CapabilityStatus
     val statusFlow: Flow<CapabilityStatus>
 
