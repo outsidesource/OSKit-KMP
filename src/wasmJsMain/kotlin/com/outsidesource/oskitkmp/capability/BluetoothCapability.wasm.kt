@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flow
 class BluetoothKmpCapability(
     private val flags: Array<BluetoothCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-    override val status: Flow<CapabilityStatus> = flow { queryStatus() }
+    override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }
 
     override val hasPermissions: Boolean = false
     override val hasEnablableService: Boolean = false

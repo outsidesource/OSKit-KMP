@@ -139,15 +139,24 @@ interface IKmpCapability {
 
 sealed class CapabilityStatus {
     data object Unknown : CapabilityStatus()
-    data class Unsupported(val reason: UnsupportedReason = UnsupportedReason.InvalidHardware) : CapabilityStatus()
+    data class Unsupported(
+        val reason: UnsupportedReason = UnsupportedReason.UnsupportedPlatformOrHardware,
+    ) : CapabilityStatus()
     data class NoPermission(val reason: NoPermissionReason = NoPermissionReason.NotRequested) : CapabilityStatus()
     data object NotEnabled : CapabilityStatus()
     data object Ready : CapabilityStatus()
 }
 
 enum class UnsupportedReason {
-    UnsupportedPlatform,
-    InvalidHardware,
+    /**
+     * [NotImplemented] The capability has not been implemented for platform in OSKit
+     */
+    NotImplemented,
+
+    /**
+     * [UnsupportedPlatformOrHardware] The underlying hardware or platform does not support the capability
+     */
+    UnsupportedPlatformOrHardware,
 }
 
 enum class NoPermissionReason {

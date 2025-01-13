@@ -9,7 +9,7 @@ class LocationKmpCapability(
 ) : IInitializableKmpCapability, IKmpCapability {
     override fun init(context: KmpCapabilityContext) {}
 
-    override val status: Flow<CapabilityStatus> = flow { queryStatus() }
+    override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }
     override val hasPermissions: Boolean = false
     override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
@@ -17,7 +17,7 @@ class LocationKmpCapability(
     override val supportsOpenServiceSettingsScreen: Boolean = false
 
     override suspend fun queryStatus(): CapabilityStatus =
-        CapabilityStatus.Unsupported(UnsupportedReason.UnsupportedPlatform)
+        CapabilityStatus.Unsupported(UnsupportedReason.NotImplemented)
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)

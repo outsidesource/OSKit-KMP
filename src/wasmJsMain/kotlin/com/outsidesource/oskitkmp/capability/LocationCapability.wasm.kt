@@ -67,9 +67,6 @@ class LocationKmpCapability(
         .kmpAwaitOutcome()
 
     private fun mapJsPermissionStatusToCapabilityStatus(status: PermissionStatus): CapabilityStatus {
-        if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()
-        if (!isCapabilityRequiredForFlags) CapabilityStatus.Ready
-
         return when (status.state) {
             "granted" -> CapabilityStatus.Ready
             "prompt" -> CapabilityStatus.NoPermission(reason = NoPermissionReason.NotRequested)
@@ -79,9 +76,13 @@ class LocationKmpCapability(
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> = suspendCoroutine { continuation ->
         navigator.geolocation.getCurrentPosition(
-            success = { continuation.resume(Outcome.Ok(CapabilityStatus.Ready)) },
+            success = {
+                localStatusFlow.value = CapabilityStatus.Ready
+                continuation.resume(Outcome.Ok(CapabilityStatus.Ready))
+            },
             error = {
                 if (it.code == 1) {
+                    localStatusFlow.value = CapabilityStatus.NoPermission(NoPermissionReason.DeniedPermanently)
                     continuation.resume(Outcome.Ok(localStatusFlow.value))
                     return@getCurrentPosition
                 }
