@@ -50,7 +50,7 @@ internal class LocationKmpCapability(
         else -> true
     }
 
-    override val hasPermissions: Boolean = !isCapabilityRequiredForFlags
+    override val hasPermissions: Boolean = isCapabilityRequiredForFlags
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = true

@@ -20,11 +20,18 @@ class LocationKmpCapability(
 ) : IInitializableKmpCapability, IKmpCapability {
     override fun init(context: CapabilityContext) {}
 
+    private val isCapabilityRequiredForFlags = when (flags.size) {
+        1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess
+        else -> true
+    }
+
     private val localStatusFlow = MutableStateFlow<CapabilityStatus>(
-        if (hardwareSupportsCapability()) {
-            CapabilityStatus.Unknown
-        } else {
+        if (!hardwareSupportsCapability()) {
             CapabilityStatus.Unsupported()
+        } else if (!isCapabilityRequiredForFlags) {
+            CapabilityStatus.Ready
+        } else {
+            CapabilityStatus.Unknown
         },
     )
 
@@ -32,7 +39,7 @@ class LocationKmpCapability(
         get() = localStatusFlow.value
     override val statusFlow: Flow<CapabilityStatus> = localStatusFlow
 
-    override val hasPermissions: Boolean = true
+    override val hasPermissions: Boolean = isCapabilityRequiredForFlags
     override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = false
@@ -53,6 +60,9 @@ class LocationKmpCapability(
     }
 
     private fun mapJsPermissionStatusToCapabilityStatus(status: PermissionStatus): CapabilityStatus {
+        if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()
+        if (!isCapabilityRequiredForFlags) CapabilityStatus.Ready
+
         return when (status.state) {
             "granted" -> CapabilityStatus.Ready
             "prompt" -> CapabilityStatus.NoPermission(reason = NoPermissionReason.NotRequested)
