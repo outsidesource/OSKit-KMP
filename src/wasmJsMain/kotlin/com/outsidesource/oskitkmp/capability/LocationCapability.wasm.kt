@@ -18,7 +18,6 @@ private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-    override fun init(context: KmpCapabilityContext) {}
 
     private val isCapabilityRequiredForFlags = when (flags.size) {
         1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess
@@ -35,9 +34,7 @@ class LocationKmpCapability(
         },
     )
 
-    override val status: CapabilityStatus
-        get() = localStatusFlow.value
-    override val statusFlow: Flow<CapabilityStatus> = localStatusFlow
+    override val status: Flow<CapabilityStatus> = localStatusFlow
 
     override val hasPermissions: Boolean = isCapabilityRequiredForFlags
     override val hasEnablableService: Boolean = false
@@ -45,19 +42,29 @@ class LocationKmpCapability(
     override val supportsOpenAppSettingsScreen: Boolean = false
     override val supportsOpenServiceSettingsScreen: Boolean = false
 
-    init {
+    override fun init(context: KmpCapabilityContext) {
         scope.launch {
             if (!hardwareSupportsCapability()) return@launch
+            if (!isCapabilityRequiredForFlags) return@launch
 
-            val status = navigator.permissions
-                .query(permissionQueryParams("geolocation"))
-                .kmpAwaitOutcome()
-                .unwrapOrReturn { return@launch }
-
+            val status = queryPermissions().unwrapOrReturn { return@launch }
             localStatusFlow.value = mapJsPermissionStatusToCapabilityStatus(status)
+
             status.onchange = { localStatusFlow.value = mapJsPermissionStatusToCapabilityStatus(status) }
         }
     }
+
+    override suspend fun queryStatus(): CapabilityStatus {
+        if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()
+        if (!isCapabilityRequiredForFlags) return CapabilityStatus.Ready
+
+        val status = queryPermissions().unwrapOrReturn { return CapabilityStatus.Unknown }
+        return mapJsPermissionStatusToCapabilityStatus(status)
+    }
+
+    private suspend fun queryPermissions(): Outcome<PermissionStatus, Any> = navigator.permissions
+        .query(permissionQueryParams("geolocation"))
+        .kmpAwaitOutcome()
 
     private fun mapJsPermissionStatusToCapabilityStatus(status: PermissionStatus): CapabilityStatus {
         if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()

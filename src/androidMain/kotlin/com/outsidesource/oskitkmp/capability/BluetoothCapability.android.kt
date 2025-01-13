@@ -63,16 +63,13 @@ internal class BluetoothKmpCapability(
     override val supportsOpenAppSettingsScreen: Boolean = true
     override val supportsOpenServiceSettingsScreen: Boolean = true
 
-    override val status: CapabilityStatus
-        get() = getCurrentStatus()
-
-    override val statusFlow: Flow<CapabilityStatus> = callbackFlow {
+    override val status: Flow<CapabilityStatus> = callbackFlow {
         val activity = context?.activity ?: return@callbackFlow
 
         launch {
             activity.lifecycle.currentStateFlow.collect {
                 when (it) {
-                    Lifecycle.State.RESUMED -> send(getCurrentStatus())
+                    Lifecycle.State.RESUMED -> send(queryStatus())
                     else -> {}
                 }
             }
@@ -81,12 +78,12 @@ internal class BluetoothKmpCapability(
         val filter = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
         val broadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                launch { send(getCurrentStatus()) }
+                launch { send(queryStatus()) }
             }
         }
         ContextCompat.registerReceiver(activity, broadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
-        send(getCurrentStatus())
+        send(queryStatus())
 
         awaitClose {
             activity.unregisterReceiver(broadcastReceiver)
@@ -110,7 +107,7 @@ internal class BluetoothKmpCapability(
             }
     }
 
-    private fun getCurrentStatus(): CapabilityStatus {
+    override suspend fun queryStatus(): CapabilityStatus {
         val activity = context?.activity ?: return CapabilityStatus.Unknown
 
         if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
@@ -145,7 +142,7 @@ internal class BluetoothKmpCapability(
             withContext(Dispatchers.Main) { permissionResultLauncher?.launch(permissions) }
             permissionsResultFlow.firstOrNull()
             hasRequestedPermissions = true
-            return Outcome.Ok(getCurrentStatus())
+            return Outcome.Ok(queryStatus())
         } catch (e: Exception) {
             return Outcome.Error(Unit)
         }
@@ -156,7 +153,7 @@ internal class BluetoothKmpCapability(
             context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             enableResultLauncher?.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
             enableResultFlow.firstOrNull()
-            return Outcome.Ok(getCurrentStatus())
+            return Outcome.Ok(queryStatus())
         } catch (_: Throwable) {
             return Outcome.Error(Unit)
         }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -12,7 +13,9 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import platform.CoreBluetooth.CBCentralManager
 import platform.CoreBluetooth.CBCentralManagerDelegateProtocol
 import platform.CoreBluetooth.CBCentralManagerOptionShowPowerAlertKey
@@ -20,6 +23,7 @@ import platform.CoreBluetooth.CBCentralManagerStatePoweredOn
 import platform.CoreBluetooth.CBManager
 import platform.CoreBluetooth.CBManagerAuthorizationAllowedAlways
 import platform.CoreBluetooth.CBManagerAuthorizationRestricted
+import platform.CoreBluetooth.CBManagerStatePoweredOn
 import platform.darwin.NSObject
 
 internal class BluetoothKmpCapability(
@@ -49,17 +53,14 @@ internal class BluetoothKmpCapability(
     private var hardwareSupportsCapability: Boolean = true
     private var hasRequestedPermissions: Boolean = false
 
-    override val status: CapabilityStatus
-        get() = getCurrentStatus()
-
-    override val statusFlow: Flow<CapabilityStatus> = flow {
-        emit(getCurrentStatus())
-        emitAll(internalStateFlow.map { getCurrentStatus() })
+    override val status: Flow<CapabilityStatus> = flow {
+        emit(queryStatus())
+        emitAll(internalStateFlow.map { queryStatus() })
     }.distinctUntilChanged()
 
     override fun init(context: KmpCapabilityContext) {}
 
-    private fun getCurrentStatus(): CapabilityStatus {
+    override suspend fun queryStatus(): CapabilityStatus {
         if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
 
         val hasAuthorization = when (CBManager.authorization) {
@@ -78,6 +79,7 @@ internal class BluetoothKmpCapability(
             return CapabilityStatus.NoPermission(reason)
         }
 
+        awaitCentralPoweredOn(central)
         if (central.state != CBCentralManagerStatePoweredOn) return CapabilityStatus.NotEnabled
 
         return CapabilityStatus.Ready
@@ -88,7 +90,7 @@ internal class BluetoothKmpCapability(
         internalStateFlow.firstOrNull()
         hasRequestedPermissions = true
         internalStateFlow.emit(Unit)
-        return Outcome.Ok(getCurrentStatus())
+        return Outcome.Ok(queryStatus())
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
@@ -98,4 +100,14 @@ internal class BluetoothKmpCapability(
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(null)
+}
+
+private suspend fun awaitCentralPoweredOn(central: CBCentralManager): Boolean {
+    return withTimeoutOrNull(2_000) {
+        while (isActive) {
+            if (central.state == CBManagerStatePoweredOn) return@withTimeoutOrNull true
+            delay(16)
+        }
+        false
+    } ?: return false
 }

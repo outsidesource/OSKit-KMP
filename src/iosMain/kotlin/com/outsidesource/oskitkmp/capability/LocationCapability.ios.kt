@@ -56,12 +56,9 @@ internal class LocationKmpCapability(
     override val supportsOpenAppSettingsScreen: Boolean = true
     override val supportsOpenServiceSettingsScreen: Boolean = false
 
-    override val status: CapabilityStatus
-        get() = getCurrentStatus()
-
-    override val statusFlow: Flow<CapabilityStatus> = flow {
-        emit(getCurrentStatus())
-        emitAll(internalStateFlow.map { getCurrentStatus() })
+    override val status: Flow<CapabilityStatus> = flow {
+        emit(queryStatus())
+        emitAll(internalStateFlow.map { queryStatus() })
     }.distinctUntilChanged()
 
     private var hardwareSupportsCapability: Boolean = true
@@ -69,7 +66,7 @@ internal class LocationKmpCapability(
 
     override fun init(context: KmpCapabilityContext) {}
 
-    private fun getCurrentStatus(): CapabilityStatus {
+    override suspend fun queryStatus(): CapabilityStatus {
         if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
         if (!isCapabilityRequiredForFlags) return CapabilityStatus.Ready
 
@@ -106,7 +103,7 @@ internal class LocationKmpCapability(
         internalStateFlow.firstOrNull()
         hasRequestedPermissions = true
         internalStateFlow.emit(Unit)
-        return Outcome.Ok(getCurrentStatus())
+        return Outcome.Ok(queryStatus())
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =

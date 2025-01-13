@@ -81,14 +81,9 @@ interface IInitializableKmpCapability : IKmpCapability {
 
 interface IKmpCapability {
     /**
-     * [status] The current status of the capability
+     * [status] A flow that immediately emits the current status of the capability and any subsequent changes
      */
-    val status: CapabilityStatus
-
-    /**
-     * [statusFlow] A flow that immediately emits the current status of the capability and any subsequent changes
-     */
-    val statusFlow: Flow<CapabilityStatus>
+    val status: Flow<CapabilityStatus>
 
     /**
      * [hasPermissions] True if there are any associated required permissions for the passed in flags
@@ -115,6 +110,11 @@ interface IKmpCapability {
      * opened on the current platform
      */
     val supportsOpenServiceSettingsScreen: Boolean
+
+    /**
+     * [queryStatus] Queries the current status
+     */
+    suspend fun queryStatus(): CapabilityStatus
 
     /**
      * [requestPermissions] Requests the required permissions to use the capability
