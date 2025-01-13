@@ -16,6 +16,7 @@ internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabi
 class KmpCapabilities(
     bluetoothFlags: Array<BluetoothCapabilityFlags> = emptyArray(),
     locationFlags: Array<LocationCapabilityFlags> = emptyArray(),
+    capabilityOverrides: KmpCapabilityOverrides = KmpCapabilityOverrides(),
 ) {
     private var context: CapabilityContext? = null
 
@@ -25,7 +26,7 @@ class KmpCapabilities(
      *      NSBluetoothAlwaysUsageDescription
      *      NSBluetoothPeripheralUsageDescription
      */
-    val bluetooth: IKmpCapability = createPlatformBluetoothCapability(bluetoothFlags)
+    val bluetooth: IKmpCapability = capabilityOverrides.bluetooth ?: createPlatformBluetoothCapability(bluetoothFlags)
 
     /**
      * 	Android:
@@ -35,7 +36,7 @@ class KmpCapabilities(
      * 	    NSLocationUsageDescription
      * 	    NSLocationWhenInUseUsageDescription
      */
-    val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
+    val location: IKmpCapability = capabilityOverrides.location ?: createPlatformLocationCapability(locationFlags)
 
     fun init(context: CapabilityContext) {
         this.context = context
@@ -43,6 +44,11 @@ class KmpCapabilities(
         (location as? IInitializableKmpCapability)?.init(context)
     }
 }
+
+data class KmpCapabilityOverrides(
+    val bluetooth: IKmpCapability? = null,
+    val location: IKmpCapability? = null,
+)
 
 enum class KmpCapabilitiesError {
     Unknown,
