@@ -54,7 +54,7 @@ internal class LocationKmpCapability(
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = true
-    override val supportsOpenEnableSettingsScreen: Boolean = false
+    override val supportsOpenServiceSettingsScreen: Boolean = false
 
     override val status: CapabilityStatus
         get() = getCurrentStatus()
@@ -112,7 +112,7 @@ internal class LocationKmpCapability(
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
-    override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> =
+    override suspend fun openServiceSettingsScreen(): Outcome<Unit, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(null)

@@ -61,7 +61,7 @@ internal class BluetoothKmpCapability(
     override val hasEnablableService: Boolean = true
     override val supportsRequestEnable: Boolean = true
     override val supportsOpenAppSettingsScreen: Boolean = true
-    override val supportsOpenEnableSettingsScreen: Boolean = true
+    override val supportsOpenServiceSettingsScreen: Boolean = true
 
     override val status: CapabilityStatus
         get() = getCurrentStatus()
@@ -162,7 +162,7 @@ internal class BluetoothKmpCapability(
         }
     }
 
-    override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> {
+    override suspend fun openServiceSettingsScreen(): Outcome<Unit, Any> {
         try {
             val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
             val openEnableSettings = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)

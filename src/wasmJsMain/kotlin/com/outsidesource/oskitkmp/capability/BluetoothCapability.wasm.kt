@@ -21,7 +21,7 @@ class BluetoothKmpCapability(
     override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = false
-    override val supportsOpenEnableSettingsScreen: Boolean = false
+    override val supportsOpenServiceSettingsScreen: Boolean = false
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
@@ -29,7 +29,7 @@ class BluetoothKmpCapability(
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
-    override suspend fun openEnableSettingsScreen(): Outcome<Unit, Any> =
+    override suspend fun openServiceSettingsScreen(): Outcome<Unit, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> =

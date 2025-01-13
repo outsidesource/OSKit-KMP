@@ -13,30 +13,40 @@ internal expect suspend fun internalOpenAppSettingsScreen(context: KmpCapability
 internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability
 internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability
 
+/**
+ * [KmpCapabilities] allows querying and requesting of permissions and enablement of certain platform capabilities.
+ * Some capabilities (i.e. Bluetooth and Location) require both permissions to be granted and for their underlying
+ * services to be enabled. [KmpCapabilities] aims to streamline that workflow.
+ *
+ * @param bluetoothFlags Indicates specific bluetooth features that are required. Most of the time flags map directly to
+ * platform permissions
+ *
+ * @param locationFlags Indicates specific location features that are required. Most of the time flags map directly to
+ * platform permissions
+ *
+ * @param capabilityOverrides Allows applications to override and implement a IKmpCapability themselves
+ */
 class KmpCapabilities(
     bluetoothFlags: Array<BluetoothCapabilityFlags> = emptyArray(),
     locationFlags: Array<LocationCapabilityFlags> = emptyArray(),
-    capabilityOverrides: KmpCapabilityOverrides = KmpCapabilityOverrides(),
 ) {
     private var context: KmpCapabilityContext? = null
 
     /**
-     * Android:
      * iOS: Add the following to info.plist
      *      NSBluetoothAlwaysUsageDescription
      *      NSBluetoothPeripheralUsageDescription
      */
-    val bluetooth: IKmpCapability = capabilityOverrides.bluetooth ?: createPlatformBluetoothCapability(bluetoothFlags)
+    val bluetooth: IKmpCapability = createPlatformBluetoothCapability(bluetoothFlags)
 
     /**
-     * 	Android:
      * 	iOS: Add the following to info.plist
      * 	    NSLocationAlwaysAndWhenInUseUsageDescription
      *   	NSLocationAlwaysUsageDescription
      * 	    NSLocationUsageDescription
      * 	    NSLocationWhenInUseUsageDescription
      */
-    val location: IKmpCapability = capabilityOverrides.location ?: createPlatformLocationCapability(locationFlags)
+    val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
 
     fun init(context: KmpCapabilityContext) {
         this.context = context
@@ -44,11 +54,6 @@ class KmpCapabilities(
         (location as? IInitializableKmpCapability)?.init(context)
     }
 }
-
-data class KmpCapabilityOverrides(
-    val bluetooth: IKmpCapability? = null,
-    val location: IKmpCapability? = null,
-)
 
 enum class KmpCapabilitiesError {
     Unknown,
@@ -63,30 +68,73 @@ enum class BluetoothCapabilityFlags {
 }
 
 enum class LocationCapabilityFlags {
-    BluetoothAccess, // Only required for Android <= 30
+    // Only required for Android <= 30. Android <= 30 requires location permissions and enablement to use bluetooth
+    BluetoothAccess,
     BackgroundLocation,
     CoarseLocation,
     FineLocation,
 }
 
-internal interface IInitializableKmpCapability : IKmpCapability {
+interface IInitializableKmpCapability : IKmpCapability {
     fun init(context: KmpCapabilityContext)
 }
 
 interface IKmpCapability {
+    /**
+     * [status] The current status of the capability
+     */
     val status: CapabilityStatus
+
+    /**
+     * [statusFlow] A flow that immediately emits the current status of the capability and any subsequent changes
+     */
     val statusFlow: Flow<CapabilityStatus>
 
+    /**
+     * [hasPermissions] True if there are any associated required permissions for the passed in flags
+     */
     val hasPermissions: Boolean
-    val hasEnablableService: Boolean
-    val supportsRequestEnable: Boolean
-    val supportsOpenAppSettingsScreen: Boolean
-    val supportsOpenEnableSettingsScreen: Boolean
 
+    /**
+     * [hasEnablableService] True if there is a platform service that must be on in order to use the capability
+     */
+    val hasEnablableService: Boolean
+
+    /**
+     * [supportsRequestEnable] True if the platform can explicitly request enablement of the underlying service
+     */
+    val supportsRequestEnable: Boolean
+
+    /**
+     * [supportsOpenAppSettingsScreen] True if app settings can be opened on the current platform
+     */
+    val supportsOpenAppSettingsScreen: Boolean
+
+    /**
+     * [supportsOpenServiceSettingsScreen] True if there is a specific settings page for the capability that can be
+     * opened on the current platform
+     */
+    val supportsOpenServiceSettingsScreen: Boolean
+
+    /**
+     * [requestPermissions] Requests the required permissions to use the capability
+     */
     suspend fun requestPermissions(): Outcome<CapabilityStatus, Any>
+
+    /**
+     * [requestEnable] Requests the enablement of the service if the platform supports it
+     */
     suspend fun requestEnable(): Outcome<CapabilityStatus, Any>
-    suspend fun openEnableSettingsScreen(): Outcome<Unit, Any>
+
+    /**
+     * [openAppSettingsScreen] Opens the application settings screen if the platform supports it
+     */
     suspend fun openAppSettingsScreen(): Outcome<Unit, Any>
+
+    /**
+     * [openServiceSettingsScreen] Opens the capability settings screen if the platform supports it
+     */
+    suspend fun openServiceSettingsScreen(): Outcome<Unit, Any>
 }
 
 sealed class CapabilityStatus {
