@@ -20,7 +20,7 @@ internal actual suspend fun internalOpenAppSettingsScreen(
 ): Outcome<Unit, Any> = withContext(Dispatchers.Main) {
     try {
         val settingsUrl: NSURL = NSURL.URLWithString(UIApplicationOpenSettingsURLString)!!
-        UIApplication.sharedApplication.openURL(settingsUrl)
+        UIApplication.sharedApplication.openURL(settingsUrl, emptyMap<Any?, Any>(), null)
         Outcome.Ok(Unit)
     } catch (e: Throwable) {
         Outcome.Error(Unit)
