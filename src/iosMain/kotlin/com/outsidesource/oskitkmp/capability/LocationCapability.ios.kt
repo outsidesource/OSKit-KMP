@@ -67,7 +67,7 @@ internal class LocationKmpCapability(
     private var hardwareSupportsCapability: Boolean = true
     private var hasRequestedPermissions: Boolean = false
 
-    override fun init(context: CapabilityContext) {}
+    override fun init(context: KmpCapabilityContext) {}
 
     private fun getCurrentStatus(): CapabilityStatus {
         if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()

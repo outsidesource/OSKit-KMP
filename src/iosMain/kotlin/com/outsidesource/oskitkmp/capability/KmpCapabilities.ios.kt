@@ -7,7 +7,7 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
-actual class CapabilityContext()
+actual class KmpCapabilityContext()
 
 internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability =
     BluetoothKmpCapability(flags)
@@ -16,7 +16,7 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
     LocationKmpCapability(flags)
 
 internal actual suspend fun internalOpenAppSettingsScreen(
-    context: CapabilityContext?,
+    context: KmpCapabilityContext?,
 ): Outcome<Unit, Any> = withContext(Dispatchers.Main) {
     try {
         val settingsUrl: NSURL = NSURL.URLWithString(UIApplicationOpenSettingsURLString)!!

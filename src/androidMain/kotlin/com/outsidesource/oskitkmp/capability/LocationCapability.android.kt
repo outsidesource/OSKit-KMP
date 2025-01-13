@@ -31,7 +31,7 @@ internal class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
 
-    private var context: CapabilityContext? = null
+    private var context: KmpCapabilityContext? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var permissionResultLauncher: ActivityResultLauncher<Array<String>>? = null
     private var enableResultLauncher: ActivityResultLauncher<Intent>? = null
@@ -100,7 +100,7 @@ internal class LocationKmpCapability(
         }
     }.distinctUntilChanged()
 
-    override fun init(context: CapabilityContext) {
+    override fun init(context: KmpCapabilityContext) {
         this.context = context
         checkHardwareSupport()
 

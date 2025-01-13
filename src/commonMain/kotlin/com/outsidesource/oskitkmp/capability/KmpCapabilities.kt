@@ -3,13 +3,13 @@ package com.outsidesource.oskitkmp.capability
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.flow.Flow
 
-expect class CapabilityContext
+expect class KmpCapabilityContext
 
 internal interface ICapabilityContextScope {
-    val context: CapabilityContext?
+    val context: KmpCapabilityContext?
 }
 
-internal expect suspend fun internalOpenAppSettingsScreen(context: CapabilityContext?): Outcome<Unit, Any>
+internal expect suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any>
 internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability
 internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability
 
@@ -18,7 +18,7 @@ class KmpCapabilities(
     locationFlags: Array<LocationCapabilityFlags> = emptyArray(),
     capabilityOverrides: KmpCapabilityOverrides = KmpCapabilityOverrides(),
 ) {
-    private var context: CapabilityContext? = null
+    private var context: KmpCapabilityContext? = null
 
     /**
      * Android:
@@ -38,7 +38,7 @@ class KmpCapabilities(
      */
     val location: IKmpCapability = capabilityOverrides.location ?: createPlatformLocationCapability(locationFlags)
 
-    fun init(context: CapabilityContext) {
+    fun init(context: KmpCapabilityContext) {
         this.context = context
         (bluetooth as? IInitializableKmpCapability)?.init(context)
         (location as? IInitializableKmpCapability)?.init(context)
@@ -70,7 +70,7 @@ enum class LocationCapabilityFlags {
 }
 
 internal interface IInitializableKmpCapability : IKmpCapability {
-    fun init(context: CapabilityContext)
+    fun init(context: KmpCapabilityContext)
 }
 
 interface IKmpCapability {

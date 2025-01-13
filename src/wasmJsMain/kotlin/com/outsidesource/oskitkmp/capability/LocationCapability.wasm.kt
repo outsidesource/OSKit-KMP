@@ -18,7 +18,7 @@ private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-    override fun init(context: CapabilityContext) {}
+    override fun init(context: KmpCapabilityContext) {}
 
     private val isCapabilityRequiredForFlags = when (flags.size) {
         1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess

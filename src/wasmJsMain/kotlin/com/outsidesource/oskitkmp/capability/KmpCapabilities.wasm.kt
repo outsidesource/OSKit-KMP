@@ -2,7 +2,7 @@ package com.outsidesource.oskitkmp.capability
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 
-actual class CapabilityContext()
+actual class KmpCapabilityContext()
 
 internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability =
     BluetoothKmpCapability(flags)
@@ -11,5 +11,5 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
     LocationKmpCapability(flags)
 
 internal actual suspend fun internalOpenAppSettingsScreen(
-    context: CapabilityContext?,
+    context: KmpCapabilityContext?,
 ): Outcome<Unit, Any> = Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)

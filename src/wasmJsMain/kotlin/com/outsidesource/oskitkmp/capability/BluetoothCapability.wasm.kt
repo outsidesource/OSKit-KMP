@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flowOf
 class BluetoothKmpCapability(
     private val flags: Array<BluetoothCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-    override fun init(context: CapabilityContext) {}
+    override fun init(context: KmpCapabilityContext) {}
 
     override val status: CapabilityStatus = if (hardwareSupportsCapability()) {
         CapabilityStatus.Ready

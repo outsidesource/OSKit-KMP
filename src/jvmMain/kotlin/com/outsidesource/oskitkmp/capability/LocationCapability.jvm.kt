@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flowOf
 class LocationKmpCapability(
     private val flags: Array<LocationCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-    override fun init(context: CapabilityContext) {}
+    override fun init(context: KmpCapabilityContext) {}
 
     override val status: CapabilityStatus = CapabilityStatus.Unsupported(UnsupportedReason.UnsupportedPlatform)
     override val statusFlow: Flow<CapabilityStatus> = flowOf(status)

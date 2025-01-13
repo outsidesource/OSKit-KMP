@@ -6,7 +6,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import com.outsidesource.oskitkmp.outcome.Outcome
 
-actual class CapabilityContext(
+actual class KmpCapabilityContext(
     var activity: ComponentActivity,
 )
 
@@ -16,7 +16,7 @@ internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapa
 internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
     LocationKmpCapability(flags)
 
-internal actual suspend fun internalOpenAppSettingsScreen(context: CapabilityContext?): Outcome<Unit, Any> {
+internal actual suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any> {
     try {
         val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {

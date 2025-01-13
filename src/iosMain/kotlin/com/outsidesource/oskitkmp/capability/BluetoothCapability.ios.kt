@@ -57,7 +57,7 @@ internal class BluetoothKmpCapability(
         emitAll(internalStateFlow.map { getCurrentStatus() })
     }.distinctUntilChanged()
 
-    override fun init(context: CapabilityContext) {}
+    override fun init(context: KmpCapabilityContext) {}
 
     private fun getCurrentStatus(): CapabilityStatus {
         if (!hardwareSupportsCapability) return CapabilityStatus.Unsupported()
