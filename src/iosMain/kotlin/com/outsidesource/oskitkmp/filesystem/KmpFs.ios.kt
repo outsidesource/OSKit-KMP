@@ -65,7 +65,7 @@ actual class KmpFs : IKmpFs {
             }
 
             val url = documentPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
-            return Outcome.Ok(url.toKMPFileRef(isDirectory = false))
+            return Outcome.Ok(url.toKmpFileRef(isDirectory = false))
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
@@ -98,7 +98,7 @@ actual class KmpFs : IKmpFs {
             }
 
             val urls = documentPickerDelegate.resultFlow.firstOrNull() ?: return Outcome.Ok(null)
-            val refs = urls.map { it.toKMPFileRef(false) }
+            val refs = urls.map { it.toKmpFileRef(false) }
 
             return Outcome.Ok(refs)
         } catch (e: Exception) {
@@ -128,7 +128,7 @@ actual class KmpFs : IKmpFs {
             }
 
             val url = directoryPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
-            return Outcome.Ok(url.toKMPFileRef(isDirectory = true))
+            return Outcome.Ok(url.toKmpFileRef(isDirectory = true))
         } catch (e: Exception) {
             return Outcome.Error(e)
         }
@@ -159,7 +159,7 @@ actual class KmpFs : IKmpFs {
                 if (!created) return Outcome.Error(FileCreateError())
             }
 
-            Outcome.Ok(url.toKMPFileRef(isDirectory = false))
+            Outcome.Ok(url.toKmpFileRef(isDirectory = false))
         } catch (e: Exception) {
             Outcome.Error(e)
         } finally {
@@ -194,7 +194,7 @@ actual class KmpFs : IKmpFs {
                 if (!created) return Outcome.Error(FileCreateError())
             }
 
-            Outcome.Ok(url.toKMPFileRef(isDirectory = true))
+            Outcome.Ok(url.toKmpFileRef(isDirectory = true))
         } catch (e: Exception) {
             Outcome.Error(e)
         } finally {
@@ -209,7 +209,7 @@ actual class KmpFs : IKmpFs {
 
             if (!exists) return Outcome.Error(FileNotFoundError())
 
-            Outcome.Ok(url.toKMPFileRef(isDirectory = url.hasDirectoryPath))
+            Outcome.Ok(url.toKmpFileRef(isDirectory = url.hasDirectoryPath))
         } catch (e: Exception) {
             Outcome.Error(e)
         }
@@ -255,7 +255,7 @@ actual class KmpFs : IKmpFs {
                 if (!isRecursive) {
                     val list = paths.mapNotNull {
                         val path = it as? String ?: return@mapNotNull null
-                        directoryUrl.URLByAppendingPathComponent(path)?.toKMPFileRef(isDirectory = false)
+                        directoryUrl.URLByAppendingPathComponent(path)?.toKmpFileRef(isDirectory = false)
                     }
                     return Outcome.Ok(list)
                 }
@@ -265,7 +265,7 @@ actual class KmpFs : IKmpFs {
                     val url = directoryUrl.URLByAppendingPathComponent(path) ?: return@flatMap emptyList()
 
                     buildList {
-                        val file = url.toKMPFileRef(isDirectory = false)
+                        val file = url.toKmpFileRef(isDirectory = false)
                         add(file)
 
                         if (url.hasDirectoryPath) {
@@ -394,7 +394,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Ex
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun NSURL.toKMPFileRef(isDirectory: Boolean): KmpFsRef {
+private fun NSURL.toKmpFileRef(isDirectory: Boolean): KmpFsRef {
     startAccessingSecurityScopedResource()
 
     val ref = memScoped {
@@ -443,4 +443,4 @@ private fun KmpFsRef.toNSURL(): NSURL? {
     }
 }
 
-class KmpFileNsUrlError : Exception("Error converting KMPFileRef to NSURL")
+class KmpFileNsUrlError : Exception("Error converting KmpFileRef to NSURL")

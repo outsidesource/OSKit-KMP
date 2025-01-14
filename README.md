@@ -36,7 +36,7 @@ implementation("com.outsidesource:oskit-kmp:4.6.0")
 ## Changelog
 ### 4.6.0 - 2024-05-21
 #### Added
-* InMemoryKMPStorageNode
+* InMemoryKmpStorageNode
 * withTimeoutOrOutcome
 * Deferrable code helpers
   * Deferrer/SuspendDeferrer
@@ -47,10 +47,10 @@ implementation("com.outsidesource:oskit-kmp:4.6.0")
 #### Updated
 * Default parameters in Coordinator
 #### Fixed
-* KMPFileRef being broken after reboot on iOS
-* Large iOS KMPFileRef sink() writes 
-* Issue when resolving KMPFileRef on desktop
-* Issue with resolving KMPFileRef directory on Linux
+* KmpFileRef being broken after reboot on iOS
+* Large iOS KmpFileRef sink() writes 
+* Issue when resolving KmpFileRef on desktop
+* Issue with resolving KmpFileRef directory on Linux
 * Issue with file pickers on Linux with Plasma
 
 ### 4.5.0 - 2024-03-23
@@ -65,7 +65,7 @@ implementation("com.outsidesource:oskit-kmp:4.6.0")
 
 ### 4.4.0 - 2024-03-06
 #### Added
-* KMPStorage
+* KmpStorage
 * Double.toFixed()
 * List extensions
 #### Breaking Changes

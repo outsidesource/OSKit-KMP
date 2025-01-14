@@ -31,7 +31,7 @@ class FlowExtTest {
             }
         }
 
-        val scope = CoroutineScope(KMPDispatchers.IO + SupervisorJob())
+        val scope = CoroutineScope(KmpDispatchers.IO + SupervisorJob())
 
         coroutineScope {
             launch {

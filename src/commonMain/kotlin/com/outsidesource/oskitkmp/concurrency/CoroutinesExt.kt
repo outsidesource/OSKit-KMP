@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.concurrency
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
 
-expect object KMPDispatchers {
+expect object KmpDispatchers {
     val IO: CoroutineDispatcher
     val Default: CoroutineDispatcher
     val Main: CoroutineDispatcher
