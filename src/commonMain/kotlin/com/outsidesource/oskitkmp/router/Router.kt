@@ -278,4 +278,4 @@ internal expect fun initForPlatform(router: Router)
 
 // Kotlin 2.1.0 has an issue with an anonymous object being created in a class constructor on iOS preventing compilation
 // of any project using OSKit-KMP
-private val DefaultTransition = object : IRouteTransition {}
+internal val DefaultTransition = object : IRouteTransition {}

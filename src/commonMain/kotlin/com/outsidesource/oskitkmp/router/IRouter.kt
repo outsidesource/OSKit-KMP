@@ -9,6 +9,12 @@ private var routeUid: AtomicInt = atomic(0)
 private fun uid(): Int = routeUid.incrementAndGet()
 
 /**
+ * [IRouteTransition] the empty interface that defines a route transition. An IRouteTransition may define a transition
+ * however the UI needs.
+ */
+interface IRouteTransition
+
+/**
  * [IRoute] the empty interface that defines a route. This must be unique and implement equals(). This is normally
  * a data class.
  */
@@ -30,12 +36,6 @@ interface IWebRoute : IRoute {
 interface IAnimatedRoute : IRoute {
     val transition: IRouteTransition
 }
-
-/**
- * [IRouteTransition] the empty interface that defines a route transition. An IRouteTransition may define a transition
- * however the UI needs.
- */
-interface IRouteTransition
 
 /**
  * [RouteTransitionStatus] defines if a transition is running

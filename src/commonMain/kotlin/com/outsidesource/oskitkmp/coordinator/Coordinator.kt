@@ -10,7 +10,7 @@ import kotlin.reflect.KClass
  */
 abstract class Coordinator(
     initialRoute: IRoute,
-    defaultTransition: IRouteTransition = object : IRouteTransition {},
+    defaultTransition: IRouteTransition = DefaultTransition,
 ) {
     internal val router = Router(initialRoute, defaultTransition)
 
