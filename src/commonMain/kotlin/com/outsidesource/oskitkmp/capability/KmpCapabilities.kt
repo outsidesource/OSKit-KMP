@@ -23,8 +23,6 @@ internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabi
  *
  * @param locationFlags Indicates specific location features that are required. Most of the time flags map directly to
  * platform permissions
- *
- * @param capabilityOverrides Allows applications to override and implement a IKmpCapability themselves
  */
 class KmpCapabilities(
     bluetoothFlags: Array<BluetoothCapabilityFlags> = emptyArray(),
