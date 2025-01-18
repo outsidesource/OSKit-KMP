@@ -23,9 +23,6 @@ import kotlin.random.Random
  * All [KmpKvStore] and [KmpKvStoreNode] methods are blocking and should be run in a coroutine on
  * [Dispatchers.IO]
  *
- * To use [KmpKvStore] create an instance of each platform independent implementation, [AndroidKmpKvStore],
- * [IosKmpKvStore], [JvmKmpKvStore], [WasmKmpKvStore]. Each implementation implements [IKmpKvStore].
- *
  * Desktop/JVM:
  * You may need to add the `java.sql` module:
  * ```

@@ -3,11 +3,6 @@ package com.outsidesource.oskitkmp.storage
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
-enum class WasmKmpKvStoreType {
-    LocalStorage,
-    IndexedDb,
-}
-
 fun KmpKvStore(type: WasmKmpKvStoreType = WasmKmpKvStoreType.IndexedDb): IKmpKvStore = WasmKmpKvStore(type)
 
 internal class WasmKmpKvStore(
@@ -24,4 +19,9 @@ internal class WasmKmpKvStore(
     } catch (e: Exception) {
         Outcome.Error(e)
     }
+}
+
+enum class WasmKmpKvStoreType {
+    LocalStorage,
+    IndexedDb,
 }
