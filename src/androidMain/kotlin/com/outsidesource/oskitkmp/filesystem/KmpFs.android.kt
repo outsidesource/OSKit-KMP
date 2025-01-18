@@ -27,7 +27,9 @@ actual data class KmpFsContext(
     val activity: ComponentActivity,
 )
 
-actual class KmpFs : IKmpFs {
+actual fun KmpFs(): IKmpFs = AndroidKmpFs()
+
+internal class AndroidKmpFs : IKmpFs {
     companion object {
         internal var context: KmpFsContext? = null
     }
@@ -47,7 +49,7 @@ actual class KmpFs : IKmpFs {
     private val pickFolderResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    actual override fun init(fileHandlerContext: KmpFsContext) {
+    override fun init(fileHandlerContext: KmpFsContext) {
         context = fileHandlerContext
 
         pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
@@ -83,7 +85,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickFile(
+    override suspend fun pickFile(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -108,7 +110,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickFiles(
+    override suspend fun pickFiles(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, Exception> {
@@ -137,7 +139,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickSaveFile(
+    override suspend fun pickSaveFile(
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -162,7 +164,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
         return try {
             val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(NotInitializedError())
             val context = context ?: return Outcome.Error(NotInitializedError())
@@ -183,7 +185,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveFile(
+    override suspend fun resolveFile(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -203,7 +205,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveDirectory(
+    override suspend fun resolveDirectory(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -224,7 +226,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedError())
             val file = DocumentFile.fromSingleUri(context.applicationContext, path.toUri())
@@ -236,7 +238,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedError())
             val documentFile = if (ref.isDirectory) {
@@ -255,7 +257,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedError())
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
@@ -287,7 +289,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
         return try {
             val context = context ?: return Outcome.Error(NotInitializedError())
             val size: Long
@@ -312,7 +314,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun exists(ref: KmpFsRef): Boolean {
+    override suspend fun exists(ref: KmpFsRef): Boolean {
         val context = context ?: return false
 
         val documentFile = if (ref.isDirectory) {
@@ -329,7 +331,7 @@ actual class KmpFs : IKmpFs {
 actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        val context = KmpFs.context ?: return Outcome.Error(NotInitializedError())
+        val context = AndroidKmpFs.context ?: return Outcome.Error(NotInitializedError())
         val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
             ?: return Outcome.Error(FileOpenError())
         val source = stream.source()
@@ -343,7 +345,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception> {
 actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Exception> {
     return try {
         if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        val context = KmpFs.context ?: return Outcome.Error(NotInitializedError())
+        val context = AndroidKmpFs.context ?: return Outcome.Error(NotInitializedError())
         val modeString = when (mode) {
             KmpFileWriteMode.Overwrite -> "wt"
             KmpFileWriteMode.Append -> "wa"

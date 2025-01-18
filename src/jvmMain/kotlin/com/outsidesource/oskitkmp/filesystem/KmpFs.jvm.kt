@@ -14,15 +14,17 @@ import java.awt.Frame
 
 actual class KmpFsContext(val window: Frame)
 
-actual class KmpFs : IKmpFs {
+actual fun KmpFs(): IKmpFs = JvmKmpFs()
+
+internal class JvmKmpFs : IKmpFs {
     private var context: KmpFsContext? = null
     private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 
-    actual override fun init(fileHandlerContext: KmpFsContext) {
+    override fun init(fileHandlerContext: KmpFsContext) {
         context = fileHandlerContext
     }
 
-    actual override suspend fun pickFile(
+    override suspend fun pickFile(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -74,7 +76,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false))
     }
 
-    actual override suspend fun pickFiles(
+    override suspend fun pickFiles(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, Exception> {
@@ -137,7 +139,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(refs)
     }
 
-    actual override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
         return try {
             // Use TinyFileDialogs because there is no AWT directory picker
             val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
@@ -154,7 +156,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickSaveFile(
+    override suspend fun pickSaveFile(
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -199,7 +201,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false))
     }
 
-    actual override suspend fun resolveFile(
+    override suspend fun resolveFile(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -217,7 +219,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveDirectory(
+    override suspend fun resolveDirectory(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -235,7 +237,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val localPath = path.toPath()
             val exists = FileSystem.SYSTEM.exists(localPath)
@@ -250,7 +252,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
         return try {
             FileSystem.SYSTEM.deleteRecursively(ref.ref.toPath())
             Outcome.Ok(Unit)
@@ -259,7 +261,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
             val path = dir.ref.toPath()
@@ -284,7 +286,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
         return try {
             val path = ref.ref.toPath()
             val metadata = FileSystem.SYSTEM.metadata(path)
@@ -295,7 +297,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun exists(ref: KmpFsRef): Boolean {
+    override suspend fun exists(ref: KmpFsRef): Boolean {
         return try {
             FileSystem.SYSTEM.exists(ref.ref.toPath())
         } catch (e: Exception) {

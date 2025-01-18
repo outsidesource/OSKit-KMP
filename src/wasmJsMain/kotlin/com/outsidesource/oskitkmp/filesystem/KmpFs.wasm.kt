@@ -21,11 +21,13 @@ import kotlin.random.Random
 
 actual class KmpFsContext()
 
-actual class KmpFs : IKmpFs {
+actual fun KmpFs(): IKmpFs = WasmKmpFs()
 
-    actual override fun init(fileHandlerContext: KmpFsContext) {}
+internal class WasmKmpFs : IKmpFs {
 
-    actual override suspend fun pickFile(
+    override fun init(fileHandlerContext: KmpFsContext) {}
+
+    override suspend fun pickFile(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -52,7 +54,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = key, name = file.name, isDirectory = false))
     }
 
-    actual override suspend fun pickFiles(
+    override suspend fun pickFiles(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, Exception> {
@@ -95,7 +97,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(fileRefs)
     }
 
-    actual override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
         if (supportsFileSystemApi) {
             val handle = showDirectoryPicker(null).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
             val key = FileHandleRegister.putHandle(handle)
@@ -117,7 +119,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = key, name = directory.name, isDirectory = false))
     }
 
-    actual override suspend fun pickSaveFile(
+    override suspend fun pickSaveFile(
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -129,7 +131,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
     }
 
-    actual override suspend fun resolveFile(
+    override suspend fun resolveFile(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -143,7 +145,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
     }
 
-    actual override suspend fun resolveDirectory(
+    override suspend fun resolveDirectory(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -157,11 +159,11 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true))
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return Outcome.Error(NotSupportedError())
     }
 
-    actual override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
         if (!supportsFileSystemApi) return Outcome.Error(NotSupportedError())
         val handle = FileHandleRegister.getHandle(ref.ref, HandleAccessMode.Write) as? FileSystemHandle
             ?: return Outcome.Error(FileOpenError())
@@ -169,7 +171,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(Unit)
     }
 
-    actual override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
         if (!supportsFileSystemApi) return Outcome.Error(NotSupportedError())
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
@@ -205,7 +207,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
         if (supportsFileSystemApi) {
             val handle = FileHandleRegister.getHandle(ref.ref)
                 as? FileSystemFileHandle ?: return Outcome.Error(FileNotFoundError())
@@ -217,7 +219,7 @@ actual class KmpFs : IKmpFs {
         return Outcome.Ok(KmpFileMetadata(size = file.size.toDouble().toLong()))
     }
 
-    actual override suspend fun exists(ref: KmpFsRef): Boolean {
+    override suspend fun exists(ref: KmpFsRef): Boolean {
         if (!supportsFileSystemApi) return false
         val handle = FileHandleRegister.getHandle(ref.ref) as? FileSystemHandle ?: return false
         if (handle is FileSystemFileHandle) handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return false }

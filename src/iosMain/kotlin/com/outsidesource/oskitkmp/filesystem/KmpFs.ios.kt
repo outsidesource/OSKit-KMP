@@ -21,7 +21,9 @@ import platform.darwin.NSObject
 
 actual data class KmpFsContext(val rootController: UIViewController)
 
-actual class KmpFs : IKmpFs {
+actual fun KmpFs(): IKmpFs = IosKmpFs()
+
+internal class IosKmpFs : IKmpFs {
     private var context: KmpFsContext? = null
 
     private val documentPickerDelegate = IOSPickerDelegate()
@@ -34,11 +36,11 @@ actual class KmpFs : IKmpFs {
         allowsMultipleSelection = false
     }
 
-    actual override fun init(fileHandlerContext: KmpFsContext) {
+    override fun init(fileHandlerContext: KmpFsContext) {
         context = fileHandlerContext
     }
 
-    actual override suspend fun pickFile(
+    override suspend fun pickFile(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -71,7 +73,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickFiles(
+    override suspend fun pickFiles(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, Exception> {
@@ -106,7 +108,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun pickSaveFile(
+    override suspend fun pickSaveFile(
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, Exception> {
@@ -114,7 +116,7 @@ actual class KmpFs : IKmpFs {
         return resolveFile(directory, fileName, create = true)
     }
 
-    actual override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
         try {
             val context = context ?: return Outcome.Error(NotInitializedError())
 
@@ -134,7 +136,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveFile(
+    override suspend fun resolveFile(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -168,7 +170,7 @@ actual class KmpFs : IKmpFs {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun resolveDirectory(
+    override suspend fun resolveDirectory(
         dir: KmpFsRef,
         name: String,
         create: Boolean,
@@ -202,7 +204,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val url = NSURL(fileURLWithPath = path)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
@@ -216,7 +218,7 @@ actual class KmpFs : IKmpFs {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -238,7 +240,7 @@ actual class KmpFs : IKmpFs {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
         val deferrer = Deferrer()
 
         return try {
@@ -284,7 +286,7 @@ actual class KmpFs : IKmpFs {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    actual override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
         val deferrer = Deferrer()
 
         try {
@@ -312,7 +314,7 @@ actual class KmpFs : IKmpFs {
         }
     }
 
-    actual override suspend fun exists(ref: KmpFsRef): Boolean {
+    override suspend fun exists(ref: KmpFsRef): Boolean {
         val deferrer = Deferrer()
 
         return try {
