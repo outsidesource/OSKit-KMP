@@ -7,7 +7,9 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabase
 import java.io.File
 
-class JvmKmpKvStore(private val appName: String) : IKmpKvStore {
+fun KmpKvStore(appName: String): IKmpKvStore = JvmKmpKvStore(appName)
+
+internal class JvmKmpKvStore(private val appName: String) : IKmpKvStore {
     override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> = try {
         Outcome.Ok(KmpKvStoreNode(KmpKvStoreContext(appName), nodeName))
     } catch (e: Exception) {

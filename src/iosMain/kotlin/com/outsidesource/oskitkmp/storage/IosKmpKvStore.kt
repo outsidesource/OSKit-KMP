@@ -5,7 +5,9 @@ import app.cash.sqldelight.driver.native.NativeSqliteDriver
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabase
 
-class IosKmpKvStore : IKmpKvStore {
+fun KmpKvStore(): IKmpKvStore = IosKmpKvStore()
+
+internal class IosKmpKvStore : IKmpKvStore {
     override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> = try {
         Outcome.Ok(KmpKvStoreNode(KmpKvStoreContext(), nodeName))
     } catch (e: Exception) {

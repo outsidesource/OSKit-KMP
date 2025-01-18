@@ -8,7 +8,9 @@ enum class WasmKmpKvStoreType {
     IndexedDb,
 }
 
-class WasmKmpKvStore(
+fun KmpKvStore(type: WasmKmpKvStoreType = WasmKmpKvStoreType.IndexedDb): IKmpKvStore = WasmKmpKvStore(type)
+
+internal class WasmKmpKvStore(
     private val type: WasmKmpKvStoreType = WasmKmpKvStoreType.IndexedDb,
 ) : IKmpKvStore {
     override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> = try {

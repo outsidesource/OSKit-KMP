@@ -6,7 +6,9 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabase
 
-class AndroidKmpKvStore(private val appContext: Context) : IKmpKvStore {
+fun KmpKvStore(appContext: Context): IKmpKvStore = AndroidKmpKvStore(appContext)
+
+internal class AndroidKmpKvStore(private val appContext: Context) : IKmpKvStore {
     override suspend fun openNode(nodeName: String): Outcome<IKmpKvStoreNode, Exception> = try {
         Outcome.Ok(KmpKvStoreNode(KmpKvStoreContext(appContext), nodeName))
     } catch (e: Exception) {
