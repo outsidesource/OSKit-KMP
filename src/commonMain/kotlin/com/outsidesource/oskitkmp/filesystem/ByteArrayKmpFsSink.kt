@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.filesystem
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
 
 @ExperimentalOsKitApi
-fun ByteArray.toKmpFsSink() : IKmpFsSink = ByteArrayKmpFsSink(this)
+fun ByteArray.toKmpFsSink(): IKmpFsSink = ByteArrayKmpFsSink(this)
 
 internal class ByteArrayKmpFsSink(private val bytes: ByteArray) : IKmpFsSink {
 

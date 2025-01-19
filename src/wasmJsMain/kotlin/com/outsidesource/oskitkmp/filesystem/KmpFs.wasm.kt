@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
+import com.outsidesource.oskitkmp.lib.toArrayBuffer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
@@ -13,7 +14,9 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.browser.document
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
+import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLInputElement
+import org.w3c.files.Blob
 import org.w3c.files.File
 import org.w3c.files.get
 import kotlin.coroutines.resume
@@ -129,6 +132,19 @@ internal class WasmKmpFs : IKmpFs {
         val handle = showSaveFilePicker(options).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
         val key = FileHandleRegister.putHandle(handle)
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
+    }
+
+    override suspend fun saveFile(
+        bytes: ByteArray,
+        fileName: String,
+    ): Outcome<Unit, Throwable> {
+        val url = URL.createObjectURL(Blob(arrayOf(bytes.toArrayBuffer()).toJsArray()))
+        val a = document.createElement("a") as HTMLAnchorElement
+        a.href = url
+        a.download = fileName
+        a.click()
+        URL.revokeObjectURL(url)
+        return Outcome.Ok(Unit)
     }
 
     override suspend fun resolveFile(

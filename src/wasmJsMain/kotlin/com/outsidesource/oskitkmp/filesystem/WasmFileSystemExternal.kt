@@ -124,4 +124,11 @@ internal external class Blob {
         contentType: String = definedExternally,
     ): Blob
     fun close()
+
+    constructor(parts: JsArray<ArrayBuffer>)
+}
+
+internal external object URL {
+    fun createObjectURL(blob: Blob): String
+    fun revokeObjectURL(url: String)
 }

@@ -116,6 +116,12 @@ interface IKmpFs {
         create: Boolean = false,
     ): Outcome<KmpFsRef, Exception>
 
+    /**
+     * [saveFile] Saves data into a new file. This will present a file picker on all non-JS platforms. On JS platforms
+     * this will show a file picker unless the user has downloads automatically saved to a specific folder.
+     */
+    suspend fun saveFile(bytes: ByteArray, fileName: String): Outcome<Unit, Throwable>
+
     suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception>
     suspend fun list(dir: KmpFsRef, isRecursive: Boolean = false): Outcome<List<KmpFsRef>, Exception>
     suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception>
@@ -124,6 +130,13 @@ interface IKmpFs {
     /**
      * Convenience functions
      */
+
+    /**
+     * [saveFile] Save data from a source into a new file
+     * @param source The KmpFsSource to read from
+     */
+    suspend fun saveFile(source: IKmpFsSource, fileName: String): Outcome<Unit, Throwable> =
+        saveFile(source.readAll(), fileName)
 
     /**
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
@@ -205,6 +218,7 @@ class FileMetadataError : Exception("KmpFs could not fetch metadata for the spec
 class FileListError : Exception("KmpFs could not list directory contents for the specified directory")
 class FileMoveError : Exception("KmpFs could not move the specified file")
 class FileCopyError : Exception("KmpFs could not copy the specified file")
+class FileNotPicked : Exception("File not picked or saved")
 class NotSupportedError : Exception("KmpFs does not support this operation on this platform")
 class EofError : Exception("End of File")
 class WriteError : Exception("Write error")

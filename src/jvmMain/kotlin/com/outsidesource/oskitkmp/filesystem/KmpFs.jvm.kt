@@ -237,6 +237,11 @@ internal class JvmKmpFs : IKmpFs {
         }
     }
 
+    override suspend fun saveFile(
+        bytes: ByteArray,
+        fileName: String,
+    ): Outcome<Unit, Throwable> = nonJsSaveFile(bytes, fileName)
+
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val localPath = path.toPath()

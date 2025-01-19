@@ -204,6 +204,11 @@ internal class IosKmpFs : IKmpFs {
         }
     }
 
+    override suspend fun saveFile(
+        bytes: ByteArray,
+        fileName: String,
+    ): Outcome<Unit, Throwable> = nonJsSaveFile(bytes, fileName)
+
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
         return try {
             val url = NSURL(fileURLWithPath = path)

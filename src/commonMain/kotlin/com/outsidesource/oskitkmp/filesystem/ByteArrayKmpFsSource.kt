@@ -3,7 +3,7 @@ package com.outsidesource.oskitkmp.filesystem
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
 
 @ExperimentalOsKitApi
-fun ByteArray.toKmpFsSource() : IKmpFsSource = ByteArrayKmpFsSource(this)
+fun ByteArray.toKmpFsSource(): IKmpFsSource = ByteArrayKmpFsSource(this)
 
 internal class ByteArrayKmpFsSource(private val bytes: ByteArray) : IKmpFsSource {
     private var position = 0
