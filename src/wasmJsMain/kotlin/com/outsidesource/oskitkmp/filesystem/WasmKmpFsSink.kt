@@ -18,7 +18,7 @@ internal class WasmKmpFsSink(
         check(!isClosed) { "closed" }
         val data = source.toArrayBuffer(startIndex = sourceOffset, byteCount = byteCount)
         val options = writeOptions(type = "write", data = data)
-        writableFileStream.write(options).kmpAwaitOutcome().unwrapOrReturn { throw WriteError() }
+        writableFileStream.write(options).kmpAwaitOutcome().unwrapOrReturn { throw KmpFsError.WriteError }
         return this
     }
 

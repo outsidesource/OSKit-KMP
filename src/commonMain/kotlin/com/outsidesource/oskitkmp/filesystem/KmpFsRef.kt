@@ -61,10 +61,10 @@ data class KmpFsRef internal constructor(
 internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
 internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
-expect suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception>
+expect suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError>
 expect suspend fun KmpFsRef.sink(
     mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite,
-): Outcome<IKmpFsSink, Exception>
+): Outcome<IKmpFsSink, KmpFsError>
 
 enum class KmpFileWriteMode {
     Append,

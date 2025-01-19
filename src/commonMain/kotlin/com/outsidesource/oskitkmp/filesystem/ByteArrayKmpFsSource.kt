@@ -52,6 +52,6 @@ internal class ByteArrayKmpFsSource(private val bytes: ByteArray) : IKmpFsSource
     override suspend fun isExhausted(): Boolean = position >= bytes.size
 
     override suspend fun require(byteCount: Long) {
-        if (byteCount > bytes.size - position) throw EofError()
+        if (byteCount > bytes.size - position) throw KmpFsError.EofError
     }
 }

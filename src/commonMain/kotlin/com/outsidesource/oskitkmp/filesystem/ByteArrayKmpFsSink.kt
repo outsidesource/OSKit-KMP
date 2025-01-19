@@ -16,7 +16,7 @@ internal class ByteArrayKmpFsSink(private val bytes: ByteArray) : IKmpFsSink {
         byteCount: Int,
     ): IKmpFsSink {
         check(!isClosed) { "closed" }
-        if (position + byteCount >= bytes.size) throw EofError()
+        if (position + byteCount >= bytes.size) throw KmpFsError.EofError
         source.copyInto(bytes, position, sourceOffset, sourceOffset + byteCount)
         position += byteCount
         return this

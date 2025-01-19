@@ -21,7 +21,7 @@ internal class WasmKmpFsSource(file: File) : IKmpFsSource {
     private val sb = StringBuilder()
 
     override suspend fun require(byteCount: Long) {
-        if (byteCount > size - position) throw EofError()
+        if (byteCount > size - position) throw KmpFsError.EofError
     }
 
     override suspend fun read(sink: ByteArray, sinkOffset: Int, byteCount: Int): Int {

@@ -43,9 +43,9 @@ internal class IosKmpFs : IKmpFs {
     override suspend fun pickFile(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
-    ): Outcome<KmpFsRef?, Exception> {
+    ): Outcome<KmpFsRef?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(NotInitializedError())
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
 
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
@@ -68,17 +68,17 @@ internal class IosKmpFs : IKmpFs {
 
             val url = documentPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
             return Outcome.Ok(url.toKmpFileRef(isDirectory = false))
-        } catch (e: Exception) {
-            return Outcome.Error(e)
+        } catch (t: Throwable) {
+            return Outcome.Error(KmpFsError.Unknown(t))
         }
     }
 
     override suspend fun pickFiles(
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
-    ): Outcome<List<KmpFsRef>?, Exception> {
+    ): Outcome<List<KmpFsRef>?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(NotInitializedError())
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
 
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
@@ -103,22 +103,22 @@ internal class IosKmpFs : IKmpFs {
             val refs = urls.map { it.toKmpFileRef(false) }
 
             return Outcome.Ok(refs)
-        } catch (e: Exception) {
-            return Outcome.Error(e)
+        } catch (t: Throwable) {
+            return Outcome.Error(KmpFsError.Unknown(t))
         }
     }
 
     override suspend fun pickSaveFile(
         fileName: String,
         startingDir: KmpFsRef?,
-    ): Outcome<KmpFsRef?, Exception> {
+    ): Outcome<KmpFsRef?, KmpFsError> {
         val directory = pickDirectory(startingDir).unwrapOrReturn { return it } ?: return Outcome.Ok(null)
         return resolveFile(directory, fileName, create = true)
     }
 
-    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, Exception> {
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(NotInitializedError())
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
 
             withContext(Dispatchers.Main) {
                 directoryPickerViewController.directoryURL = startingDir?.toNSURL()
@@ -131,8 +131,8 @@ internal class IosKmpFs : IKmpFs {
 
             val url = directoryPickerDelegate.resultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
             return Outcome.Ok(url.toKmpFileRef(isDirectory = true))
-        } catch (e: Exception) {
-            return Outcome.Error(e)
+        } catch (t: Throwable) {
+            return Outcome.Error(KmpFsError.Unknown(t))
         }
     }
 
@@ -140,30 +140,30 @@ internal class IosKmpFs : IKmpFs {
         dir: KmpFsRef,
         name: String,
         create: Boolean,
-    ): Outcome<KmpFsRef, Exception> {
+    ): Outcome<KmpFsRef, KmpFsError> {
         val deferrer = Deferrer()
 
         return try {
-            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(FileCreateError())
+            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.FileCreateError)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(FileNotFoundError())
+            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createFileAtPath(
                     path = url.path ?: "",
                     contents = null,
                     attributes = null,
                 )
-                if (!created) return Outcome.Error(FileCreateError())
+                if (!created) return Outcome.Error(KmpFsError.FileCreateError)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = false))
-        } catch (e: Exception) {
-            Outcome.Error(e)
+        } catch (t: Throwable) {
+            Outcome.Error(KmpFsError.Unknown(t))
         } finally {
             deferrer.run()
         }
@@ -174,18 +174,18 @@ internal class IosKmpFs : IKmpFs {
         dir: KmpFsRef,
         name: String,
         create: Boolean,
-    ): Outcome<KmpFsRef, Exception> {
+    ): Outcome<KmpFsRef, KmpFsError> {
         val deferrer = Deferrer()
 
         return try {
-            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+            val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(FileCreateError())
+            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.FileCreateError)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(FileNotFoundError())
+            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createDirectoryAtPath(
                     path = url.path ?: "",
@@ -193,12 +193,12 @@ internal class IosKmpFs : IKmpFs {
                     attributes = null,
                     error = null,
                 )
-                if (!created) return Outcome.Error(FileCreateError())
+                if (!created) return Outcome.Error(KmpFsError.FileCreateError)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = true))
-        } catch (e: Exception) {
-            Outcome.Error(e)
+        } catch (t: Throwable) {
+            Outcome.Error(KmpFsError.Unknown(t))
         } finally {
             deferrer.run()
         }
@@ -207,27 +207,27 @@ internal class IosKmpFs : IKmpFs {
     override suspend fun saveFile(
         bytes: ByteArray,
         fileName: String,
-    ): Outcome<Unit, Throwable> = nonJsSaveFile(bytes, fileName)
+    ): Outcome<Unit, KmpFsError> = nonJsSaveFile(bytes, fileName)
 
-    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, Exception> {
+    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
         return try {
             val url = NSURL(fileURLWithPath = path)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists) return Outcome.Error(FileNotFoundError())
+            if (!exists) return Outcome.Error(KmpFsError.FileNotFoundError)
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = url.hasDirectoryPath))
-        } catch (e: Exception) {
-            Outcome.Error(e)
+        } catch (t: Throwable) {
+            Outcome.Error(KmpFsError.Unknown(t))
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, Exception> {
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
         val deferrer = Deferrer()
 
         return try {
-            val url = ref.toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+            val url = ref.toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
             url.startAccessingSecurityScopedResource()
             deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
@@ -236,28 +236,28 @@ internal class IosKmpFs : IKmpFs {
                 NSFileManager.defaultManager.removeItemAtPath(url.path ?: "", error.ptr)
             }
 
-            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(FileDeleteError())
-        } catch (e: Exception) {
-            Outcome.Error(e)
+            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(KmpFsError.FileDeleteError)
+        } catch (t: Throwable) {
+            Outcome.Error(KmpFsError.Unknown(t))
         } finally {
             deferrer.run()
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, Exception> {
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
         val deferrer = Deferrer()
 
         return try {
             val list = memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
-                val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+                val directoryUrl = dir.toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
                 directoryUrl.startAccessingSecurityScopedResource()
                 deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
                 val paths = NSFileManager.defaultManager.contentsOfDirectoryAtPath(directoryUrl.path ?: "", error.ptr)
-                    ?: return Outcome.Error(FileListError())
+                    ?: return Outcome.Error(KmpFsError.DirectoryListError)
 
                 if (!isRecursive) {
                     val list = paths.mapNotNull {
@@ -283,37 +283,37 @@ internal class IosKmpFs : IKmpFs {
             }
 
             Outcome.Ok(list)
-        } catch (e: Exception) {
-            Outcome.Error(e)
+        } catch (t: Throwable) {
+            Outcome.Error(KmpFsError.Unknown(t))
         } finally {
             deferrer.run()
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, Exception> {
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
         val deferrer = Deferrer()
 
         try {
             val attributes = memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
-                val url = ref.toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+                val url = ref.toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
                 url.startAccessingSecurityScopedResource()
                 deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
                 val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(url.path ?: "", error.ptr) ?: run {
                     url.stopAccessingSecurityScopedResource()
-                    return Outcome.Error(FileMetadataError())
+                    return Outcome.Error(KmpFsError.FileMetadataError)
                 }
                 attrs
             }
 
-            val size = attributes[NSFileSize] ?: return Outcome.Error(FileMetadataError())
+            val size = attributes[NSFileSize] ?: return Outcome.Error(KmpFsError.FileMetadataError)
 
             return Outcome.Ok(KmpFileMetadata(size = size as Long))
-        } catch (e: Exception) {
-            return Outcome.Error(e)
+        } catch (t: Throwable) {
+            return Outcome.Error(KmpFsError.Unknown(t))
         } finally {
             deferrer.run()
         }
@@ -329,7 +329,7 @@ internal class IosKmpFs : IKmpFs {
             deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
             NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
-        } catch (e: Exception) {
+        } catch (t: Throwable) {
             false
         } finally {
             deferrer.run()
@@ -362,39 +362,39 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
     }
 }
 
-actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, Exception> {
+actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
     val deferrer = Deferrer()
 
     return try {
-        if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        val url = toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+        if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
+        val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
         url.startAccessingSecurityScopedResource()
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val source = NSInputStream(uRL = url).source()
         Outcome.Ok(OkIoKmpFsSource(source))
-    } catch (e: Exception) {
-        Outcome.Error(e)
+    } catch (t: Throwable) {
+        Outcome.Error(KmpFsError.Unknown(t))
     } finally {
         deferrer.run()
     }
 }
 
-actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Exception> {
+actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, KmpFsError> {
     val deferrer = Deferrer()
 
     return try {
-        if (isDirectory) return Outcome.Error(RefIsDirectoryReadWriteError())
-        val url = toNSURL() ?: return Outcome.Error(KmpFileNsUrlError())
+        if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
+        val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
         url.startAccessingSecurityScopedResource()
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val sink = NSOutputStream(uRL = url, append = mode == KmpFileWriteMode.Append).sink()
         Outcome.Ok(OkIoKmpFsSink(sink))
-    } catch (e: Exception) {
-        Outcome.Error(e)
+    } catch (t: Throwable) {
+        Outcome.Error(KmpFsError.Unknown(t))
     } finally {
         deferrer.run()
     }
@@ -449,5 +449,3 @@ private fun KmpFsRef.toNSURL(): NSURL? {
         url
     }
 }
-
-class KmpFileNsUrlError : Exception("Error converting KmpFileRef to NSURL")
