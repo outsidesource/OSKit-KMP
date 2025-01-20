@@ -49,7 +49,6 @@ interface IKmpIoSource : IKmpIoClosable {
     }
 }
 
-
 private suspend fun IKmpIoSource.checkedRead(byteCount: Long, sink: ByteArray): Int {
     require(byteCount)
     return read(sink)

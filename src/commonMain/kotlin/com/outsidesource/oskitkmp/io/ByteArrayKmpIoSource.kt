@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
-import com.outsidesource.oskitkmp.filesystem.KmpFsError
 
 @ExperimentalOsKitApi
 fun ByteArray.toKmpFsSource(): IKmpIoSource = ByteArrayKmpIoSource(this)
