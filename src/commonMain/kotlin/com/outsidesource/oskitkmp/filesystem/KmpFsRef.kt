@@ -71,11 +71,9 @@ internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
 internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
 expect suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError>
-expect suspend fun KmpFsRef.sink(
-    mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite,
-): Outcome<IKmpIoSink, KmpFsError>
+expect suspend fun KmpFsRef.sink(mode: KmpFsWriteMode = KmpFsWriteMode.Overwrite): Outcome<IKmpIoSink, KmpFsError>
 
-enum class KmpFileWriteMode {
+enum class KmpFsWriteMode {
     Append,
     Overwrite,
 }
