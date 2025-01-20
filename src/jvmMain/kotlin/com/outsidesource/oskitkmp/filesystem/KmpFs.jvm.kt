@@ -1,5 +1,9 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.io.IKmpIoSink
+import com.outsidesource.oskitkmp.io.IKmpIoSource
+import com.outsidesource.oskitkmp.io.OkIoKmpIoSink
+import com.outsidesource.oskitkmp.io.OkIoKmpIoSource
 import com.outsidesource.oskitkmp.lib.Platform
 import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
@@ -316,17 +320,17 @@ internal class JvmKmpFs : IKmpFs {
         dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
 
-actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
+actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         val source = FileSystem.SYSTEM.source(ref.toPath())
-        Outcome.Ok(OkIoKmpFsSource(source))
+        Outcome.Ok(OkIoKmpIoSource(source))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     }
 }
 
-actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, KmpFsError> {
+actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpIoSink, KmpFsError> {
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         val sink = if (mode == KmpFileWriteMode.Append) {
@@ -334,7 +338,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Km
         } else {
             FileSystem.SYSTEM.sink(ref.toPath())
         }
-        Outcome.Ok(OkIoKmpFsSink(sink))
+        Outcome.Ok(OkIoKmpIoSink(sink))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     }

@@ -1,6 +1,8 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
+import com.outsidesource.oskitkmp.io.toKmpFsSink
+import com.outsidesource.oskitkmp.io.toKmpFsSource
 import com.outsidesource.oskitkmp.lib.encodeToHex
 import com.outsidesource.oskitkmp.test.runBlockingTest
 import kotlin.test.Test

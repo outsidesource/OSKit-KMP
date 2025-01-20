@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import kotlinx.cinterop.*
 import okio.ArrayIndexOutOfBoundsException
@@ -54,8 +54,6 @@ private class OutputStreamSink(
     override fun close() = out.close()
 
     override fun timeout(): Timeout = Timeout.NONE
-
-    override fun toString() = "RawSink($out)"
 
     private fun checkOffsetAndCount(size: Long, offset: Long, byteCount: Long) {
         if (offset or byteCount < 0 || offset > size || size - offset < byteCount) {

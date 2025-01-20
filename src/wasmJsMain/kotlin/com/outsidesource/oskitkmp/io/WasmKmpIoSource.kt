@@ -1,14 +1,16 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwait
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
+import com.outsidesource.oskitkmp.filesystem.Blob
+import com.outsidesource.oskitkmp.filesystem.KmpFsError
 import com.outsidesource.oskitkmp.lib.copyInto
 import com.outsidesource.oskitkmp.lib.toByteArray
 import com.outsidesource.oskitkmp.lib.toUint8Array
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import org.w3c.files.File
 
-internal class WasmKmpFsSource(file: File) : IKmpFsSource {
+internal class WasmKmpIoSource(file: File) : IKmpIoSource {
 
     @Suppress("CAST_NEVER_SUCCEEDS")
     private val blob = file as Blob

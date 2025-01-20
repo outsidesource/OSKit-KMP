@@ -1,4 +1,4 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import kotlinx.cinterop.*
 import okio.Buffer
@@ -46,6 +46,4 @@ private class NSInputStreamSource(
     override fun close() = input.close()
 
     override fun timeout() = Timeout.NONE
-
-    override fun toString() = "source($input)"
 }

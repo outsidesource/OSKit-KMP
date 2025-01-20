@@ -1,8 +1,9 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.lib.*
+import com.outsidesource.oskitkmp.outcome.Outcome
 
-interface IKmpFsSource : IKmpFsClosable {
+interface IKmpIoSource : IKmpIoClosable {
     suspend fun read(sink: ByteArray, sinkOffset: Int = 0, byteCount: Int = sink.size): Int
     suspend fun readUtf8Line(sink: ByteArray = ByteArray(1024)): String?
     suspend fun readAll(): ByteArray
@@ -25,7 +26,7 @@ interface IKmpFsSource : IKmpFsClosable {
     suspend fun readUtf8(byteCount: Int, sink: ByteArray = ByteArray(byteCount)): String =
         sink.apply { checkedRead(byteCount.toLong(), this) }.decodeToString()
 
-    suspend fun readAll(sink: IKmpFsSink, bufferSize: Int = 16384): Long {
+    suspend fun readAll(sink: IKmpIoSink, bufferSize: Int = 16384): Long {
         require(bufferSize > 0)
         val buffer = ByteArray(bufferSize)
         var totalBytesRead = 0L
@@ -40,36 +41,36 @@ interface IKmpFsSource : IKmpFsClosable {
     }
 }
 
-private suspend fun IKmpFsSource.checkedRead(byteCount: Long, sink: ByteArray): Int {
+private suspend fun IKmpIoSource.checkedRead(byteCount: Long, sink: ByteArray): Int {
     require(byteCount)
     return read(sink)
 }
 
-interface IKmpFsSink : IKmpFsClosable {
-    suspend fun write(source: ByteArray, sourceOffset: Int = 0, byteCount: Int = source.size): IKmpFsSink
+interface IKmpIoSink : IKmpIoClosable {
+    suspend fun write(source: ByteArray, sourceOffset: Int = 0, byteCount: Int = source.size): IKmpIoSink
     suspend fun flush()
     override suspend fun close()
 
-    suspend fun writeByte(value: Byte): IKmpFsSink = write(byteArrayOf(value))
-    suspend fun writeShort(value: Short): IKmpFsSink = write(value.toBytes())
-    suspend fun writeShortLe(value: Short): IKmpFsSink = write(value.toBytesLe())
-    suspend fun writeInt(value: Int): IKmpFsSink = write(value.toBytes())
-    suspend fun writeIntLe(value: Int): IKmpFsSink = write(value.toBytesLe())
-    suspend fun writeFloat(value: Float): IKmpFsSink = write(value.toBytes())
-    suspend fun writeFloatLe(value: Float): IKmpFsSink = write(value.toBytesLe())
-    suspend fun writeDouble(value: Double): IKmpFsSink = write(value.toBytes())
-    suspend fun writeDoubleLe(value: Double): IKmpFsSink = write(value.toBytesLe())
-    suspend fun writeLong(value: Long): IKmpFsSink = write(value.toBytes())
-    suspend fun writeLongLe(value: Long): IKmpFsSink = write(value.toBytesLe())
-    suspend fun writeUtf8(value: String): IKmpFsSink = write(value.encodeToByteArray())
-    suspend fun writeAll(source: IKmpFsSource, bufferSize: Int = 16384): Long = source.readAll(this)
+    suspend fun writeByte(value: Byte): IKmpIoSink = write(byteArrayOf(value))
+    suspend fun writeShort(value: Short): IKmpIoSink = write(value.toBytes())
+    suspend fun writeShortLe(value: Short): IKmpIoSink = write(value.toBytesLe())
+    suspend fun writeInt(value: Int): IKmpIoSink = write(value.toBytes())
+    suspend fun writeIntLe(value: Int): IKmpIoSink = write(value.toBytesLe())
+    suspend fun writeFloat(value: Float): IKmpIoSink = write(value.toBytes())
+    suspend fun writeFloatLe(value: Float): IKmpIoSink = write(value.toBytesLe())
+    suspend fun writeDouble(value: Double): IKmpIoSink = write(value.toBytes())
+    suspend fun writeDoubleLe(value: Double): IKmpIoSink = write(value.toBytesLe())
+    suspend fun writeLong(value: Long): IKmpIoSink = write(value.toBytes())
+    suspend fun writeLongLe(value: Long): IKmpIoSink = write(value.toBytesLe())
+    suspend fun writeUtf8(value: String): IKmpIoSink = write(value.encodeToByteArray())
+    suspend fun writeAll(source: IKmpIoSource, bufferSize: Int = 16384): Long = source.readAll(this)
 }
 
-interface IKmpFsClosable {
+interface IKmpIoClosable {
     suspend fun close()
 }
 
-suspend inline fun <T : IKmpFsClosable, R> T.use(block: (T) -> R): R {
+suspend inline fun <T : IKmpIoClosable, R> T.use(block: (T) -> R): Outcome<R, KmpIoError> {
     var thrown: Throwable? = null
 
     val result = try {
@@ -85,8 +86,12 @@ suspend inline fun <T : IKmpFsClosable, R> T.use(block: (T) -> R): R {
         }
     }
 
-    if (thrown != null) throw thrown
+    if (thrown != null) return Outcome.Error(KmpIoError.Unknown(thrown))
 
     @Suppress("UNCHECKED_CAST")
-    return result as R
+    return Outcome.Ok(result as R)
+}
+
+sealed class KmpIoError {
+    data class Unknown(val t: Throwable) : KmpIoError()
 }

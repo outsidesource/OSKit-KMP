@@ -1,6 +1,10 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
+import com.outsidesource.oskitkmp.io.IKmpIoSink
+import com.outsidesource.oskitkmp.io.IKmpIoSource
+import com.outsidesource.oskitkmp.io.WasmKmpIoSink
+import com.outsidesource.oskitkmp.io.WasmKmpIoSource
 import com.outsidesource.oskitkmp.lib.toArrayBuffer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
@@ -248,13 +252,13 @@ internal class WasmKmpFs : IKmpFs {
     }
 }
 
-actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
+actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
     val file = getFile().unwrapOrReturn { return it }
-    return Outcome.Ok(WasmKmpFsSource(file))
+    return Outcome.Ok(WasmKmpIoSource(file))
 }
 
-actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, KmpFsError> {
+actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpIoSink, KmpFsError> {
     if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
     if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
 
@@ -268,7 +272,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Km
         writable.seek(file.size).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
     }
 
-    return Outcome.Ok(WasmKmpFsSink(writable))
+    return Outcome.Ok(WasmKmpIoSink(writable))
 }
 
 private suspend fun KmpFsRef.getFile(): Outcome<File, KmpFsError> {

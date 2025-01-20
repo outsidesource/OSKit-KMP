@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.io.IKmpIoSink
+import com.outsidesource.oskitkmp.io.IKmpIoSource
 import com.outsidesource.oskitkmp.outcome.Outcome
 import io.ktor.util.*
 import kotlinx.serialization.*
@@ -61,10 +63,10 @@ data class KmpFsRef internal constructor(
 internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
 internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
-expect suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError>
+expect suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError>
 expect suspend fun KmpFsRef.sink(
     mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite,
-): Outcome<IKmpFsSink, KmpFsError>
+): Outcome<IKmpIoSink, KmpFsError>
 
 enum class KmpFileWriteMode {
     Append,

@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.io.IKmpIoSource
+import com.outsidesource.oskitkmp.io.use
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
@@ -135,7 +137,7 @@ interface IKmpFs {
      * [saveFile] Save data from a source into a new file
      * @param source The KmpFsSource to read from
      */
-    suspend fun saveFile(source: IKmpFsSource, fileName: String): Outcome<Unit, KmpFsError> =
+    suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
         saveFile(source.readAll(), fileName)
 
     /**

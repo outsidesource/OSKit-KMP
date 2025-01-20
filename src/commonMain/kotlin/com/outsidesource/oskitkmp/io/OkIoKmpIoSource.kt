@@ -1,9 +1,9 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import okio.Source
 import okio.buffer
 
-class OkIoKmpFsSource(source: Source) : IKmpFsSource {
+class OkIoKmpIoSource(source: Source) : IKmpIoSource {
     private val buffer = source.buffer()
 
     override suspend fun require(byteCount: Long) = buffer.require(byteCount)

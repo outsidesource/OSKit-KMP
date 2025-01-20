@@ -1,11 +1,12 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
+import com.outsidesource.oskitkmp.filesystem.KmpFsError
 
 @ExperimentalOsKitApi
-fun ByteArray.toKmpFsSink(): IKmpFsSink = ByteArrayKmpFsSink(this)
+fun ByteArray.toKmpFsSink(): IKmpIoSink = ByteArrayKmpIoSink(this)
 
-internal class ByteArrayKmpFsSink(private val bytes: ByteArray) : IKmpFsSink {
+internal class ByteArrayKmpIoSink(private val bytes: ByteArray) : IKmpIoSink {
 
     private var position = 0
     private var isClosed = false
@@ -14,7 +15,7 @@ internal class ByteArrayKmpFsSink(private val bytes: ByteArray) : IKmpFsSink {
         source: ByteArray,
         sourceOffset: Int,
         byteCount: Int,
-    ): IKmpFsSink {
+    ): IKmpIoSink {
         check(!isClosed) { "closed" }
         if (position + byteCount >= bytes.size) throw KmpFsError.EofError
         source.copyInto(bytes, position, sourceOffset, sourceOffset + byteCount)

@@ -1,12 +1,15 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
+import com.outsidesource.oskitkmp.filesystem.FileSystemWritableFileStream
+import com.outsidesource.oskitkmp.filesystem.KmpFsError
+import com.outsidesource.oskitkmp.filesystem.writeOptions
 import com.outsidesource.oskitkmp.lib.toArrayBuffer
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
-internal class WasmKmpFsSink(
+internal class WasmKmpIoSink(
     private val writableFileStream: FileSystemWritableFileStream,
-) : IKmpFsSink {
+) : IKmpIoSink {
 
     private var isClosed = false
 
@@ -14,7 +17,7 @@ internal class WasmKmpFsSink(
         source: ByteArray,
         sourceOffset: Int,
         byteCount: Int,
-    ): IKmpFsSink {
+    ): IKmpIoSink {
         check(!isClosed) { "closed" }
         val data = source.toArrayBuffer(startIndex = sourceOffset, byteCount = byteCount)
         val options = writeOptions(type = "write", data = data)

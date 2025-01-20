@@ -1,5 +1,11 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.io.IKmpIoSink
+import com.outsidesource.oskitkmp.io.IKmpIoSource
+import com.outsidesource.oskitkmp.io.OkIoKmpIoSink
+import com.outsidesource.oskitkmp.io.OkIoKmpIoSource
+import com.outsidesource.oskitkmp.io.sink
+import com.outsidesource.oskitkmp.io.source
 import com.outsidesource.oskitkmp.lib.Deferrer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
@@ -362,7 +368,7 @@ private class IOSPickerDelegate : NSObject(), UIDocumentPickerDelegateProtocol {
     }
 }
 
-actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
+actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     val deferrer = Deferrer()
 
     return try {
@@ -373,7 +379,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val source = NSInputStream(uRL = url).source()
-        Outcome.Ok(OkIoKmpFsSource(source))
+        Outcome.Ok(OkIoKmpIoSource(source))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     } finally {
@@ -381,7 +387,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpFsSource, KmpFsError> {
     }
 }
 
-actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, KmpFsError> {
+actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpIoSink, KmpFsError> {
     val deferrer = Deferrer()
 
     return try {
@@ -392,7 +398,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpFsSink, Km
         deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
         val sink = NSOutputStream(uRL = url, append = mode == KmpFileWriteMode.Append).sink()
-        Outcome.Ok(OkIoKmpFsSink(sink))
+        Outcome.Ok(OkIoKmpIoSink(sink))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     } finally {

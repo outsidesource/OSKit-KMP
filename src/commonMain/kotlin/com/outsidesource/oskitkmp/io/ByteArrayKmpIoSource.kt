@@ -1,11 +1,12 @@
-package com.outsidesource.oskitkmp.filesystem
+package com.outsidesource.oskitkmp.io
 
 import com.outsidesource.oskitkmp.annotation.ExperimentalOsKitApi
+import com.outsidesource.oskitkmp.filesystem.KmpFsError
 
 @ExperimentalOsKitApi
-fun ByteArray.toKmpFsSource(): IKmpFsSource = ByteArrayKmpFsSource(this)
+fun ByteArray.toKmpFsSource(): IKmpIoSource = ByteArrayKmpIoSource(this)
 
-internal class ByteArrayKmpFsSource(private val bytes: ByteArray) : IKmpFsSource {
+internal class ByteArrayKmpIoSource(private val bytes: ByteArray) : IKmpIoSource {
     private var position = 0
 
     private val newline = '\n'.code.toByte()

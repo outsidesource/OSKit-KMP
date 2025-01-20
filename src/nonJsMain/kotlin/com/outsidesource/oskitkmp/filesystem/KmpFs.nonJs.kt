@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.io.use
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
