@@ -13,10 +13,10 @@ class KmpFsTest {
     @OptIn(ExperimentalOsKitApi::class)
     @Test
     fun testByteArraySource() = runBlockingTest {
-        val bytes = "this is the first line\nthis is the second line".encodeToByteArray().toKmpFsSource()
-        assertEquals(bytes.readUtf8Line(), "this is the first line")
-        assertEquals(bytes.readUtf8Line(), "this is the second line")
-        assertFails { bytes.readByte() }
+        val source = "this is the first line\nthis is the second line".encodeToByteArray().toKmpFsSource()
+        assertEquals(source.readUtf8Line(), "this is the first line")
+        assertEquals(source.readUtf8Line(), "this is the second line")
+        assertFails { source.readByte() }
     }
 
     @OptIn(ExperimentalOsKitApi::class)

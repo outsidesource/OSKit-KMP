@@ -13,7 +13,7 @@ class OkIoKmpIoSource(source: Source) : IKmpIoSource {
         byteCount,
     )
     override suspend fun readUtf8Line(sink: ByteArray): String? = buffer.readUtf8Line()
-    override suspend fun readAll(): ByteArray = buffer.readByteArray()
+    override suspend fun readRemaining(): ByteArray = buffer.readByteArray()
     override suspend fun close() = buffer.close()
     override suspend fun isExhausted(): Boolean = buffer.exhausted()
 }

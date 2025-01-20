@@ -138,7 +138,7 @@ interface IKmpFs {
      * @param source The KmpFsSource to read from
      */
     suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
-        saveFile(source.readAll(), fileName)
+        saveFile(source.readRemaining(), fileName)
 
     /**
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.

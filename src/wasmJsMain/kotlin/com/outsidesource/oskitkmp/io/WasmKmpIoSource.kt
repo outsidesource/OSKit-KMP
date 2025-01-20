@@ -17,13 +17,10 @@ internal class WasmKmpIoSource(file: File) : IKmpIoSource {
     private var position: Long = 0L
     private val size: Long = blob.size.toDouble().toLong()
     private var isClosed: Boolean = false
-
-    private val newline = '\n'.code.toByte()
-    private val carriageReturn = '\r'.code.toByte()
     private val sb = StringBuilder()
 
     override suspend fun require(byteCount: Long) {
-        if (byteCount > size - position) throw KmpFsError.EofError
+        if (byteCount > size - position) throw KmpIoError.EofError
     }
 
     override suspend fun read(sink: ByteArray, sinkOffset: Int, byteCount: Int): Int {
@@ -37,32 +34,18 @@ internal class WasmKmpIoSource(file: File) : IKmpIoSource {
         return read.toInt()
     }
 
-    override suspend fun readUtf8Line(sink: ByteArray): String? {
-        sb.clear()
-        while (true) {
-            val initialPosition = position
-            val bytesRead = read(sink)
-            if (bytesRead == -1) return null
-            val index = sink.indexOf(newline)
-            if (index == -1) {
-                val skip = if (bytesRead > 0 && sink[bytesRead - 1] == carriageReturn) 1 else 0
-                sb.append(sink.decodeToString(0, bytesRead - skip))
-                if (isExhausted()) break
-            } else {
-                position = initialPosition + index + 1
-                val skip = if (index > 0 && sink[index - 1] == carriageReturn) 1 else 0
-                sb.append(sink.decodeToString(0, index - skip))
-                break
-            }
-        }
-        return sb.toString()
-    }
-
-    override suspend fun readAll(): ByteArray {
-        val bytes = blob.arrayBuffer().kmpAwaitOutcome().unwrapOrReturn { return ByteArray(0) }.toByteArray()
+    override suspend fun readRemaining(): ByteArray {
+        val bytes = blob.slice(start = position.toDouble().toJsNumber(), end = blob.size.toDouble().toJsNumber())
+            .arrayBuffer()
+            .kmpAwaitOutcome()
+            .unwrapOrReturn { return ByteArray(0) }
+            .toByteArray()
         position = size
         return bytes
     }
+
+    override suspend fun readUtf8Line(sink: ByteArray): String? =
+        commonReadUtf8Line(sink, sb, position) { position = it }
 
     override suspend fun close() { /* Noop in WASM */ }
     override suspend fun isExhausted(): Boolean = position >= size
