@@ -7,7 +7,7 @@ import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 actual suspend fun onKmpFileRefPersisted(ref: KmpFsRef) {}
 actual suspend fun internalClearPersistedDataCache(ref: KmpFsRef?) {}
 
-internal suspend fun IKmpFs.nonJsSaveFile(
+internal suspend fun IExternalKmpFs.nonJsSaveFile(
     bytes: ByteArray,
     fileName: String,
 ): Outcome<Unit, KmpFsError> {

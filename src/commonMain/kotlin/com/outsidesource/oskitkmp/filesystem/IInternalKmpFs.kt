@@ -1,3 +1,4 @@
 package com.outsidesource.oskitkmp.filesystem
 
-actual class KmpFsContext()
+interface IInternalKmpFs {
+}
