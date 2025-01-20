@@ -1,10 +1,6 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
-import com.outsidesource.oskitkmp.io.IKmpIoSink
-import com.outsidesource.oskitkmp.io.IKmpIoSource
-import com.outsidesource.oskitkmp.io.WasmKmpIoSink
-import com.outsidesource.oskitkmp.io.WasmKmpIoSource
 import com.outsidesource.oskitkmp.lib.toArrayBuffer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
@@ -45,8 +41,10 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val options = showFilePickerOptions(false, mimeTypes = mimeTypes?.let { createMimeTypesObject(it) })
             val handles = showFilePicker(options).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
             val handle = handles[0] ?: return Outcome.Ok(null)
-            val key = FileHandleRegister.putHandle(handle)
-            return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
+            val key = WasmFileHandleRegister.putHandle(handle)
+            return Outcome.Ok(
+                KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsRefType.External),
+            )
         }
 
         val file = suspendCancellableCoroutine { continuation ->
@@ -59,8 +57,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         }.unwrapOrReturn { return it }
 
         if (file == null) return Outcome.Ok(null)
-        val key = FileHandleRegister.putHandle(file)
-        return Outcome.Ok(KmpFsRef(ref = key, name = file.name, isDirectory = false))
+        val key = WasmFileHandleRegister.putHandle(file)
+        return Outcome.Ok(KmpFsRef(ref = key, name = file.name, isDirectory = false, type = KmpFsRefType.External))
     }
 
     override suspend fun pickFiles(
@@ -77,8 +75,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val refs = buildList {
                 for (i in 0 until handles.length) {
                     val handle = handles[i] ?: continue
-                    val key = FileHandleRegister.putHandle(handle)
-                    add(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
+                    val key = WasmFileHandleRegister.putHandle(handle)
+                    add(KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsRefType.External))
                 }
             }
             return Outcome.Ok(refs)
@@ -98,8 +96,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         val fileRefs = buildList {
             for (i in 0 until files.length) {
                 val file = files[i] ?: continue
-                val key = FileHandleRegister.putHandle(file)
-                add(KmpFsRef(ref = key, name = file.name, isDirectory = false))
+                val key = WasmFileHandleRegister.putHandle(file)
+                add(KmpFsRef(ref = key, name = file.name, isDirectory = false, type = KmpFsRefType.External))
             }
         }
 
@@ -109,8 +107,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
         if (supportsFileSystemApi) {
             val handle = showDirectoryPicker(null).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
-            val key = FileHandleRegister.putHandle(handle)
-            return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true))
+            val key = WasmFileHandleRegister.putHandle(handle)
+            return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true, type = KmpFsRefType.External))
         }
 
         val directory = suspendCancellableCoroutine { continuation ->
@@ -123,9 +121,9 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         }.unwrapOrReturn { return it }
 
         if (directory == null) return Outcome.Ok(null)
-        val key = FileHandleRegister.putHandle(directory)
+        val key = WasmFileHandleRegister.putHandle(directory)
 
-        return Outcome.Ok(KmpFsRef(ref = key, name = directory.name, isDirectory = false))
+        return Outcome.Ok(KmpFsRef(ref = key, name = directory.name, isDirectory = false, type = KmpFsRefType.External))
     }
 
     override suspend fun pickSaveFile(
@@ -136,8 +134,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
         val options = showSaveFilePickerOptions(fileName)
         val handle = showSaveFilePicker(options).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
-        val key = FileHandleRegister.putHandle(handle)
-        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
+        val key = WasmFileHandleRegister.putHandle(handle)
+        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsRefType.External))
     }
 
     override suspend fun saveFile(
@@ -159,12 +157,12 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
-        val parentHandle = FileHandleRegister.getHandle(dir.ref)
-                as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.FileOpenError)
+        val parentHandle = WasmFileHandleRegister.getHandle(dir.ref)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.FileOpenError)
         val handle = parentHandle.getFileHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
             .unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-        val key = FileHandleRegister.putHandle(handle)
-        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false))
+        val key = WasmFileHandleRegister.putHandle(handle)
+        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsRefType.External))
     }
 
     override suspend fun resolveDirectory(
@@ -173,12 +171,12 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
-        val parentHandle = FileHandleRegister.getHandle(dir.ref, HandleAccessMode.Write)
-                as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.FileOpenError)
+        val parentHandle = WasmFileHandleRegister.getHandle(dir.ref, WasmFileHandleAccessMode.Write)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.FileOpenError)
         val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
             .unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-        val key = FileHandleRegister.putHandle(handle)
-        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true))
+        val key = WasmFileHandleRegister.putHandle(handle)
+        return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true, type = KmpFsRefType.External))
     }
 
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
@@ -187,7 +185,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
         if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
-        val handle = FileHandleRegister.getHandle(ref.ref, HandleAccessMode.Write) as? FileSystemHandle
+        val handle = WasmFileHandleRegister.getHandle(ref.ref, WasmFileHandleAccessMode.Write) as? FileSystemHandle
             ?: return Outcome.Error(KmpFsError.FileOpenError)
         handle
             .remove(removeOptions(true))
@@ -201,22 +199,33 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
 
-            val handle = FileHandleRegister.getHandle(dir.ref, HandleAccessMode.Read) as? FileSystemDirectoryHandle
+            val handle = WasmFileHandleRegister
+                .getHandle(dir.ref, WasmFileHandleAccessMode.Read) as? FileSystemDirectoryHandle
                 ?: return Outcome.Error(KmpFsError.DirectoryListError)
 
             if (!isRecursive) {
                 val list = handle.entries().map {
-                    val key = FileHandleRegister.putHandle(it)
-                    KmpFsRef(ref = key, name = it.name, isDirectory = it is FileSystemDirectoryHandle)
+                    val key = WasmFileHandleRegister.putHandle(it)
+                    KmpFsRef(
+                        ref = key,
+                        name = it.name,
+                        isDirectory = it is FileSystemDirectoryHandle,
+                        type = KmpFsRefType.External,
+                    )
                 }
                 return Outcome.Ok(list)
             }
 
             val list = handle.entries().flatMap {
                 buildList {
-                    val key = FileHandleRegister.putHandle(it)
+                    val key = WasmFileHandleRegister.putHandle(it)
                     val childHandle =
-                        KmpFsRef(ref = key, name = it.name, isDirectory = it is FileSystemDirectoryHandle)
+                        KmpFsRef(
+                            ref = key,
+                            name = it.name,
+                            isDirectory = it is FileSystemDirectoryHandle,
+                            type = KmpFsRefType.External,
+                        )
 
                     add(childHandle)
 
@@ -234,8 +243,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
         if (supportsFileSystemApi) {
-            val handle = FileHandleRegister.getHandle(ref.ref)
-                    as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
+            val handle = WasmFileHandleRegister.getHandle(ref.ref)
+                as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
             val file = handle
                 .getFile()
                 .kmpAwaitOutcome()
@@ -243,64 +252,31 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             return Outcome.Ok(KmpFileMetadata(size = file.size.toDouble().toLong()))
         }
 
-        val file = FileHandleRegister.getHandle(ref.ref) as? File ?: return Outcome.Error(KmpFsError.FileNotFoundError)
+        val file = WasmFileHandleRegister.getHandle(ref.ref) as? File ?: return Outcome.Error(
+            KmpFsError.FileNotFoundError,
+        )
         return Outcome.Ok(KmpFileMetadata(size = file.size.toDouble().toLong()))
     }
 
     override suspend fun exists(ref: KmpFsRef): Boolean {
         if (!supportsFileSystemApi) return false
-        val handle = FileHandleRegister.getHandle(ref.ref) as? FileSystemHandle ?: return false
+        val handle = WasmFileHandleRegister.getHandle(ref.ref) as? FileSystemHandle ?: return false
         if (handle is FileSystemFileHandle) handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return false }
         return true
     }
 }
 
-actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
-    val file = getFile().unwrapOrReturn { return it }
-    return Outcome.Ok(WasmKmpIoSource(file))
-}
-
-actual suspend fun KmpFsRef.sink(mode: KmpFileWriteMode): Outcome<IKmpIoSink, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
-    if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
-
-    val handle = FileHandleRegister.getHandle(ref, HandleAccessMode.Write)
-            as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
-    val writable = handle.createWritable(createWritableOptions(mode == KmpFileWriteMode.Append)).kmpAwaitOutcome()
-        .unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-
-    if (mode == KmpFileWriteMode.Append) {
-        val file = handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-        writable.seek(file.size).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-    }
-
-    return Outcome.Ok(WasmKmpIoSink(writable))
-}
-
-private suspend fun KmpFsRef.getFile(): Outcome<File, KmpFsError> {
-    val file = if (supportsFileSystemApi) {
-        val handle = FileHandleRegister.getHandle(ref)
-                as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
-        handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
-    } else {
-        FileHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(KmpFsError.FileNotFoundError)
-    }
-
-    return Outcome.Ok(file)
-}
-
 internal actual suspend fun onKmpFileRefPersisted(ref: KmpFsRef) {
-    val handle = FileHandleRegister.getHandle(ref.ref) ?: return
+    val handle = WasmFileHandleRegister.getHandle(ref.ref) ?: return
     if (handle !is FileSystemHandle) return
-    FileHandleRegister.persistHandle(ref.ref, handle)
+    WasmFileHandleRegister.persistHandle(ref.ref, handle)
 }
 
 internal actual suspend fun internalClearPersistedDataCache(ref: KmpFsRef?) {
-    FileHandleRegister.removePersistedHandle(ref?.ref)
+    WasmFileHandleRegister.removePersistedHandle(ref?.ref)
 }
 
-private object FileHandleRegister {
+internal object WasmFileHandleRegister {
     private val lock = SynchronizedObject()
     private val handles: MutableMap<String, Any> = mutableMapOf()
     private val counter = atomic(Random(Clock.System.now().toEpochMilliseconds()).nextLong())
@@ -328,7 +304,7 @@ private object FileHandleRegister {
         return key
     }
 
-    suspend fun getHandle(key: String, mode: HandleAccessMode = HandleAccessMode.Read): Any? {
+    suspend fun getHandle(key: String, mode: WasmFileHandleAccessMode = WasmFileHandleAccessMode.Read): Any? {
         val inMemoryHandle = synchronized(lock) { handles[key] }
         if (inMemoryHandle != null) return inMemoryHandle
 
@@ -340,7 +316,7 @@ private object FileHandleRegister {
             ?.unwrapOrReturn { return null }
 
         if (handle is FileSystemHandle) {
-            val options = permissionOptions(mode = if (mode == HandleAccessMode.Read) "read" else "readwrite")
+            val options = permissionOptions(mode = if (mode == WasmFileHandleAccessMode.Read) "read" else "readwrite")
             handle.requestPermission(options).kmpAwaitOutcome()
         }
 
@@ -364,7 +340,7 @@ private object FileHandleRegister {
     }
 }
 
-private enum class HandleAccessMode {
+internal enum class WasmFileHandleAccessMode {
     Read,
     Write,
 }

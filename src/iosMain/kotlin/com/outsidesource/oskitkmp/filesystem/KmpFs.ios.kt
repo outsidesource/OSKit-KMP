@@ -8,22 +8,11 @@ import com.outsidesource.oskitkmp.io.sink
 import com.outsidesource.oskitkmp.io.source
 import com.outsidesource.oskitkmp.lib.Deferrer
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrNull
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import io.ktor.util.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.firstOrNull
 import platform.Foundation.*
-import platform.UIKit.UIDocumentPickerDelegateProtocol
-import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIViewController
-import platform.UniformTypeIdentifiers.UTType
-import platform.UniformTypeIdentifiers.UTTypeFolder
-import platform.UniformTypeIdentifiers.UTTypeItem
-import platform.darwin.NSObject
 
 actual data class KmpFsContext(val rootController: UIViewController)
 
@@ -86,6 +75,7 @@ internal fun NSURL.toKmpFileRef(isDirectory: Boolean): KmpFsRef {
         ref = ref ?: "",
         name = path?.split("/")?.lastOrNull() ?: "",
         isDirectory = isDirectory,
+        type = KmpFsRefType.External,
     )
 }
 

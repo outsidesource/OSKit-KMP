@@ -21,6 +21,8 @@ data class KmpFsRef internal constructor(
     val name: String,
     @SerialName("3")
     val isDirectory: Boolean,
+    @SerialName("4")
+    val type: KmpFsRefType,
 ) {
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -58,6 +60,11 @@ data class KmpFsRef internal constructor(
          */
         suspend fun clearPersistedDataCache() = internalClearPersistedDataCache(null)
     }
+}
+
+enum class KmpFsRefType {
+    Internal,
+    External,
 }
 
 internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)

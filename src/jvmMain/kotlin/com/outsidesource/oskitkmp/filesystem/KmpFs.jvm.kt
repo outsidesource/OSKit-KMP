@@ -4,16 +4,9 @@ import com.outsidesource.oskitkmp.io.IKmpIoSink
 import com.outsidesource.oskitkmp.io.IKmpIoSource
 import com.outsidesource.oskitkmp.io.OkIoKmpIoSink
 import com.outsidesource.oskitkmp.io.OkIoKmpIoSource
-import com.outsidesource.oskitkmp.lib.Platform
-import com.outsidesource.oskitkmp.lib.current
-import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
-import org.lwjgl.system.MemoryStack
-import org.lwjgl.util.tinyfd.TinyFileDialogs
-import java.awt.FileDialog
 import java.awt.Frame
 
 actual class KmpFsContext(val window: Frame, val appName: String)
