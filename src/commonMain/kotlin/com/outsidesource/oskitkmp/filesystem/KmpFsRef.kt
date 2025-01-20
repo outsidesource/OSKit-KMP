@@ -67,11 +67,11 @@ enum class KmpFsRefType {
     External,
 }
 
-internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
-internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
-
 expect suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError>
 expect suspend fun KmpFsRef.sink(mode: KmpFsWriteMode = KmpFsWriteMode.Overwrite): Outcome<IKmpIoSink, KmpFsError>
+
+internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
+internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
 enum class KmpFsWriteMode {
     Append,

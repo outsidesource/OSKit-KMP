@@ -153,13 +153,13 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        name: String,
+        fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
         val parentHandle = WasmFileHandleRegister.getHandle(dir.ref)
             as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.FileOpenError)
-        val handle = parentHandle.getFileHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
+        val handle = parentHandle.getFileHandle(fileName, getHandleOptions(create)).kmpAwaitOutcome()
             .unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
         val key = WasmFileHandleRegister.putHandle(handle)
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsRefType.External))

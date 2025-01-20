@@ -5,7 +5,11 @@ import com.outsidesource.oskitkmp.io.use
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 
-interface IExternalKmpFs {
+interface IInternalKmpFs : IKmpFs {
+    val root: KmpFsRef
+}
+
+interface IExternalKmpFs : IKmpFs {
     suspend fun pickFile(
         startingDir: KmpFsRef? = null,
         filter: KmpFileFilter? = null,
@@ -26,9 +30,25 @@ interface IExternalKmpFs {
     suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
 
     /**
+     * [saveFile] Saves data into a new file. This will present a file picker on all non-JS platforms. On JS platforms
+     * this will show a file picker unless the user has downloads automatically saved to a specific folder.
+     */
+    suspend fun saveFile(bytes: ByteArray, fileName: String): Outcome<Unit, KmpFsError>
+
+    /**
+     * [saveFile] Save data from a source into a new file
+     * @param source The KmpFsSource to read from
+     */
+    suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
+        saveFile(source.readRemaining(), fileName)
+}
+
+interface IKmpFs {
+    /**
      * [create] Creates the file if it does not exist
      */
-    suspend fun resolveFile(dir: KmpFsRef, name: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
+    suspend fun resolveFile(dir: KmpFsRef, fileName: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
+    suspend fun resolveDirectory(dir: KmpFsRef, name: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
 
     /**
      * [resolveRefFromPath] Attempts to create a KmpFileRef from the provided path string. This is not guaranteed to
@@ -36,21 +56,6 @@ interface IExternalKmpFs {
      * exists primarily for desktop where sandboxes are not an issue. Android should use a Uri string for the path.
      */
     suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [create] Creates the directory if it does not exist
-     */
-    suspend fun resolveDirectory(
-        dir: KmpFsRef,
-        name: String,
-        create: Boolean = false,
-    ): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [saveFile] Saves data into a new file. This will present a file picker on all non-JS platforms. On JS platforms
-     * this will show a file picker unless the user has downloads automatically saved to a specific folder.
-     */
-    suspend fun saveFile(bytes: ByteArray, fileName: String): Outcome<Unit, KmpFsError>
 
     suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError>
     suspend fun list(dir: KmpFsRef, isRecursive: Boolean = false): Outcome<List<KmpFsRef>, KmpFsError>
@@ -60,13 +65,6 @@ interface IExternalKmpFs {
     /**
      * Convenience functions
      */
-
-    /**
-     * [saveFile] Save data from a source into a new file
-     * @param source The KmpFsSource to read from
-     */
-    suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
-        saveFile(source.readRemaining(), fileName)
 
     /**
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
@@ -101,22 +99,22 @@ interface IExternalKmpFs {
         return Outcome.Ok(Unit)
     }
 
-    suspend fun exists(dir: KmpFsRef, name: String): Boolean {
-        return when (val outcome = resolveFile(dir, name)) {
+    suspend fun exists(dir: KmpFsRef, fileName: String): Boolean {
+        return when (val outcome = resolveFile(dir, fileName)) {
             is Outcome.Ok -> return exists(outcome.value)
             is Outcome.Error -> false
         }
     }
 
-    suspend fun readMetadata(dir: KmpFsRef, name: String): Outcome<KmpFileMetadata, KmpFsError> {
-        return when (val outcome = resolveFile(dir, name)) {
+    suspend fun readMetadata(dir: KmpFsRef, fileName: String): Outcome<KmpFileMetadata, KmpFsError> {
+        return when (val outcome = resolveFile(dir, fileName)) {
             is Outcome.Ok -> return readMetadata(outcome.value)
             is Outcome.Error -> outcome
         }
     }
 
-    suspend fun delete(dir: KmpFsRef, name: String): Outcome<Unit, KmpFsError> {
-        return when (val outcome = resolveFile(dir, name)) {
+    suspend fun delete(dir: KmpFsRef, fileName: String): Outcome<Unit, KmpFsError> {
+        return when (val outcome = resolveFile(dir, fileName)) {
             is Outcome.Ok -> return delete(outcome.value)
             is Outcome.Error -> outcome
         }

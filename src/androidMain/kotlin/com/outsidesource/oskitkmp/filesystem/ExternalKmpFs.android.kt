@@ -177,22 +177,22 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        name: String,
+        fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
             val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
                 ?: return Outcome.Error(KmpFsError.FileOpenError)
-            val file = parentUri.findFile(name)
+            val file = parentUri.findFile(fileName)
             if (file == null && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
-            val createdFile = file ?: parentUri.createFile("", name)
+            val createdFile = file ?: parentUri.createFile("", fileName)
                 ?: return Outcome.Error(KmpFsError.FileCreateError)
 
             Outcome.Ok(
                 KmpFsRef(
                     ref = createdFile.uri.toString(),
-                    name = name,
+                    name = fileName,
                     isDirectory = false,
                     type = KmpFsRefType.External,
                 ),

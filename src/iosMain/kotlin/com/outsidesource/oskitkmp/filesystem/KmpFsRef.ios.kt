@@ -23,6 +23,8 @@ import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
+import okio.FileSystem
+import okio.Path.Companion.toPath
 import platform.Foundation.NSError
 import platform.Foundation.NSInputStream
 import platform.Foundation.NSMutableData
@@ -37,13 +39,18 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
-        val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
+        when (type) {
+            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
+            KmpFsRefType.External -> {
+                val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
-        url.startAccessingSecurityScopedResource()
-        deferrer.defer { url.stopAccessingSecurityScopedResource() }
+                url.startAccessingSecurityScopedResource()
+                deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
-        val source = NSInputStream(uRL = url).source()
-        Outcome.Ok(OkIoKmpIoSource(source))
+                val source = NSInputStream(uRL = url).source()
+                Outcome.Ok(OkIoKmpIoSource(source))
+            }
+        }
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     } finally {
@@ -56,13 +63,18 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
 
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
-        val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
+        when (type) {
+            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
+            KmpFsRefType.External -> {
+                val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
-        url.startAccessingSecurityScopedResource()
-        deferrer.defer { url.stopAccessingSecurityScopedResource() }
+                url.startAccessingSecurityScopedResource()
+                deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
-        val sink = NSOutputStream(uRL = url, append = mode == KmpFsWriteMode.Append).sink()
-        Outcome.Ok(OkIoKmpIoSink(sink))
+                val sink = NSOutputStream(uRL = url, append = mode == KmpFsWriteMode.Append).sink()
+                Outcome.Ok(OkIoKmpIoSink(sink))
+            }
+        }
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))
     } finally {

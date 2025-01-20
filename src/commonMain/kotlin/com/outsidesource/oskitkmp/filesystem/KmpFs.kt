@@ -1,5 +1,7 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import okio.Path
+
 expect class KmpFsContext
 
 /**
@@ -118,3 +120,10 @@ sealed class KmpFsError(override val message: String) : Throwable(message) {
     data object WriteError : KmpFsError("Write error")
     data class Unknown(val error: Any) : KmpFsError(error.toString())
 }
+
+private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
+
+// Makes sure there is a path separator when joining a directory and file path. Some platforms (linux) may not
+// include the trailing / when selecting a directory
+internal fun joinPathSegments(dir: String, name: String): String =
+    dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name.trimStart(*pathSeparatorChars)

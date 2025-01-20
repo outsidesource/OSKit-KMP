@@ -145,7 +145,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        name: String,
+        fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         val deferrer = Deferrer()
@@ -155,7 +155,9 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.FileCreateError)
+            val url = directoryUrl.URLByAppendingPathComponent(fileName) ?: return Outcome.Error(
+                KmpFsError.FileCreateError,
+            )
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
             if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)

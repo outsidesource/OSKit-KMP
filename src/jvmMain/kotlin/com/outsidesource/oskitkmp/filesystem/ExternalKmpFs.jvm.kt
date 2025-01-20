@@ -5,18 +5,15 @@ import com.outsidesource.oskitkmp.lib.current
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
 import okio.FileSystem
-import okio.Path
 import okio.Path.Companion.toPath
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.awt.FileDialog
-import kotlin.use
 
 actual fun platformExternalKmpFs(): IExternalKmpFs = JvmExternalKmpFs()
 
 internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     private var context: KmpFsContext? = null
-    private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 
     override fun init(fileHandlerContext: KmpFsContext) {
         context = fileHandlerContext
@@ -40,7 +37,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KmpFsRef(
-                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
+                ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
                 type = KmpFsRefType.External,
@@ -97,7 +94,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
             val refs = dialog.files.map { file ->
                 KmpFsRef(
-                    ref = joinDirectoryAndFilePath(dialog.directory, file.name),
+                    ref = joinPathSegments(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
                     type = KmpFsRefType.External,
@@ -178,7 +175,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (dialog.file == null) return Outcome.Ok(null)
 
             val ref = KmpFsRef(
-                ref = joinDirectoryAndFilePath(dialog.directory, dialog.file),
+                ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
                 type = KmpFsRefType.External,
@@ -198,7 +195,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     ): Outcome<KmpFsRef?, KmpFsError> {
         val file = TinyFileDialogs.tinyfd_saveFileDialog(
             "Save File",
-            joinDirectoryAndFilePath(startingDir?.ref ?: "", name),
+            joinPathSegments(startingDir?.ref ?: "", name),
             null,
             null,
         ) ?: return Outcome.Ok(null)
@@ -210,18 +207,18 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        name: String,
+        fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
-            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
+            val path = joinPathSegments(dir.ref, fileName).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
             if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
             return Outcome.Ok(
-                KmpFsRef(ref = path.pathString, name = name, isDirectory = false, type = KmpFsRefType.External),
+                KmpFsRef(ref = path.pathString, name = fileName, isDirectory = false, type = KmpFsRefType.External),
             )
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
@@ -234,7 +231,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
-            val path = joinDirectoryAndFilePath(dir.ref, name).toPath()
+            val path = joinPathSegments(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
@@ -326,9 +323,4 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             false
         }
     }
-
-    // Makes sure there is a path separator when joining a directory and file path. Some platforms (linux) may not
-    // include the trailing / when selecting a directory
-    private fun joinDirectoryAndFilePath(dir: String, name: String): String =
-        dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name
 }
