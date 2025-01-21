@@ -27,7 +27,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
     return when (type) {
         KmpFsRefType.Internal -> TODO("Not yet implemented")
         KmpFsRefType.External -> {
-            val handle = WasmFileHandleRegister.getHandle(ref, WasmFileHandleAccessMode.Write)
+            val handle = WasmFsHandleRegister.getHandle(ref, WasmFsHandleAccessMode.Write)
                 as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
             val writable = handle.createWritable(createWritableOptions(mode == KmpFsWriteMode.Append)).kmpAwaitOutcome()
                 .unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
@@ -51,12 +51,23 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
 
 private suspend fun KmpFsRef.getFile(): Outcome<File, KmpFsError> {
     val file = if (supportsFileSystemApi) {
-        val handle = WasmFileHandleRegister.getHandle(ref)
+        val handle = WasmFsHandleRegister.getHandle(ref)
             as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.FileNotFoundError)
         handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.FileOpenError) }
     } else {
-        WasmFileHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(KmpFsError.FileNotFoundError)
+        WasmFsHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(KmpFsError.FileNotFoundError)
     }
 
     return Outcome.Ok(file)
 }
+
+internal actual suspend fun onKmpFileRefPersisted(ref: KmpFsRef) {
+    val handle = WasmFsHandleRegister.getHandle(ref.ref) ?: return
+    if (handle !is FileSystemHandle) return
+    WasmFsHandleRegister.persistHandle(ref.ref, handle)
+}
+
+internal actual suspend fun internalClearPersistedDataCache(ref: KmpFsRef?) {
+    WasmFsHandleRegister.removePersistedHandle(ref?.ref)
+}
+

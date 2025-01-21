@@ -7,6 +7,15 @@ import kotlin.js.Promise
 
 internal val supportsFileSystemApi: Boolean = js("""window.hasOwnProperty("showOpenFilePicker")""")
 
+internal val supportsOpfs: Boolean =
+    js("""navigator.storage !== undefined && navigator.storage.getDirectory !== undefined""")
+
+internal external object navigator {
+    object storage {
+        fun getDirectory(): Promise<FileSystemDirectoryHandle>
+    }
+}
+
 internal fun showSaveFilePicker(options: JsAny?): Promise<FileSystemFileHandle> =
     js("""window.showSaveFilePicker(options)""")
 
@@ -99,7 +108,7 @@ internal external class FileSystemWritableFileStream : JsAny {
     fun close(): Promise<JsAny?>
 }
 
-fun writeOptions(
+internal fun writeOptions(
     type: String,
     data: ArrayBuffer,
     position: JsNumber? = null,
