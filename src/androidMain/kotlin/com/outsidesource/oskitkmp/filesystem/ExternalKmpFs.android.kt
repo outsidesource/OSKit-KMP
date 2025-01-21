@@ -87,14 +87,14 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val uri = pickFileResultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
 
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsRefType.External))
+            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsType.External))
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
         }
@@ -113,14 +113,14 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
             val refs = uris.map { uri ->
                 val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
-                    ?: return Outcome.Error(KmpFsError.FileOpenError)
+                    ?: return Outcome.Error(KmpFsError.OpenError)
 
                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
                 context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-                KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsRefType.External)
+                KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsType.External)
             }
 
             Outcome.Ok(refs)
@@ -141,14 +141,14 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val uri = pickSaveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
 
             val name = DocumentFile.fromSingleUri(context.applicationContext, uri)?.name
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
 
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsRefType.External))
+            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = false, name = name, type = KmpFsType.External))
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
         }
@@ -162,14 +162,14 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             folderResultLauncher.launch(startingDir?.ref?.toUri())
             val uri = pickFolderResultFlow.firstOrNull() ?: return Outcome.Ok(null)
             val name = DocumentFile.fromTreeUri(context.applicationContext, uri)?.name
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
 
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
             context.applicationContext.contentResolver.takePersistableUriPermission(uri, takeFlags)
 
-            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = true, name = name, type = KmpFsRefType.External))
+            Outcome.Ok(KmpFsRef(ref = uri.toString(), isDirectory = true, name = name, type = KmpFsType.External))
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
         }
@@ -183,18 +183,18 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
             val file = parentUri.findFile(fileName)
-            if (file == null && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (file == null && !create) return Outcome.Error(KmpFsError.NotFoundError)
             val createdFile = file ?: parentUri.createFile("", fileName)
-                ?: return Outcome.Error(KmpFsError.FileCreateError)
+                ?: return Outcome.Error(KmpFsError.CreateError)
 
             Outcome.Ok(
                 KmpFsRef(
                     ref = createdFile.uri.toString(),
                     name = fileName,
                     isDirectory = false,
-                    type = KmpFsRefType.External,
+                    type = KmpFsType.External,
                 ),
             )
         } catch (t: Throwable) {
@@ -210,19 +210,19 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
             val file = parentUri.findFile(name)
-            if (file == null && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
-            if (file != null && file.isDirectory) return Outcome.Error(KmpFsError.FileCreateError)
+            if (file == null && !create) return Outcome.Error(KmpFsError.NotFoundError)
+            if (file != null && file.isDirectory) return Outcome.Error(KmpFsError.CreateError)
             val createdDirectory = file ?: parentUri.createDirectory(name)
-                ?: return Outcome.Error(KmpFsError.FileCreateError)
+                ?: return Outcome.Error(KmpFsError.CreateError)
 
             Outcome.Ok(
                 KmpFsRef(
                     ref = createdDirectory.uri.toString(),
                     name = name,
                     isDirectory = true,
-                    type = KmpFsRefType.External,
+                    type = KmpFsType.External,
                 ),
             )
         } catch (t: Throwable) {
@@ -239,14 +239,14 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
             val file = DocumentFile.fromSingleUri(context.applicationContext, path.toUri())
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
 
             Outcome.Ok(
                 KmpFsRef(
                     ref = file.uri.toString(),
                     name = file.name ?: "",
                     isDirectory = file.isDirectory,
-                    type = KmpFsRefType.External,
+                    type = KmpFsType.External,
                 ),
             )
         } catch (t: Throwable) {
@@ -259,13 +259,13 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
             val documentFile = if (ref.isDirectory) {
                 DocumentFile.fromTreeUri(context.applicationContext, ref.ref.toUri())
-                    ?: return Outcome.Error(KmpFsError.FileOpenError)
+                    ?: return Outcome.Error(KmpFsError.OpenError)
             } else {
                 DocumentFile.fromSingleUri(context.applicationContext, ref.ref.toUri())
-                    ?: return Outcome.Error(KmpFsError.FileOpenError)
+                    ?: return Outcome.Error(KmpFsError.OpenError)
             }
 
-            if (!documentFile.delete()) return Outcome.Error(KmpFsError.FileDeleteError)
+            if (!documentFile.delete()) return Outcome.Error(KmpFsError.DeleteError)
 
             return Outcome.Ok(Unit)
         } catch (t: Throwable) {
@@ -279,7 +279,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
 
             val documentFile = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
-                ?: return Outcome.Error(KmpFsError.FileOpenError)
+                ?: return Outcome.Error(KmpFsError.OpenError)
 
             if (!isRecursive) {
                 val list = documentFile.listFiles().map {
@@ -287,7 +287,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                         ref = it.uri.toString(),
                         name = it.name ?: "",
                         isDirectory = it.isDirectory,
-                        type = KmpFsRefType.External,
+                        type = KmpFsType.External,
                     )
                 }
                 return Outcome.Ok(list)
@@ -299,7 +299,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                         ref = it.uri.toString(),
                         name = it.name ?: "",
                         isDirectory = it.isDirectory,
-                        type = KmpFsRefType.External,
+                        type = KmpFsType.External,
                     )
                     add(file)
 
@@ -326,7 +326,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 null,
                 null,
                 null,
-            ) ?: return Outcome.Error(KmpFsError.FileMetadataError)
+            ) ?: return Outcome.Error(KmpFsError.MetadataError)
 
             cursor.use {
                 val sizeIndex = it.getColumnIndex(OpenableColumns.SIZE)

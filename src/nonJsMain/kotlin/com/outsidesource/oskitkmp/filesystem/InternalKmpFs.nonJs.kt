@@ -6,7 +6,6 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.SYSTEM
 
-
 internal fun IInternalKmpFs.nonJsResolveFile(
     dir: KmpFsRef,
     fileName: String,
@@ -16,14 +15,14 @@ internal fun IInternalKmpFs.nonJsResolveFile(
         val path = joinPathSegments(dir.ref, fileName).toPath()
         val exists = FileSystem.SYSTEM.exists(path)
 
-        if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+        if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
         if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
         val ref = KmpFsRef(
             ref = path.pathString,
             name = fileName,
             isDirectory = false,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
         return Outcome.Ok(ref)
     } catch (t: Throwable) {
@@ -40,14 +39,14 @@ internal fun IInternalKmpFs.nonJsResolveDirectory(
         val path = joinPathSegments(dir.ref, name).toPath()
         val exists = FileSystem.SYSTEM.exists(path)
 
-        if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+        if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
         if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
         val ref = KmpFsRef(
             ref = path.pathString,
             name = name,
             isDirectory = true,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
         return Outcome.Ok(ref)
     } catch (t: Throwable) {
@@ -60,14 +59,14 @@ internal fun IInternalKmpFs.nonJResolveRefFromPath(path: String): Outcome<KmpFsR
         val localPath = path.toPath()
         val exists = FileSystem.SYSTEM.exists(localPath)
 
-        if (!exists) return Outcome.Error(KmpFsError.FileNotFoundError)
+        if (!exists) return Outcome.Error(KmpFsError.NotFoundError)
         val metadata = FileSystem.SYSTEM.metadata(localPath)
 
         val ref = KmpFsRef(
             ref = localPath.pathString,
             name = localPath.name,
             isDirectory = metadata.isDirectory,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
         return Outcome.Ok(ref)
     } catch (t: Throwable) {
@@ -102,7 +101,7 @@ internal fun IInternalKmpFs.nonJsList(
                 ref = it.pathString,
                 name = it.name,
                 isDirectory = metadata.isDirectory,
-                type = KmpFsRefType.Internal,
+                type = KmpFsType.Internal,
             )
         }
 
@@ -116,7 +115,7 @@ internal fun IInternalKmpFs.nonJsReadMetadata(ref: KmpFsRef): Outcome<KmpFileMet
     return try {
         val path = ref.ref.toPath()
         val metadata = FileSystem.SYSTEM.metadata(path)
-        val size = metadata.size ?: return Outcome.Error(KmpFsError.FileMetadataError)
+        val size = metadata.size ?: return Outcome.Error(KmpFsError.MetadataError)
         Outcome.Ok(KmpFileMetadata(size = size))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))

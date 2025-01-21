@@ -17,7 +17,7 @@ internal class AndroidInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
             ref = path.pathString,
             name = path.name,
             isDirectory = true,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
     }
 

@@ -20,7 +20,7 @@ internal class IosInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
             ref = path.pathString,
             name = path.name,
             isDirectory = true,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
     }
 

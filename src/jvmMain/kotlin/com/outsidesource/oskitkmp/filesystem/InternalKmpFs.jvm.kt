@@ -1,7 +1,6 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import okio.Path
 import java.io.File
 
 actual fun platformInternalKmpFs(): IInternalKmpFs = JvmInternalKmpFs()
@@ -13,14 +12,14 @@ internal class JvmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         val context = context ?: throw KmpFsError.NotInitializedError
         val rootDir = File(FileUtil.appDirPath(context.appName))
         if (!rootDir.exists()) {
-            if (!rootDir.mkdirs()) throw KmpFsError.FileCreateError
+            if (!rootDir.mkdirs()) throw KmpFsError.CreateError
         }
 
         KmpFsRef(
             ref = rootDir.absolutePath,
-            name = Path.DIRECTORY_SEPARATOR,
+            name = rootDir.name,
             isDirectory = true,
-            type = KmpFsRefType.Internal,
+            type = KmpFsType.Internal,
         )
     }
 

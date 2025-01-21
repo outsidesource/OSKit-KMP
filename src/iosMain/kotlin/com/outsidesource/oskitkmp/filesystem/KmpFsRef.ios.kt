@@ -40,8 +40,8 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
-            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
-            KmpFsRefType.External -> {
+            KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
+            KmpFsType.External -> {
                 val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
                 url.startAccessingSecurityScopedResource()
@@ -64,8 +64,8 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
-            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
-            KmpFsRefType.External -> {
+            KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
+            KmpFsType.External -> {
                 val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
 
                 url.startAccessingSecurityScopedResource()
@@ -103,7 +103,7 @@ internal fun NSURL.toKmpFileRef(isDirectory: Boolean): KmpFsRef {
         ref = ref ?: "",
         name = path?.split("/")?.lastOrNull() ?: "",
         isDirectory = isDirectory,
-        type = KmpFsRefType.External,
+        type = KmpFsType.External,
     )
 }
 

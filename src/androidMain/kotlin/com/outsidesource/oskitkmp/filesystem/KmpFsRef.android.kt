@@ -17,11 +17,11 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
-            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
-            KmpFsRefType.External -> {
+            KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
+            KmpFsType.External -> {
                 val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitializedError)
                 val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
-                    ?: return Outcome.Error(KmpFsError.FileOpenError)
+                    ?: return Outcome.Error(KmpFsError.OpenError)
                 val source = stream.source()
                 Outcome.Ok(OkIoKmpIoSource(source))
             }
@@ -36,8 +36,8 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
     return try {
         if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
-            KmpFsRefType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
-            KmpFsRefType.External -> {
+            KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
+            KmpFsType.External -> {
                 val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitializedError)
                 val modeString = when (mode) {
                     KmpFsWriteMode.Overwrite -> "wt"
@@ -45,7 +45,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
                 }
 
                 val outputStream = context.applicationContext.contentResolver.openOutputStream(ref.toUri(), modeString)
-                    ?: return Outcome.Error(KmpFsError.FileCreateError)
+                    ?: return Outcome.Error(KmpFsError.CreateError)
                 val sink = outputStream.sink()
                 Outcome.Ok(OkIoKmpIoSink(sink))
             }

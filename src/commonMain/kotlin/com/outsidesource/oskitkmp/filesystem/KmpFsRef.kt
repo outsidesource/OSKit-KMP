@@ -22,7 +22,7 @@ data class KmpFsRef internal constructor(
     @SerialName("3")
     val isDirectory: Boolean,
     @SerialName("4")
-    val type: KmpFsRefType,
+    val type: KmpFsType,
 ) {
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -62,7 +62,7 @@ data class KmpFsRef internal constructor(
     }
 }
 
-enum class KmpFsRefType {
+enum class KmpFsType {
     Internal,
     External,
 }

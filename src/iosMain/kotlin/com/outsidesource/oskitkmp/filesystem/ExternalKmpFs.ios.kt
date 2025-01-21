@@ -156,18 +156,18 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
             val url = directoryUrl.URLByAppendingPathComponent(fileName) ?: return Outcome.Error(
-                KmpFsError.FileCreateError,
+                KmpFsError.CreateError,
             )
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createFileAtPath(
                     path = url.path ?: "",
                     contents = null,
                     attributes = null,
                 )
-                if (!created) return Outcome.Error(KmpFsError.FileCreateError)
+                if (!created) return Outcome.Error(KmpFsError.CreateError)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = false))
@@ -191,10 +191,10 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.FileCreateError)
+            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.CreateError)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createDirectoryAtPath(
                     path = url.path ?: "",
@@ -202,7 +202,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                     attributes = null,
                     error = null,
                 )
-                if (!created) return Outcome.Error(KmpFsError.FileCreateError)
+                if (!created) return Outcome.Error(KmpFsError.CreateError)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = true))
@@ -223,7 +223,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val url = NSURL(fileURLWithPath = path)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists) return Outcome.Error(KmpFsError.NotFoundError)
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = url.hasDirectoryPath))
         } catch (t: Throwable) {
@@ -245,7 +245,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 NSFileManager.defaultManager.removeItemAtPath(url.path ?: "", error.ptr)
             }
 
-            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(KmpFsError.FileDeleteError)
+            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(KmpFsError.DeleteError)
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
         } finally {
@@ -313,12 +313,12 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
                 val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(url.path ?: "", error.ptr) ?: run {
                     url.stopAccessingSecurityScopedResource()
-                    return Outcome.Error(KmpFsError.FileMetadataError)
+                    return Outcome.Error(KmpFsError.MetadataError)
                 }
                 attrs
             }
 
-            val size = attributes[NSFileSize] ?: return Outcome.Error(KmpFsError.FileMetadataError)
+            val size = attributes[NSFileSize] ?: return Outcome.Error(KmpFsError.MetadataError)
 
             return Outcome.Ok(KmpFileMetadata(size = size as Long))
         } catch (t: Throwable) {

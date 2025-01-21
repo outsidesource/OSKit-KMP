@@ -40,7 +40,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
-                type = KmpFsRefType.External,
+                type = KmpFsType.External,
             )
 
             Outcome.Ok(ref)
@@ -70,7 +70,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         } ?: return Outcome.Ok(null)
 
         return Outcome.Ok(
-            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsRefType.External),
+            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsType.External),
         )
     }
 
@@ -97,7 +97,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                     ref = joinPathSegments(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
-                    type = KmpFsRefType.External,
+                    type = KmpFsType.External,
                 )
             }
 
@@ -132,7 +132,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = file,
                 name = file.toPath().name,
                 isDirectory = false,
-                type = KmpFsRefType.External,
+                type = KmpFsType.External,
             )
         }
 
@@ -148,7 +148,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = directory,
                 name = directory.toPath().name,
                 isDirectory = true,
-                type = KmpFsRefType.External,
+                type = KmpFsType.External,
             )
 
             Outcome.Ok(ref)
@@ -178,7 +178,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
-                type = KmpFsRefType.External,
+                type = KmpFsType.External,
             )
 
             FileSystem.SYSTEM.sink(ref.ref.toPath(), mustCreate = true)
@@ -201,7 +201,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         ) ?: return Outcome.Ok(null)
 
         return Outcome.Ok(
-            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsRefType.External),
+            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsType.External),
         )
     }
 
@@ -214,11 +214,11 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val path = joinPathSegments(dir.ref, fileName).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
             if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
             return Outcome.Ok(
-                KmpFsRef(ref = path.pathString, name = fileName, isDirectory = false, type = KmpFsRefType.External),
+                KmpFsRef(ref = path.pathString, name = fileName, isDirectory = false, type = KmpFsType.External),
             )
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
@@ -234,11 +234,11 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val path = joinPathSegments(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
             if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
             return Outcome.Ok(
-                KmpFsRef(ref = path.pathString, name = name, isDirectory = true, type = KmpFsRefType.External),
+                KmpFsRef(ref = path.pathString, name = name, isDirectory = true, type = KmpFsType.External),
             )
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
@@ -255,14 +255,14 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             val localPath = path.toPath()
             val exists = FileSystem.SYSTEM.exists(localPath)
 
-            if (!exists) return Outcome.Error(KmpFsError.FileNotFoundError)
+            if (!exists) return Outcome.Error(KmpFsError.NotFoundError)
             val metadata = FileSystem.SYSTEM.metadata(localPath)
 
             val ref = KmpFsRef(
                 ref = localPath.pathString,
                 name = localPath.name,
                 isDirectory = metadata.isDirectory,
-                type = KmpFsRefType.External,
+                type = KmpFsType.External,
             )
             return Outcome.Ok(ref)
         } catch (t: Throwable) {
@@ -295,7 +295,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                     ref = it.pathString,
                     name = it.name,
                     isDirectory = metadata.isDirectory,
-                    type = KmpFsRefType.External,
+                    type = KmpFsType.External,
                 )
             }
 
@@ -309,7 +309,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             val path = ref.ref.toPath()
             val metadata = FileSystem.SYSTEM.metadata(path)
-            val size = metadata.size ?: return Outcome.Error(KmpFsError.FileMetadataError)
+            val size = metadata.size ?: return Outcome.Error(KmpFsError.MetadataError)
             Outcome.Ok(KmpFileMetadata(size = size))
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))

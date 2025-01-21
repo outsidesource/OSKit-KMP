@@ -10,7 +10,7 @@ internal suspend fun IExternalKmpFs.nonJsSaveFile(
 ): Outcome<Unit, KmpFsError> {
     return try {
         val file =
-            pickSaveFile(fileName).unwrapOrReturn { return it } ?: return Outcome.Error(KmpFsError.FileNotPicked)
+            pickSaveFile(fileName).unwrapOrReturn { return it } ?: return Outcome.Error(KmpFsError.RefNotPicked)
         val sink = file.sink().unwrapOrReturn { return it }
         sink.use { it.write(bytes) }
         Outcome.Ok(Unit)
