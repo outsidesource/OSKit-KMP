@@ -9,7 +9,7 @@ internal class JvmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     private var context: KmpFsContext? = null
 
     override val root: KmpFsRef by lazy {
-        val context = context ?: throw KmpFsError.NotInitializedError
+        val context = context ?: throw KmpFsError.NotInitialized
         val rootDir = File(FileUtil.appDirPath(context.appName))
         if (!rootDir.exists()) {
             if (!rootDir.mkdirs()) throw KmpFsError.CreateError
@@ -34,7 +34,6 @@ internal class JvmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> = nonJsResolveDirectory(dir, name, create)
-    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> = nonJResolveRefFromPath(path)
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> = nonJsDelete(ref)
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> =
         nonJsList(dir, isRecursive)

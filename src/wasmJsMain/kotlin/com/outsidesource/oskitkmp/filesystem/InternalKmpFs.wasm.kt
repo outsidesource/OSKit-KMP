@@ -20,7 +20,7 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         this.context = context
         scope.launch {
             val rootHandle = navigator.storage.getDirectory().kmpAwaitOutcome().unwrapOrReturn {
-                internalRoot.completeExceptionally(KmpFsError.NotInitializedError)
+                internalRoot.completeExceptionally(KmpFsError.NotInitialized)
                 return@launch
             }
             val key = WasmFsHandleRegister.putHandle(rootHandle)
@@ -34,9 +34,9 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
-        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(awaitRef(dir).ref)
-                as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
         val handle = parentHandle.getFileHandle(fileName, getHandleOptions(create)).kmpAwaitOutcome()
             .unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
         val key = WasmFsHandleRegister.putHandle(handle)
@@ -48,24 +48,21 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
-        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(awaitRef(dir).ref, WasmFsHandleAccessMode.Write)
-                as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
         val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
             .unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
         val key = WasmFsHandleRegister.putHandle(handle)
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true, type = KmpFsType.Internal))
     }
 
-    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
-        // TODO
-        return Outcome.Error(KmpFsError.NotSupportedError)
-    }
-
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupportedError)
-        val handle = WasmFsHandleRegister.getHandle(awaitRef(ref).ref, WasmFsHandleAccessMode.Write) as? FileSystemHandle
-            ?: return Outcome.Error(KmpFsError.OpenError)
+        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
+        val handle = WasmFsHandleRegister.getHandle(
+            key = awaitRef(ref).ref,
+            mode = WasmFsHandleAccessMode.Write,
+        ) as? FileSystemHandle ?: return Outcome.Error(KmpFsError.OpenError)
         handle
             .remove(removeOptions(true))
             .kmpAwaitOutcome()
@@ -74,7 +71,7 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
-        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
 

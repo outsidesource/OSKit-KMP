@@ -54,26 +54,6 @@ internal fun IInternalKmpFs.nonJsResolveDirectory(
     }
 }
 
-internal fun IInternalKmpFs.nonJResolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
-    return try {
-        val localPath = path.toPath()
-        val exists = FileSystem.SYSTEM.exists(localPath)
-
-        if (!exists) return Outcome.Error(KmpFsError.NotFoundError)
-        val metadata = FileSystem.SYSTEM.metadata(localPath)
-
-        val ref = KmpFsRef(
-            ref = localPath.pathString,
-            name = localPath.name,
-            isDirectory = metadata.isDirectory,
-            type = KmpFsType.Internal,
-        )
-        return Outcome.Ok(ref)
-    } catch (t: Throwable) {
-        Outcome.Error(KmpFsError.Unknown(t))
-    }
-}
-
 internal fun IInternalKmpFs.nonJsDelete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
     return try {
         FileSystem.SYSTEM.deleteRecursively(ref.ref.toPath())

@@ -52,7 +52,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
@@ -85,7 +85,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
@@ -125,7 +125,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
         try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             withContext(Dispatchers.Main) {
                 directoryPickerViewController.directoryURL = startingDir?.toNSURL()
@@ -219,16 +219,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     ): Outcome<Unit, KmpFsError> = nonJsSaveFile(bytes, fileName)
 
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
-        return try {
-            val url = NSURL(fileURLWithPath = path)
-            val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
-
-            if (!exists) return Outcome.Error(KmpFsError.NotFoundError)
-
-            Outcome.Ok(url.toKmpFileRef(isDirectory = url.hasDirectoryPath))
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
+        return Outcome.Error(KmpFsError.NotSupported)
     }
 
     @OptIn(ExperimentalForeignApi::class)

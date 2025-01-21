@@ -117,7 +117,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, KmpFsError> {
-        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
 
         val options = showSaveFilePickerOptions(fileName)
         val handle = showSaveFilePicker(options).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Ok(null) }
@@ -143,7 +143,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
-        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(dir.ref)
             as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
         val handle = parentHandle.getFileHandle(fileName, getHandleOptions(create)).kmpAwaitOutcome()
@@ -157,7 +157,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
-        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(dir.ref, WasmFsHandleAccessMode.Write)
             as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
         val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
@@ -167,11 +167,11 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
-        return Outcome.Error(KmpFsError.NotSupportedError)
+        return Outcome.Error(KmpFsError.NotSupported)
     }
 
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
         val handle = WasmFsHandleRegister.getHandle(ref.ref, WasmFsHandleAccessMode.Write) as? FileSystemHandle
             ?: return Outcome.Error(KmpFsError.OpenError)
         handle
@@ -182,7 +182,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
-        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupportedError)
+        if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
         return try {
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
 

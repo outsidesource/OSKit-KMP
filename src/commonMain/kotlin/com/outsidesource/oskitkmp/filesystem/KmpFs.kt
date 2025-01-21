@@ -105,7 +105,7 @@ data class KmpFileMetadata(
 sealed class KmpFsError(override val message: String) : Throwable(message) {
     data object InvalidRef : KmpFsError("KmpFsRef is invalid")
     data object RefIsDirectoryReadWriteError : KmpFsError("Cannot read/write from ref. It is a directory")
-    data object NotInitializedError : KmpFsError("KmpFs has not been initialized")
+    data object NotInitialized : KmpFsError("KmpFs has not been initialized")
     data object OpenError : KmpFsError("KmpFs could not open the specified ref")
     data object CreateError : KmpFsError("KmpFs could not create the specified ref")
     data object DeleteError : KmpFsError("KmpFs could not delete the specified ref")
@@ -115,8 +115,8 @@ sealed class KmpFsError(override val message: String) : Throwable(message) {
     data object CopyError : KmpFsError("KmpFs could not copy the specified ref")
     data object RefNotPicked : KmpFsError("Ref not picked or saved")
     data object DirectoryListError : KmpFsError("KmpFs could not list directory contents for the specified directory")
-    data object NotSupportedError : KmpFsError("KmpFs does not support this operation on this platform")
-    data object EofError : KmpFsError("End of File")
+    data object NotSupported : KmpFsError("KmpFs does not support this operation on this platform")
+    data object Eof : KmpFsError("End of File")
     data object WriteError : KmpFsError("Write error")
     data class Unknown(val error: Any) : KmpFsError(error.toString())
 }

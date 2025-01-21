@@ -80,8 +80,8 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
-            val fileResultLauncher = pickFileResultLauncher ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+            val fileResultLauncher = pickFileResultLauncher ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             fileResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
             val uri = pickFileResultFlow.firstOrNull()?.firstOrNull() ?: return Outcome.Ok(null)
@@ -105,8 +105,8 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
-            val filesResultLauncher = pickFilesResultLauncher ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+            val filesResultLauncher = pickFilesResultLauncher ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             filesResultLauncher.launch(filter?.map { it.mimeType }?.toTypedArray() ?: arrayOf("*/*"))
             val uris = pickFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
@@ -134,8 +134,8 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
-            val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+            val fileResultLauncher = pickSaveFileResultLauncher ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             fileResultLauncher.launch(fileName)
             val uri = pickSaveFileResultFlow.firstOrNull() ?: return Outcome.Ok(null)
@@ -156,8 +156,8 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
         return try {
-            val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(KmpFsError.NotInitializedError)
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val folderResultLauncher = pickFolderResultLauncher ?: return Outcome.Error(KmpFsError.NotInitialized)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
 
             folderResultLauncher.launch(startingDir?.ref?.toUri())
             val uri = pickFolderResultFlow.firstOrNull() ?: return Outcome.Ok(null)
@@ -181,7 +181,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
                 ?: return Outcome.Error(KmpFsError.OpenError)
             val file = parentUri.findFile(fileName)
@@ -208,7 +208,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
                 ?: return Outcome.Error(KmpFsError.OpenError)
             val file = parentUri.findFile(name)
@@ -236,27 +236,12 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     ): Outcome<Unit, KmpFsError> = nonJsSaveFile(bytes, fileName)
 
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
-        return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
-            val file = DocumentFile.fromSingleUri(context.applicationContext, path.toUri())
-                ?: return Outcome.Error(KmpFsError.OpenError)
-
-            Outcome.Ok(
-                KmpFsRef(
-                    ref = file.uri.toString(),
-                    name = file.name ?: "",
-                    isDirectory = file.isDirectory,
-                    type = KmpFsType.External,
-                ),
-            )
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
+        return Outcome.Error(KmpFsError.NotSupported)
     }
 
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val documentFile = if (ref.isDirectory) {
                 DocumentFile.fromTreeUri(context.applicationContext, ref.ref.toUri())
                     ?: return Outcome.Error(KmpFsError.OpenError)
@@ -275,7 +260,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             if (!dir.isDirectory) return Outcome.Ok(emptyList())
 
             val documentFile = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
@@ -317,7 +302,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
         return try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val size: Long
 
             val cursor = context.applicationContext.contentResolver.query(

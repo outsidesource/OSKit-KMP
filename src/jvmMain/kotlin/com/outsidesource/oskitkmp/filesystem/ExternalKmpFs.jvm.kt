@@ -28,7 +28,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (Platform.current == Platform.Linux) return nativeOpenFilePicker(startingDir, filter)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             if (filter != null) dialog.setFilenameFilter { _, name -> filter.any { name.endsWith(it.extension) } }
@@ -83,7 +83,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (Platform.current == Platform.Linux) return nativeOpenFilesPicker(startingDir, filter)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val dialog = FileDialog(context.window, "Select File", FileDialog.LOAD)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             dialog.isMultipleMode = true
@@ -166,7 +166,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             if (Platform.current == Platform.Linux) return nativeSaveFilePicker(fileName, startingDir)
 
             // Prefer FileDialog on other platforms. On MacOS, TinyFileDialogs does not allow other windows to be focused
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
             val dialog = FileDialog(context.window, "Save File", FileDialog.SAVE)
             dialog.directory = startingDir?.ref?.toPath()?.pathString
             dialog.file = fileName

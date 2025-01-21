@@ -19,7 +19,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
         when (type) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
             KmpFsType.External -> {
-                val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+                val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitialized)
                 val stream = context.applicationContext.contentResolver.openInputStream(ref.toUri())
                     ?: return Outcome.Error(KmpFsError.OpenError)
                 val source = stream.source()
@@ -38,7 +38,7 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
         when (type) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
             KmpFsType.External -> {
-                val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitializedError)
+                val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitialized)
                 val modeString = when (mode) {
                     KmpFsWriteMode.Overwrite -> "wt"
                     KmpFsWriteMode.Append -> "wa"

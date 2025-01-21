@@ -41,6 +41,12 @@ interface IExternalKmpFs : IKmpFs {
      */
     suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
         saveFile(source.readRemaining(), fileName)
+
+    /**
+     * [resolveRefFromPath] Attempts to create a KmpFileRef from the provided path string. This is only supported on
+     * the JVM due to sandbox constraints on other platforms.
+     */
+    suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError>
 }
 
 interface IKmpFs {
@@ -49,14 +55,6 @@ interface IKmpFs {
      */
     suspend fun resolveFile(dir: KmpFsRef, fileName: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
     suspend fun resolveDirectory(dir: KmpFsRef, name: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [resolveRefFromPath] Attempts to create a KmpFileRef from the provided path string. This is not guaranteed to
-     * work and will most likely fail on Android and iOS due to paths not being properly sandboxed. This method
-     * exists primarily for desktop where sandboxes are not an issue. Android should use a Uri string for the path.
-     */
-    suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError>
-
     suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError>
     suspend fun list(dir: KmpFsRef, isRecursive: Boolean = false): Outcome<List<KmpFsRef>, KmpFsError>
     suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError>

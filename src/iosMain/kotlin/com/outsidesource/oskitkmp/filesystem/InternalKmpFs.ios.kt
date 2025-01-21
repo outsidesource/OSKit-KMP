@@ -35,7 +35,6 @@ internal class IosInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> = nonJsResolveDirectory(dir, name, create)
-    override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> = nonJResolveRefFromPath(path)
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> = nonJsDelete(ref)
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> =
         nonJsList(dir, isRecursive)
