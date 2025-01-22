@@ -68,7 +68,7 @@ interface IKmpFs {
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
      */
     suspend fun moveFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.MoveError)
+        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
         val source = from.source().unwrapOrReturn { return it }
         val sink = to.sink().unwrapOrReturn { return it }
 
@@ -84,7 +84,7 @@ interface IKmpFs {
     }
 
     suspend fun copyFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.CopyError)
+        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
         val source = from.source().unwrapOrReturn { return it }
         val sink = to.sink().unwrapOrReturn { return it }
 

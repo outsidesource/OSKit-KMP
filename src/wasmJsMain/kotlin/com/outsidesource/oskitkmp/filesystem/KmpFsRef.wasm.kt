@@ -10,7 +10,7 @@ import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import org.w3c.files.File
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
     when (type) {
         KmpFsType.Internal -> if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         KmpFsType.External -> if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
@@ -21,20 +21,22 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 }
 
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
     when (type) {
         KmpFsType.Internal -> if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         KmpFsType.External -> if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
     }
 
     val handle = WasmFsHandleRegister.getHandle(ref, WasmFsHandleAccessMode.Write)
-        as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.NotFoundError)
+        as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
     val writable = handle.createWritable(createWritableOptions(mode == KmpFsWriteMode.Append)).kmpAwaitOutcome()
-        .unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
+        .unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
 
     if (mode == KmpFsWriteMode.Append) {
-        val file = handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
-        writable.seek(file.size).kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
+        val file = handle.getFile().kmpAwaitOutcome()
+            .unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
+        writable.seek(file.size).kmpAwaitOutcome()
+            .unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
     }
 
     return Outcome.Ok(WasmKmpIoSink(writable))
@@ -43,10 +45,10 @@ actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpF
 private suspend fun KmpFsRef.getFile(): Outcome<File, KmpFsError> {
     val file = if (supportsFileSystemApi) {
         val handle = WasmFsHandleRegister.getHandle(ref)
-            as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.NotFoundError)
-        handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
+            as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
+        handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
     } else {
-        WasmFsHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(KmpFsError.NotFoundError)
+        WasmFsHandleRegister.getHandle(ref) as? File ?: return Outcome.Error(KmpFsError.InvalidRef)
     }
 
     return Outcome.Ok(file)

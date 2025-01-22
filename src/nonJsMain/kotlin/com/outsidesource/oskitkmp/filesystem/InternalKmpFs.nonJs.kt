@@ -15,7 +15,10 @@ internal fun IInternalKmpFs.nonJsResolveFile(
         val path = joinPathSegments(dir.ref, fileName).toPath()
         val exists = FileSystem.SYSTEM.exists(path)
 
-        if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
+        if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
+        if (exists && FileSystem.SYSTEM.metadata(path).isDirectory) {
+            return Outcome.Error(KmpFsError.RefExistsAsDirectory)
+        }
         if (create) FileSystem.SYSTEM.sink(path, mustCreate = !exists)
 
         val ref = KmpFsRef(
@@ -39,7 +42,10 @@ internal fun IInternalKmpFs.nonJsResolveDirectory(
         val path = joinPathSegments(dir.ref, name).toPath()
         val exists = FileSystem.SYSTEM.exists(path)
 
-        if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
+        if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
+        if (exists && !FileSystem.SYSTEM.metadata(path).isDirectory) {
+            return Outcome.Error(KmpFsError.RefExistsAsFile)
+        }
         if (create) FileSystem.SYSTEM.createDirectory(path, mustCreate = !exists)
 
         val ref = KmpFsRef(
@@ -95,7 +101,7 @@ internal fun IInternalKmpFs.nonJsReadMetadata(ref: KmpFsRef): Outcome<KmpFileMet
     return try {
         val path = ref.ref.toPath()
         val metadata = FileSystem.SYSTEM.metadata(path)
-        val size = metadata.size ?: return Outcome.Error(KmpFsError.MetadataError)
+        val size = metadata.size ?: return Outcome.Error(KmpFsError.Unknown(Unit))
         Outcome.Ok(KmpFileMetadata(size = size))
     } catch (t: Throwable) {
         Outcome.Error(KmpFsError.Unknown(t))

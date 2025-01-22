@@ -103,21 +103,18 @@ data class KmpFileMetadata(
 )
 
 sealed class KmpFsError(override val message: String) : Throwable(message) {
-    data object InvalidRef : KmpFsError("KmpFsRef is invalid")
-    data object RefIsDirectoryReadWriteError : KmpFsError("Cannot read/write from ref. It is a directory")
     data object NotInitialized : KmpFsError("KmpFs has not been initialized")
-    data object OpenError : KmpFsError("KmpFs could not open the specified ref")
-    data object CreateError : KmpFsError("KmpFs could not create the specified ref")
-    data object DeleteError : KmpFsError("KmpFs could not delete the specified ref")
-    data object NotFoundError : KmpFsError("KmpFs could not find the specified ref")
-    data object MetadataError : KmpFsError("KmpFs could not fetch metadata for the specified ref")
-    data object MoveError : KmpFsError("KmpFs could not move the specified ref")
-    data object CopyError : KmpFsError("KmpFs could not copy the specified ref")
+    data object InvalidRef : KmpFsError("KmpFsRef is invalid")
+    data object ReadWriteFromDirectory : KmpFsError("Cannot read/write from ref. It is a directory")
+    data object InvalidRefType :
+        KmpFsError("Must use internal ref with IInternalKmpFs and external ref with IExternalKmpFs")
+    data object RefNotFound : KmpFsError("Ref not found")
+    data object RefNotCreated : KmpFsError("Unable to create ref")
+    data object RefExistsAsFile : KmpFsError("File with the same name exists")
+    data object RefExistsAsDirectory : KmpFsError("Directory with the same name exists")
     data object RefNotPicked : KmpFsError("Ref not picked or saved")
-    data object DirectoryListError : KmpFsError("KmpFs could not list directory contents for the specified directory")
     data object NotSupported : KmpFsError("KmpFs does not support this operation on this platform")
     data object Eof : KmpFsError("End of File")
-    data object WriteError : KmpFsError("Write error")
     data class Unknown(val error: Any) : KmpFsError(error.toString())
 }
 

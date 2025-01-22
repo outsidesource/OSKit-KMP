@@ -10,9 +10,9 @@ internal class JvmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
 
     override val root: KmpFsRef by lazy {
         val context = context ?: throw KmpFsError.NotInitialized
-        val rootDir = File(FileUtil.appDirPath(context.appName))
+        val rootDir = File(FsUtil.appDirPath(context.appName))
         if (!rootDir.exists()) {
-            if (!rootDir.mkdirs()) throw KmpFsError.CreateError
+            if (!rootDir.mkdirs()) throw KmpFsError.NotInitialized
         }
 
         KmpFsRef(

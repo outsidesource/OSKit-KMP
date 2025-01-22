@@ -35,10 +35,10 @@ import platform.Foundation.NSURLBookmarkResolutionWithoutUI
 import platform.Foundation.appendBytes
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
     val deferrer = Deferrer()
 
     return try {
-        if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
             KmpFsType.External -> {
@@ -59,10 +59,10 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 }
 
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
     val deferrer = Deferrer()
 
     return try {
-        if (isDirectory) return Outcome.Error(KmpFsError.RefIsDirectoryReadWriteError)
         when (type) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
             KmpFsType.External -> {

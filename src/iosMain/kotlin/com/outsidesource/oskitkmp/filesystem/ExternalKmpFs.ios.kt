@@ -9,6 +9,7 @@ import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -155,19 +156,18 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(fileName) ?: return Outcome.Error(
-                KmpFsError.CreateError,
-            )
+            val url = directoryUrl.URLByAppendingPathComponent(fileName) ?: return Outcome.Error(KmpFsError.InvalidRef)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
+            if (exists && url.hasDirectoryPath()) return Outcome.Error(KmpFsError.RefExistsAsDirectory)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createFileAtPath(
                     path = url.path ?: "",
                     contents = null,
                     attributes = null,
                 )
-                if (!created) return Outcome.Error(KmpFsError.CreateError)
+                if (!created) return Outcome.Error(KmpFsError.RefNotCreated)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = false))
@@ -191,10 +191,11 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.CreateError)
+            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.InvalidRef)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
-            if (!exists && !create) return Outcome.Error(KmpFsError.NotFoundError)
+            if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
+            if (exists && !url.hasDirectoryPath()) return Outcome.Error(KmpFsError.RefExistsAsFile)
             if (!exists && create) {
                 val created = NSFileManager.defaultManager.createDirectoryAtPath(
                     path = url.path ?: "",
@@ -202,7 +203,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                     attributes = null,
                     error = null,
                 )
-                if (!created) return Outcome.Error(KmpFsError.CreateError)
+                if (!created) return Outcome.Error(KmpFsError.RefNotCreated)
             }
 
             Outcome.Ok(url.toKmpFileRef(isDirectory = true))
@@ -231,12 +232,11 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             url.startAccessingSecurityScopedResource()
             deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
-            val deleteSuccess = memScoped {
+            memScoped {
                 val error = alloc<ObjCObjectVar<NSError?>>()
-                NSFileManager.defaultManager.removeItemAtPath(url.path ?: "", error.ptr)
+                val success = NSFileManager.defaultManager.removeItemAtPath(url.path ?: "", error.ptr)
+                return if (success) Outcome.Ok(Unit) else Outcome.Error(KmpFsError.Unknown(error.value ?: Unit))
             }
-
-            return if (deleteSuccess) Outcome.Ok(Unit) else Outcome.Error(KmpFsError.DeleteError)
         } catch (t: Throwable) {
             Outcome.Error(KmpFsError.Unknown(t))
         } finally {
@@ -257,7 +257,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
                 val paths = NSFileManager.defaultManager.contentsOfDirectoryAtPath(directoryUrl.path ?: "", error.ptr)
-                    ?: return Outcome.Error(KmpFsError.DirectoryListError)
+                    ?: return Outcome.Error(KmpFsError.Unknown(Unit))
 
                 if (!isRecursive) {
                     val list = paths.mapNotNull {
@@ -304,12 +304,12 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
                 val attrs = NSFileManager.defaultManager.attributesOfItemAtPath(url.path ?: "", error.ptr) ?: run {
                     url.stopAccessingSecurityScopedResource()
-                    return Outcome.Error(KmpFsError.MetadataError)
+                    return Outcome.Error(KmpFsError.Unknown(Unit))
                 }
                 attrs
             }
 
-            val size = attributes[NSFileSize] ?: return Outcome.Error(KmpFsError.MetadataError)
+            val size = attributes[NSFileSize] ?: return Outcome.Error(KmpFsError.Unknown(Unit))
 
             return Outcome.Ok(KmpFileMetadata(size = size as Long))
         } catch (t: Throwable) {

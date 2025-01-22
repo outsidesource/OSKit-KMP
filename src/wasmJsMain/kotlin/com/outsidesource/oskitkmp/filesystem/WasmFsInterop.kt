@@ -63,6 +63,11 @@ internal open external class FileSystemHandle : JsAny {
     fun remove(options: JsAny?): Promise<JsAny?>
 }
 
+enum class FileSystemHandleKind(val value: String) {
+    File("file"),
+    Directory("directory"),
+}
+
 internal fun permissionOptions(mode: String): JsAny = js("""({"mode": mode})""")
 internal fun removeOptions(recursive: Boolean): JsAny = js("""({"recursive": recursive})""")
 

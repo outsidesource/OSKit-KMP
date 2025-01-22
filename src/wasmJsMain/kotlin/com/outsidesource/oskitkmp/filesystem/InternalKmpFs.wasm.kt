@@ -14,7 +14,7 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     private var internalRoot = CompletableDeferred<KmpFsRef>()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    override val root: KmpFsRef = KmpFsRef("__ROOT__", "__ROOT__", true, KmpFsType.Internal)
+    override val root: KmpFsRef = KmpFsRef("00000000000000000000000000", "", true, KmpFsType.Internal)
 
     override fun init(context: KmpFsContext) {
         this.context = context
@@ -36,9 +36,11 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(awaitRef(dir).ref)
-            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
         val handle = parentHandle.getFileHandle(fileName, getHandleOptions(create)).kmpAwaitOutcome()
-            .unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
+            .unwrapOrReturn { return Outcome.Error(if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound) }
+        if (handle.kind == FileSystemHandleKind.Directory.value) return Outcome.Error(KmpFsError.RefExistsAsDirectory)
+
         val key = WasmFsHandleRegister.putHandle(handle)
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = false, type = KmpFsType.Internal))
     }
@@ -50,9 +52,11 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
         val parentHandle = WasmFsHandleRegister.getHandle(awaitRef(dir).ref, WasmFsHandleAccessMode.Write)
-            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.OpenError)
+            as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
         val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
-            .unwrapOrReturn { return Outcome.Error(KmpFsError.OpenError) }
+            .unwrapOrReturn { return Outcome.Error(if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound) }
+        if (handle.kind == FileSystemHandleKind.File.value) return Outcome.Error(KmpFsError.RefExistsAsFile)
+
         val key = WasmFsHandleRegister.putHandle(handle)
         return Outcome.Ok(KmpFsRef(ref = key, name = handle.name, isDirectory = true, type = KmpFsType.Internal))
     }
@@ -62,11 +66,11 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         val handle = WasmFsHandleRegister.getHandle(
             key = awaitRef(ref).ref,
             mode = WasmFsHandleAccessMode.Write,
-        ) as? FileSystemHandle ?: return Outcome.Error(KmpFsError.OpenError)
+        ) as? FileSystemHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
         handle
             .remove(removeOptions(true))
             .kmpAwaitOutcome()
-            .unwrapOrReturn { return Outcome.Error(KmpFsError.DeleteError) }
+            .unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
         return Outcome.Ok(Unit)
     }
 
@@ -77,7 +81,7 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
 
             val handle = WasmFsHandleRegister
                 .getHandle(awaitRef(dir).ref, WasmFsHandleAccessMode.Read) as? FileSystemDirectoryHandle
-                ?: return Outcome.Error(KmpFsError.DirectoryListError)
+                ?: return Outcome.Error(KmpFsError.InvalidRef)
 
             if (!isRecursive) {
                 val list = handle.entries().map {
@@ -120,17 +124,16 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
         if (supportsOpfs) {
             val handle = WasmFsHandleRegister.getHandle(awaitRef(ref).ref)
-                as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.NotFoundError)
+                as? FileSystemFileHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
             val file = handle
                 .getFile()
                 .kmpAwaitOutcome()
-                .unwrapOrReturn { return Outcome.Error(KmpFsError.NotFoundError) }
+                .unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
             return Outcome.Ok(KmpFileMetadata(size = file.size.toDouble().toLong()))
         }
 
-        val file = WasmFsHandleRegister.getHandle(awaitRef(ref).ref) as? File ?: return Outcome.Error(
-            KmpFsError.NotFoundError,
-        )
+        val file = WasmFsHandleRegister.getHandle(awaitRef(ref).ref) as? File
+            ?: return Outcome.Error(KmpFsError.InvalidRef)
         return Outcome.Ok(KmpFileMetadata(size = file.size.toDouble().toLong()))
     }
 
@@ -141,6 +144,5 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         return true
     }
 
-    private suspend inline fun awaitRef(ref: KmpFsRef): KmpFsRef =
-        if (ref.ref == "__ROOT__") internalRoot.await() else ref
+    private suspend inline fun awaitRef(ref: KmpFsRef): KmpFsRef = if (ref == root) internalRoot.await() else ref
 }
