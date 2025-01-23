@@ -64,6 +64,34 @@ interface IKmpFs {
      * Convenience functions
      */
 
+    suspend fun resolveNestedFile(
+        dir: KmpFsRef,
+        relativePath: String,
+        create: Boolean = false,
+    ): Outcome<KmpFsRef, KmpFsError> {
+        var localDir = dir
+        val pathSegments = relativePath.trim('/', '\\').split('/', '\\')
+        pathSegments.forEachIndexed { i, segment ->
+            if (i == pathSegments.size - 1) return resolveFile(localDir, segment, create)
+            localDir = resolveDirectory(localDir, segment, create).unwrapOrReturn { return it }
+        }
+        return Outcome.Error(KmpFsError.RefNotFound)
+    }
+
+    suspend fun resolveNestedDirectory(
+        dir: KmpFsRef,
+        relativePath: String,
+        create: Boolean = false,
+    ): Outcome<KmpFsRef, KmpFsError> {
+        var localDir = dir
+        val pathSegments = relativePath.trim('/', '\\').split('/', '\\')
+        pathSegments.forEachIndexed { i, segment ->
+            if (i == pathSegments.size - 1) return resolveDirectory(localDir, segment, create)
+            localDir = resolveDirectory(localDir, segment, create).unwrapOrReturn { return it }
+        }
+        return Outcome.Error(KmpFsError.RefNotFound)
+    }
+
     suspend fun listWithDepth(dir: KmpFsRef): Outcome<List<KmpFsRefListItem>, KmpFsError> = listWithDepth(0, dir)
 
     private suspend fun listWithDepth(depth: Int, ref: KmpFsRef): Outcome<List<KmpFsRefListItem>, KmpFsError> {

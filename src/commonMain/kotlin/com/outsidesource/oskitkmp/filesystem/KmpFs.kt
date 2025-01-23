@@ -123,4 +123,4 @@ private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
 // Makes sure there is a path separator when joining a directory and file path. Some platforms (linux) may not
 // include the trailing / when selecting a directory
 internal fun joinPathSegments(dir: String, name: String): String =
-    dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name.trimStart(*pathSeparatorChars)
+    dir.trimEnd(pathSeparatorChars[0]) + Path.DIRECTORY_SEPARATOR + name.trimStart(pathSeparatorChars[0])
