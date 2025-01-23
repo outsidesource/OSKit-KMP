@@ -69,7 +69,10 @@ internal class WasmKmpFsMixin(
             val parentHandle = WasmFsHandleRegister.getHandle(sanitizeRef(dir).ref, WasmFsHandleAccessMode.Write)
                 as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
             val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
-                .unwrapOrReturn { return Outcome.Error(if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound) }
+                .unwrapOrReturn {
+                    val error = if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound
+                    return Outcome.Error(error)
+                }
             if (handle.kind == FileSystemHandleKind.File.value) return Outcome.Error(KmpFsError.RefExistsAsFile)
 
             val key = WasmFsHandleRegister.putHandle(handle)

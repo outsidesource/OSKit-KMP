@@ -64,11 +64,26 @@ interface IKmpFs {
      * Convenience functions
      */
 
+    suspend fun listWithDepth(dir: KmpFsRef): Outcome<List<KmpFsRefListItem>, KmpFsError> = listWithDepth(0, dir)
+
+    private suspend fun listWithDepth(depth: Int, ref: KmpFsRef): Outcome<List<KmpFsRefListItem>, KmpFsError> {
+        val refs = buildList {
+            list(ref, isRecursive = false)
+                .unwrapOrReturn { return it }
+                .forEach {
+                    add(KmpFsRefListItem(depth, it))
+                    if (!it.isDirectory) return@forEach
+                    addAll(listWithDepth(depth + 1, it).unwrapOrReturn { return it })
+                }
+        }
+
+        return Outcome.Ok(refs)
+    }
+
     /**
      * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
      */
     suspend fun moveFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
         val source = from.source().unwrapOrReturn { return it }
         val sink = to.sink().unwrapOrReturn { return it }
 
@@ -84,7 +99,6 @@ interface IKmpFs {
     }
 
     suspend fun copyFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
         val source = from.source().unwrapOrReturn { return it }
         val sink = to.sink().unwrapOrReturn { return it }
 
@@ -118,3 +132,5 @@ interface IKmpFs {
         }
     }
 }
+
+data class KmpFsRefListItem(val depth: Int, val ref: KmpFsRef)
