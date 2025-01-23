@@ -14,10 +14,10 @@ import okio.source
 
 @SuppressLint("Recycle")
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
 
     return try {
-        when (type) {
+        when (fsType) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
             KmpFsType.External -> {
                 val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitialized)
@@ -34,10 +34,10 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 
 @SuppressLint("Recycle")
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
 
     return try {
-        when (type) {
+        when (fsType) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
             KmpFsType.External -> {
                 val context = AndroidExternalKmpFs.context ?: return Outcome.Error(KmpFsError.NotInitialized)

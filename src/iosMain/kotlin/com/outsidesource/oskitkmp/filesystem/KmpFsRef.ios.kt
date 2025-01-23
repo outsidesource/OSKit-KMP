@@ -35,11 +35,11 @@ import platform.Foundation.NSURLBookmarkResolutionWithoutUI
 import platform.Foundation.appendBytes
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
     val deferrer = Deferrer()
 
     return try {
-        when (type) {
+        when (fsType) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSource(FileSystem.SYSTEM.source(ref.toPath())))
             KmpFsType.External -> {
                 val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
@@ -59,11 +59,11 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 }
 
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
     val deferrer = Deferrer()
 
     return try {
-        when (type) {
+        when (fsType) {
             KmpFsType.Internal -> Outcome.Ok(OkIoKmpIoSink(FileSystem.SYSTEM.sink(ref.toPath())))
             KmpFsType.External -> {
                 val url = toNSURL() ?: return Outcome.Error(KmpFsError.InvalidRef)
@@ -103,7 +103,7 @@ internal fun NSURL.toKmpFileRef(isDirectory: Boolean): KmpFsRef {
         ref = ref ?: "",
         name = path?.split("/")?.lastOrNull() ?: "",
         isDirectory = isDirectory,
-        type = KmpFsType.External,
+        fsType = KmpFsType.External,
     )
 }
 

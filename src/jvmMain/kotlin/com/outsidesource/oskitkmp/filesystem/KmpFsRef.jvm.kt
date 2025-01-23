@@ -10,7 +10,7 @@ import okio.Path.Companion.toPath
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     return try {
-        if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+        if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
         val source = FileSystem.SYSTEM.source(ref.toPath())
         Outcome.Ok(OkIoKmpIoSource(source))
     } catch (t: Throwable) {
@@ -20,7 +20,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
     return try {
-        if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteFromDirectory)
+        if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
         val sink = if (mode == KmpFsWriteMode.Append) {
             FileSystem.SYSTEM.appendingSink(ref.toPath())
         } else {

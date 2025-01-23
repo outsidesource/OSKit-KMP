@@ -32,8 +32,8 @@ import platform.darwin.NSObject
 actual fun platformExternalKmpFs(): IExternalKmpFs = IosExternalKmpFs()
 
 internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
-    private var context: KmpFsContext? = null
 
+    private var context: KmpFsContext? = null
     private val documentPickerDelegate = IOSPickerDelegate()
 
     private val directoryPickerDelegate = IOSPickerDelegate()
@@ -52,9 +52,11 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, KmpFsError> {
-        try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
 
+        try {
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
                     forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
@@ -85,9 +87,11 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, KmpFsError> {
-        try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
 
+        try {
             withContext(Dispatchers.Main) {
                 val openFilePicker = UIDocumentPickerViewController(
                     forOpeningContentTypes = filter?.map { UTType.typeWithFilenameExtension(it.extension) }
@@ -125,9 +129,11 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
-        try {
-            val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
 
+        try {
             withContext(Dispatchers.Main) {
                 directoryPickerViewController.directoryURL = startingDir?.toNSURL()
                 context.rootController.presentViewController(
@@ -149,6 +155,10 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         fileName: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
+        context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (!dir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (dir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         val deferrer = Deferrer()
 
         return try {
@@ -184,6 +194,10 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
+        context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (!dir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (dir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         val deferrer = Deferrer()
 
         return try {
@@ -225,6 +239,9 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
+        context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (ref.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         val deferrer = Deferrer()
 
         return try {
@@ -246,6 +263,10 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
+        context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (!dir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (dir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         val deferrer = Deferrer()
 
         return try {
@@ -292,6 +313,9 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
+        context ?: return Outcome.Error(KmpFsError.NotInitialized)
+        if (ref.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         val deferrer = Deferrer()
 
         try {
@@ -320,6 +344,9 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun exists(ref: KmpFsRef): Boolean {
+        context ?: return false
+        if (ref.fsType != KmpFsType.External) return false
+
         val deferrer = Deferrer()
 
         return try {

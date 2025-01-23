@@ -13,6 +13,7 @@ import java.awt.FileDialog
 actual fun platformExternalKmpFs(): IExternalKmpFs = JvmExternalKmpFs()
 
 internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
+    private val fsMixin = NonJsKmpFsMixin(fsType = KmpFsType.External, isInitialized = { context != null })
     private var context: KmpFsContext? = null
 
     override fun init(fileHandlerContext: KmpFsContext) {
@@ -23,6 +24,10 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<KmpFsRef?, KmpFsError> {
+        if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeOpenFilePicker(startingDir, filter)
@@ -40,7 +45,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
-                type = KmpFsType.External,
+                fsType = KmpFsType.External,
             )
 
             Outcome.Ok(ref)
@@ -70,7 +75,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         } ?: return Outcome.Ok(null)
 
         return Outcome.Ok(
-            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsType.External),
+            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, fsType = KmpFsType.External),
         )
     }
 
@@ -78,6 +83,10 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         startingDir: KmpFsRef?,
         filter: KmpFileFilter?,
     ): Outcome<List<KmpFsRef>?, KmpFsError> {
+        if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeOpenFilesPicker(startingDir, filter)
@@ -97,7 +106,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                     ref = joinPathSegments(dialog.directory, file.name),
                     name = file.name,
                     isDirectory = false,
-                    type = KmpFsType.External,
+                    fsType = KmpFsType.External,
                 )
             }
 
@@ -132,7 +141,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = file,
                 name = file.toPath().name,
                 isDirectory = false,
-                type = KmpFsType.External,
+                fsType = KmpFsType.External,
             )
         }
 
@@ -140,6 +149,10 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     }
 
     override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError> {
+        if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         return try {
             // Use TinyFileDialogs because there is no AWT directory picker
             val directory = TinyFileDialogs.tinyfd_selectFolderDialog("Select Folder", startingDir?.ref ?: "")
@@ -148,7 +161,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = directory,
                 name = directory.toPath().name,
                 isDirectory = true,
-                type = KmpFsType.External,
+                fsType = KmpFsType.External,
             )
 
             Outcome.Ok(ref)
@@ -161,6 +174,10 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         fileName: String,
         startingDir: KmpFsRef?,
     ): Outcome<KmpFsRef?, KmpFsError> {
+        if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
+        if (startingDir != null && !startingDir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
+        if (startingDir != null && startingDir.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
+
         return try {
             // Prefer native file picker on linux due to issue with libfreetype in Plasma on Linux
             if (Platform.current == Platform.Linux) return nativeSaveFilePicker(fileName, startingDir)
@@ -178,7 +195,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = joinPathSegments(dialog.directory, dialog.file),
                 name = dialog.file,
                 isDirectory = false,
-                type = KmpFsType.External,
+                fsType = KmpFsType.External,
             )
 
             FileSystem.SYSTEM.sink(ref.ref.toPath(), mustCreate = true)
@@ -201,52 +218,8 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         ) ?: return Outcome.Ok(null)
 
         return Outcome.Ok(
-            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, type = KmpFsType.External),
+            KmpFsRef(ref = file, name = file.toPath().name, isDirectory = false, fsType = KmpFsType.External),
         )
-    }
-
-    override suspend fun resolveFile(
-        dir: KmpFsRef,
-        fileName: String,
-        create: Boolean,
-    ): Outcome<KmpFsRef, KmpFsError> {
-        return try {
-            val path = joinPathSegments(dir.ref, fileName).toPath()
-            val exists = FileSystem.SYSTEM.exists(path)
-
-            if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
-            if (exists && FileSystem.SYSTEM.metadata(path).isDirectory) {
-                return Outcome.Error(KmpFsError.RefExistsAsDirectory)
-            }
-            if (!exists && create) FileSystem.SYSTEM.sink(path, mustCreate = true)
-
-            val ref = KmpFsRef(ref = path.pathString, name = fileName, isDirectory = false, type = KmpFsType.External)
-            return Outcome.Ok(ref)
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
-    }
-
-    override suspend fun resolveDirectory(
-        dir: KmpFsRef,
-        name: String,
-        create: Boolean,
-    ): Outcome<KmpFsRef, KmpFsError> {
-        return try {
-            val path = joinPathSegments(dir.ref, name).toPath()
-            val exists = FileSystem.SYSTEM.exists(path)
-
-            if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
-            if (exists && !FileSystem.SYSTEM.metadata(path).isDirectory) {
-                return Outcome.Error(KmpFsError.RefExistsAsFile)
-            }
-            if (!exists && create) FileSystem.SYSTEM.createDirectory(path, mustCreate = true)
-
-            val ref = KmpFsRef(ref = path.pathString, name = name, isDirectory = true, type = KmpFsType.External)
-            return Outcome.Ok(ref)
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
     }
 
     override suspend fun saveFile(
@@ -255,6 +228,8 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     ): Outcome<Unit, KmpFsError> = nonJsSaveFile(bytes, fileName)
 
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> {
+        if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
+
         return try {
             val localPath = path.toPath()
             val exists = FileSystem.SYSTEM.exists(localPath)
@@ -266,7 +241,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
                 ref = localPath.pathString,
                 name = localPath.name,
                 isDirectory = metadata.isDirectory,
-                type = KmpFsType.External,
+                fsType = KmpFsType.External,
             )
             return Outcome.Ok(ref)
         } catch (t: Throwable) {
@@ -274,57 +249,18 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         }
     }
 
-    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
-        return try {
-            FileSystem.SYSTEM.deleteRecursively(ref.ref.toPath())
-            Outcome.Ok(Unit)
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
-    }
+    override suspend fun resolveFile(dir: KmpFsRef, fileName: String, create: Boolean): Outcome<KmpFsRef, KmpFsError> =
+        fsMixin.resolveFile(dir, fileName, create)
 
-    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> {
-        return try {
-            if (!dir.isDirectory) return Outcome.Ok(emptyList())
-            val path = dir.ref.toPath()
+    override suspend fun resolveDirectory(dir: KmpFsRef, name: String, create: Boolean): Outcome<KmpFsRef, KmpFsError> =
+        fsMixin.resolveDirectory(dir, name, create)
 
-            val list = if (isRecursive) {
-                FileSystem.SYSTEM.listRecursively(path).toList()
-            } else {
-                FileSystem.SYSTEM.list(path)
-            }.mapNotNull {
-                val metadata = FileSystem.SYSTEM.metadataOrNull(it) ?: return@mapNotNull null
+    override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> = fsMixin.delete(ref)
 
-                KmpFsRef(
-                    ref = it.pathString,
-                    name = it.name,
-                    isDirectory = metadata.isDirectory,
-                    type = KmpFsType.External,
-                )
-            }
+    override suspend fun list(dir: KmpFsRef, isRecursive: Boolean): Outcome<List<KmpFsRef>, KmpFsError> =
+        fsMixin.list(dir, isRecursive)
 
-            return Outcome.Ok(list)
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
-    }
+    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> = fsMixin.readMetadata(ref)
 
-    override suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError> {
-        return try {
-            val path = ref.ref.toPath()
-            val metadata = FileSystem.SYSTEM.metadata(path)
-            val size = metadata.size ?: return Outcome.Error(KmpFsError.Unknown(Unit))
-            Outcome.Ok(KmpFileMetadata(size = size))
-        } catch (t: Throwable) {
-            Outcome.Error(KmpFsError.Unknown(t))
-        }
-    }
-
-    override suspend fun exists(ref: KmpFsRef): Boolean {
-        return try {
-            FileSystem.SYSTEM.exists(ref.ref.toPath())
-        } catch (_: Throwable) {
-            false
-        }
-    }
+    override suspend fun exists(ref: KmpFsRef): Boolean = fsMixin.exists(ref)
 }
