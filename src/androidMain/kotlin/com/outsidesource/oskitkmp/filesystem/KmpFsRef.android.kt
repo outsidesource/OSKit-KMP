@@ -14,7 +14,7 @@ import okio.source
 
 @SuppressLint("Recycle")
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
 
     return try {
         when (fsType) {
@@ -34,7 +34,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
 
 @SuppressLint("Recycle")
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {
-    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteToDirectory)
+    if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
 
     return try {
         when (fsType) {

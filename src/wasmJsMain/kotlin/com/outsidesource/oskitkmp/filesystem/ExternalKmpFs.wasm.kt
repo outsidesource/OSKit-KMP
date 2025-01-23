@@ -1,6 +1,7 @@
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
+import com.outsidesource.oskitkmp.lib.jsTryOutcome
 import com.outsidesource.oskitkmp.lib.toArrayBuffer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
@@ -147,13 +148,16 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     ): Outcome<Unit, KmpFsError> {
         if (context == null) return Outcome.Error(KmpFsError.NotInitialized)
 
-        // TODO: Handle exceptions
-        val url = URL.createObjectURL(Blob(arrayOf(bytes.toArrayBuffer()).toJsArray()))
-        val a = document.createElement("a") as HTMLAnchorElement
-        a.href = url
-        a.download = fileName
-        a.click()
-        URL.revokeObjectURL(url)
+        jsTryOutcome {
+            val url = URL.createObjectURL(Blob(arrayOf(bytes.toArrayBuffer()).toJsArray()))
+            val a = document.createElement("a") as HTMLAnchorElement
+            a.href = url
+            a.download = fileName
+            a.click()
+            URL.revokeObjectURL(url)
+            (0).toJsNumber()
+        }.unwrapOrReturn { return Outcome.Error(KmpFsError.Unknown(it.error)) }
+
         return Outcome.Ok(Unit)
     }
 

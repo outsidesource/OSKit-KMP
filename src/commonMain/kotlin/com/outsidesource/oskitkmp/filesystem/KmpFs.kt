@@ -105,7 +105,7 @@ data class KmpFileMetadata(
 sealed class KmpFsError(override val message: String) : Throwable(message) {
     data object NotInitialized : KmpFsError("KmpFs has not been initialized")
     data object InvalidRef : KmpFsError("KmpFsRef is invalid")
-    data object ReadWriteToDirectory : KmpFsError("Cannot read/write to ref. It is a directory")
+    data object ReadWriteOnDirectory : KmpFsError("Cannot read from or write to a directory")
     data object RefIsNotDirectory : KmpFsError("The provided ref must be a directory.")
     data object RefFsType : KmpFsError("Must use internal ref with IInternalKmpFs and external ref with IExternalKmpFs")
     data object RefNotFound : KmpFsError("Ref not found")

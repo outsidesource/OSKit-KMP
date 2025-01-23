@@ -24,14 +24,13 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
     override fun init(context: KmpFsContext) {
         this.context = context
         scope.launch {
+            internalRoot.completeExceptionally(KmpFsError.NotInitialized)
             if (!supportsOpfs) {
-                // TODO: this will crash the app because I don't think it will be caught in WASM land
                 internalRoot.completeExceptionally(KmpFsError.NotInitialized)
                 return@launch
             }
 
             val rootHandle = navigator.storage.getDirectory().kmpAwaitOutcome().unwrapOrReturn {
-                // TODO: this will crash the app because I don't think it will be caught in WASM land
                 internalRoot.completeExceptionally(KmpFsError.NotInitialized)
                 return@launch
             }
