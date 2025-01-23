@@ -1,9 +1,6 @@
 package com.outsidesource.oskitkmp.filesystem
 
-import com.outsidesource.oskitkmp.io.IKmpIoSource
-import com.outsidesource.oskitkmp.io.use
-import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
+import okio.Path
 
 expect class KmpFsContext
 
@@ -73,126 +70,21 @@ expect class KmpFsContext
  * }
  * ```
  */
-expect fun KmpFs(): IKmpFs
+object KmpFs {
+    val Internal: IInternalKmpFs = platformInternalKmpFs()
+    val External: IExternalKmpFs = platformExternalKmpFs()
 
-interface IKmpFs {
-    fun init(fileHandlerContext: KmpFsContext)
-
-    suspend fun pickFile(
-        startingDir: KmpFsRef? = null,
-        filter: KmpFileFilter? = null,
-    ): Outcome<KmpFsRef?, KmpFsError>
-
-    suspend fun pickFiles(
-        startingDir: KmpFsRef? = null,
-        filter: KmpFileFilter? = null,
-    ): Outcome<List<KmpFsRef>?, KmpFsError>
-
-    suspend fun pickDirectory(startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
-
-    /**
-     * [pickSaveFile] opens a picker for saving a new file. Android and Desktop allow the user to specify the name.
-     * iOS does not have a native save dialog and will instead show a directory picker to save the file. The newly
-     * created file ref is returned unless the dialog is cancelled.
-     */
-    suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
-
-    /**
-     * [create] Creates the file if it does not exist
-     */
-    suspend fun resolveFile(dir: KmpFsRef, name: String, create: Boolean = false): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [resolveRefFromPath] Attempts to create a KmpFileRef from the provided path string. This is not guaranteed to
-     * work and will most likely fail on Android and iOS due to paths not being properly sandboxed. This method
-     * exists primarily for desktop where sandboxes are not an issue. Android should use a Uri string for the path.
-     */
-    suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [create] Creates the directory if it does not exist
-     */
-    suspend fun resolveDirectory(
-        dir: KmpFsRef,
-        name: String,
-        create: Boolean = false,
-    ): Outcome<KmpFsRef, KmpFsError>
-
-    /**
-     * [saveFile] Saves data into a new file. This will present a file picker on all non-JS platforms. On JS platforms
-     * this will show a file picker unless the user has downloads automatically saved to a specific folder.
-     */
-    suspend fun saveFile(bytes: ByteArray, fileName: String): Outcome<Unit, KmpFsError>
-
-    suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError>
-    suspend fun list(dir: KmpFsRef, isRecursive: Boolean = false): Outcome<List<KmpFsRef>, KmpFsError>
-    suspend fun readMetadata(ref: KmpFsRef): Outcome<KmpFileMetadata, KmpFsError>
-    suspend fun exists(ref: KmpFsRef): Boolean
-
-    /**
-     * Convenience functions
-     */
-
-    /**
-     * [saveFile] Save data from a source into a new file
-     * @param source The KmpFsSource to read from
-     */
-    suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
-        saveFile(source.readRemaining(), fileName)
-
-    /**
-     * [moveFile] moves a file to another destination. The destination file must exist and will be overwritten.
-     */
-    suspend fun moveFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.FileMoveError)
-        val source = from.source().unwrapOrReturn { return it }
-        val sink = to.sink().unwrapOrReturn { return it }
-
-        try {
-            sink.use { it.writeAll(source) }
-        } catch (t: Throwable) {
-            return Outcome.Error(KmpFsError.Unknown(t))
-        }
-
-        delete(from).unwrapOrReturn { return it }
-
-        return Outcome.Ok(Unit)
+    fun init(context: KmpFsContext) {
+        (Internal as? IInitializableKmpFs)?.init(context)
+        (External as? IInitializableKmpFs)?.init(context)
     }
+}
 
-    suspend fun copyFile(from: KmpFsRef, to: KmpFsRef): Outcome<Unit, KmpFsError> {
-        if (from.isDirectory || to.isDirectory) return Outcome.Error(KmpFsError.FileCopyError)
-        val source = from.source().unwrapOrReturn { return it }
-        val sink = to.sink().unwrapOrReturn { return it }
+internal expect fun platformExternalKmpFs(): IExternalKmpFs
+internal expect fun platformInternalKmpFs(): IInternalKmpFs
 
-        try {
-            sink.use { it.writeAll(source) }
-        } catch (t: Throwable) {
-            return Outcome.Error(KmpFsError.Unknown(t))
-        }
-
-        return Outcome.Ok(Unit)
-    }
-
-    suspend fun exists(dir: KmpFsRef, name: String): Boolean {
-        return when (val outcome = resolveFile(dir, name)) {
-            is Outcome.Ok -> return exists(outcome.value)
-            is Outcome.Error -> false
-        }
-    }
-
-    suspend fun readMetadata(dir: KmpFsRef, name: String): Outcome<KmpFileMetadata, KmpFsError> {
-        return when (val outcome = resolveFile(dir, name)) {
-            is Outcome.Ok -> return readMetadata(outcome.value)
-            is Outcome.Error -> outcome
-        }
-    }
-
-    suspend fun delete(dir: KmpFsRef, name: String): Outcome<Unit, KmpFsError> {
-        return when (val outcome = resolveFile(dir, name)) {
-            is Outcome.Ok -> return delete(outcome.value)
-            is Outcome.Error -> outcome
-        }
-    }
+internal interface IInitializableKmpFs {
+    fun init(context: KmpFsContext)
 }
 
 typealias KmpFileFilter = List<KmpFileMimetype>
@@ -211,20 +103,24 @@ data class KmpFileMetadata(
 )
 
 sealed class KmpFsError(override val message: String) : Throwable(message) {
+    data object NotInitialized : KmpFsError("KmpFs has not been initialized")
     data object InvalidRef : KmpFsError("KmpFsRef is invalid")
-    data object RefIsDirectoryReadWriteError : KmpFsError("Cannot read/write from ref. It is a directory")
-    data object NotInitializedError : KmpFsError("KmpFs has not been initialized")
-    data object FileOpenError : KmpFsError("KmpFs could not open the specified file")
-    data object FileCreateError : KmpFsError("KmpFs could not create the specified file")
-    data object FileDeleteError : KmpFsError("KmpFs could not delete the specified file")
-    data object FileNotFoundError : KmpFsError("KmpFs could not find the specified file")
-    data object FileMetadataError : KmpFsError("KmpFs could not fetch metadata for the specified file")
-    data object FileMoveError : KmpFsError("KmpFs could not move the specified file")
-    data object FileCopyError : KmpFsError("KmpFs could not copy the specified file")
-    data object FileNotPicked : KmpFsError("File not picked or saved")
-    data object DirectoryListError : KmpFsError("KmpFs could not list directory contents for the specified directory")
-    data object NotSupportedError : KmpFsError("KmpFs does not support this operation on this platform")
-    data object EofError : KmpFsError("End of File")
-    data object WriteError : KmpFsError("Write error")
+    data object ReadWriteOnDirectory : KmpFsError("Cannot read from or write to a directory")
+    data object RefIsNotDirectory : KmpFsError("The provided ref must be a directory.")
+    data object RefFsType : KmpFsError("Must use internal ref with IInternalKmpFs and external ref with IExternalKmpFs")
+    data object RefNotFound : KmpFsError("Ref not found")
+    data object RefNotCreated : KmpFsError("Unable to create ref")
+    data object RefExistsAsFile : KmpFsError("File with the same name exists")
+    data object RefExistsAsDirectory : KmpFsError("Directory with the same name exists")
+    data object RefNotPicked : KmpFsError("Ref not picked or saved")
+    data object NotSupported : KmpFsError("KmpFs does not support this operation on this platform")
+    data object Eof : KmpFsError("End of File")
     data class Unknown(val error: Any) : KmpFsError(error.toString())
 }
+
+private val pathSeparatorChars = Path.DIRECTORY_SEPARATOR.toCharArray()
+
+// Makes sure there is a path separator when joining a directory and file path. Some platforms (linux) may not
+// include the trailing / when selecting a directory
+internal fun joinPathSegments(dir: String, name: String): String =
+    dir.trimEnd(*pathSeparatorChars) + Path.DIRECTORY_SEPARATOR + name.trimStart(*pathSeparatorChars)

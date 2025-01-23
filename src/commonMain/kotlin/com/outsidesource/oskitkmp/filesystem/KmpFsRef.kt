@@ -21,6 +21,8 @@ data class KmpFsRef internal constructor(
     val name: String,
     @SerialName("3")
     val isDirectory: Boolean,
+    @SerialName("4")
+    val fsType: KmpFsType,
 ) {
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -60,15 +62,18 @@ data class KmpFsRef internal constructor(
     }
 }
 
+enum class KmpFsType {
+    Internal,
+    External,
+}
+
+expect suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError>
+expect suspend fun KmpFsRef.sink(mode: KmpFsWriteMode = KmpFsWriteMode.Overwrite): Outcome<IKmpIoSink, KmpFsError>
+
 internal expect suspend fun onKmpFileRefPersisted(ref: KmpFsRef)
 internal expect suspend fun internalClearPersistedDataCache(ref: KmpFsRef?)
 
-expect suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError>
-expect suspend fun KmpFsRef.sink(
-    mode: KmpFileWriteMode = KmpFileWriteMode.Overwrite,
-): Outcome<IKmpIoSink, KmpFsError>
-
-enum class KmpFileWriteMode {
+enum class KmpFsWriteMode {
     Append,
     Overwrite,
 }

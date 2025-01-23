@@ -7,6 +7,15 @@ import kotlin.js.Promise
 
 internal val supportsFileSystemApi: Boolean = js("""window.hasOwnProperty("showOpenFilePicker")""")
 
+internal val supportsOpfs: Boolean =
+    js("""navigator.storage !== undefined && navigator.storage.getDirectory !== undefined""")
+
+internal external object navigator {
+    object storage {
+        fun getDirectory(): Promise<FileSystemDirectoryHandle>
+    }
+}
+
 internal fun showSaveFilePicker(options: JsAny?): Promise<FileSystemFileHandle> =
     js("""window.showSaveFilePicker(options)""")
 
@@ -54,6 +63,11 @@ internal open external class FileSystemHandle : JsAny {
     fun remove(options: JsAny?): Promise<JsAny?>
 }
 
+enum class FileSystemHandleKind(val value: String) {
+    File("file"),
+    Directory("directory"),
+}
+
 internal fun permissionOptions(mode: String): JsAny = js("""({"mode": mode})""")
 internal fun removeOptions(recursive: Boolean): JsAny = js("""({"recursive": recursive})""")
 
@@ -99,7 +113,7 @@ internal external class FileSystemWritableFileStream : JsAny {
     fun close(): Promise<JsAny?>
 }
 
-fun writeOptions(
+internal fun writeOptions(
     type: String,
     data: ArrayBuffer,
     position: JsNumber? = null,
