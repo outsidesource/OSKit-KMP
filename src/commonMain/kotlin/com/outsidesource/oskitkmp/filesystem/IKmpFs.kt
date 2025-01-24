@@ -129,7 +129,7 @@ interface IKmpFs {
      * Resolves a file with a path that is not required to be a direct descendant of [dir].
      *
      * @param dir The parent directory
-     * @param relativePath The relative path of the file from [dir]. This can be a Windows or Unix path.
+     * @param path The relative path of the file from [dir]. This can be a Windows or Unix path.
      * @param create If true all directory segments will be created if they do not already exist
      *
      * Example:
@@ -137,13 +137,13 @@ interface IKmpFs {
      * resolveNestedFile(KmpFs.Internal.root, "/dir1/dir2/dir3/dir4/test.txt", create = true)
      * ```
      */
-    suspend fun resolveNestedFile(
+    suspend fun resolveFileWithPath(
         dir: KmpFsRef,
-        relativePath: String,
+        path: String,
         create: Boolean = false,
     ): Outcome<KmpFsRef, KmpFsError> {
         var localDir = dir
-        val pathSegments = relativePath.trim('/', '\\').split('/', '\\')
+        val pathSegments = path.trim('/', '\\').split('/', '\\')
         pathSegments.forEachIndexed { i, segment ->
             if (i == pathSegments.size - 1) return resolveFile(localDir, segment, create)
             localDir = resolveDirectory(localDir, segment, create).unwrapOrReturn { return it }
@@ -155,7 +155,7 @@ interface IKmpFs {
      * Resolves a file with a path that is not required to be a direct descendant of [dir].
      *
      * @param dir The parent directory
-     * @param relativePath The relative path of the directory from [dir]. This can be a Windows or Unix path.
+     * @param path The relative path of the directory from [dir]. This can be a Windows or Unix path.
      * @param create If true all directory segments will be created if they do not already exist
      *
      * Example:
@@ -163,13 +163,13 @@ interface IKmpFs {
      * resolveNestedDirectory(KmpFs.Internal.root, "/dir1/dir2/dir3/dir4/dir5", create = true)
      * ```
      */
-    suspend fun resolveNestedDirectory(
+    suspend fun resolveDirectoryWithPath(
         dir: KmpFsRef,
-        relativePath: String,
+        path: String,
         create: Boolean = false,
     ): Outcome<KmpFsRef, KmpFsError> {
         var localDir = dir
-        val pathSegments = relativePath.trim('/', '\\').split('/', '\\')
+        val pathSegments = path.trim('/', '\\').split('/', '\\')
         pathSegments.forEachIndexed { i, segment ->
             if (i == pathSegments.size - 1) return resolveDirectory(localDir, segment, create)
             localDir = resolveDirectory(localDir, segment, create).unwrapOrReturn { return it }
