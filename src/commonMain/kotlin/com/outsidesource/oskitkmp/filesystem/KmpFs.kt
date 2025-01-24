@@ -27,8 +27,8 @@ expect class KmpFsContext
  *
  * Refs can only be created by [KmpFs].
  *
- * Refs are safely persistable via [KmpFsRef.toPersistableString] or [KmpFsRef.toPersistableData]. Refs can then be
- * hydrated via [KmpFsRef.fromPersistableString] or [KmpFsRef.fromPersistableData].
+ * Refs are safely persistable via [KmpFsRef.toPersistableString] or [KmpFsRef.toPersistableBytes]. Refs can then be
+ * hydrated via [KmpFsRef.fromPersistableString] or [KmpFsRef.fromPersistableBytes].
  * However, since refs only point to a location, there is no guarantee a ref will point to an actual file/directory
  * if the file/directory has been deleted, moved, or renamed.
  *
