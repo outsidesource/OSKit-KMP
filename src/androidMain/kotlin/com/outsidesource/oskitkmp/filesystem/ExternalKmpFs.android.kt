@@ -189,7 +189,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        fileName: String,
+        name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         val context = context ?: return Outcome.Error(KmpFsError.NotInitialized)
@@ -199,15 +199,15 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return try {
             val parentUri = DocumentFile.fromTreeUri(context.applicationContext, dir.ref.toUri())
                 ?: return Outcome.Error(KmpFsError.InvalidRef)
-            val file = parentUri.findFile(fileName)
+            val file = parentUri.findFile(name)
             if (file == null && !create) return Outcome.Error(KmpFsError.RefNotFound)
             if (file != null && !file.isDirectory) return Outcome.Error(KmpFsError.RefExistsAsDirectory)
-            val createdFile = file ?: parentUri.createFile("", fileName)
+            val createdFile = file ?: parentUri.createFile("", name)
                 ?: return Outcome.Error(KmpFsError.RefNotCreated)
 
             val ref = KmpFsRef(
                 ref = createdFile.uri.toString(),
-                name = fileName,
+                name = name,
                 isDirectory = false,
                 fsType = KmpFsType.External,
             )

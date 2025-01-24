@@ -1,10 +1,10 @@
 package com.outsidesource.oskitkmp.filesystem
 
+import com.outsidesource.oskitkmp.concurrency.kmpAwait
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import org.w3c.dom.External
 import org.w3c.files.File
 
 internal class WasmKmpFsMixin(
@@ -20,7 +20,7 @@ internal class WasmKmpFsMixin(
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        fileName: String,
+        name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         if (!isInitialized()) return Outcome.Error(KmpFsError.NotInitialized)
@@ -31,14 +31,15 @@ internal class WasmKmpFsMixin(
         return try {
             val parentHandle = WasmFsHandleRegister.getHandle(sanitizeRef(dir).ref)
                 as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
-            val handle = parentHandle.getFileHandle(fileName, getHandleOptions(create)).kmpAwaitOutcome()
+            val handle = parentHandle.getFileHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
                 .unwrapOrReturn {
-                    val error = if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound
+                    val error = when {
+                        isTypeMismatchError(it.error.error).toBoolean() -> KmpFsError.RefExistsAsDirectory
+                        create -> KmpFsError.RefNotCreated
+                        else -> KmpFsError.RefNotFound
+                    }
                     return Outcome.Error(error)
                 }
-            if (handle.kind == FileSystemHandleKind.Directory.value) {
-                return Outcome.Error(KmpFsError.RefExistsAsDirectory)
-            }
 
             val key = WasmFsHandleRegister.putHandle(handle)
             val ref = KmpFsRef(
@@ -70,10 +71,13 @@ internal class WasmKmpFsMixin(
                 as? FileSystemDirectoryHandle ?: return Outcome.Error(KmpFsError.InvalidRef)
             val handle = parentHandle.getDirectoryHandle(name, getHandleOptions(create)).kmpAwaitOutcome()
                 .unwrapOrReturn {
-                    val error = if (create) KmpFsError.RefNotCreated else KmpFsError.RefNotFound
+                    val error = when {
+                        isTypeMismatchError(it.error.error).toBoolean() -> KmpFsError.RefExistsAsFile
+                        create -> KmpFsError.RefNotCreated
+                        else -> KmpFsError.RefNotFound
+                    }
                     return Outcome.Error(error)
                 }
-            if (handle.kind == FileSystemHandleKind.File.value) return Outcome.Error(KmpFsError.RefExistsAsFile)
 
             val key = WasmFsHandleRegister.putHandle(handle)
             val ref = KmpFsRef(
@@ -202,6 +206,7 @@ internal class WasmKmpFsMixin(
         if (ref.fsType != fsType) return false
 
         val handle = WasmFsHandleRegister.getHandle(sanitizeRef(ref).ref) as? FileSystemHandle ?: return false
+        if (handle is FileSystemDirectoryHandle) return handle.exists().kmpAwait().toBoolean()
         if (handle is FileSystemFileHandle) handle.getFile().kmpAwaitOutcome().unwrapOrReturn { return false }
         return true
     }

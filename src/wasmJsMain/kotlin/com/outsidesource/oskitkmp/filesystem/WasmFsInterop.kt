@@ -92,6 +92,22 @@ internal suspend fun FileSystemDirectoryHandle.entries(): List<FileSystemHandle>
     directoryEntries(this@entries) { _, handle -> add(handle) }.kmpAwaitOutcome()
 }
 
+internal fun FileSystemDirectoryHandle.exists() = directoryExists(this)
+
+private fun directoryExists(handle: FileSystemDirectoryHandle): Promise<JsBoolean> = js(
+    """(
+    new Promise(async (res, rej) => {
+        try {
+            const keys = handle.keys()
+            await keys.next()
+            res(true)
+        } catch(e) {
+            res(false)
+        }
+    })
+    )""",
+)
+
 private fun directoryEntries(
     handle: FileSystemDirectoryHandle,
     add: (name: String, value: FileSystemHandle) -> Unit,
@@ -146,3 +162,8 @@ internal external object URL {
     fun createObjectURL(blob: Blob): String
     fun revokeObjectURL(url: String)
 }
+
+internal fun isTypeMismatchError(error: JsAny): JsBoolean = isDomExceptionError(error, "TypeMismatchError")
+
+internal fun isDomExceptionError(error: JsAny, name: String): JsBoolean =
+    js("""(error instanceof DOMException && error.name === name)""")

@@ -5,25 +5,44 @@ import okio.Path
 expect class KmpFsContext
 
 /**
- * Provides limited multiplatform (iOS, Android, and Desktop) filesystem interactions for content outside of
- * application sandboxes in iOS and Android. All files/directories created are user accessible from outside the application.
+ * [KmpFs] Provides limited multiplatform (iOS, Android, Desktop, and Web Browser) filesystem interactions both
+ * inside and outside application sandboxes in iOS and Android via a mostly unified API. [KmpFs] is split into two
+ * primary APIs: [IInternalKmpFs] and [IExternalKmpFs] which both implement [IKmpFs].
  *
- * In order to access any file a user must call [pickDirectory] or [pickFile]. Use [pickDirectory] to gain permissions to a
- * root directories. The user may then take any action within that directories.
+ * Internal:
+ * The Internal API deals with files/directories inside the application sandbox. Files/directories made in Internal
+ * are not meant for end-users to see. On some platforms (i.e. Android they may even be encrypted).
  *
- * In order to rename files, use [moveFile] command.
+ * External:
+ * The External API deals with files/directories outside the application sandbox. Files/directories made in External
+ * are visible and accessible to end-users. In order to access any file/directory, a user must call [pickDirectory]
+ * or [pickFile]. Use [pickDirectory] to gain permissions to directories and any of their descendants.
+ * The user may then take any action within that directory.
  *
- * [resolveFile] and [resolveDirectory] will return a file or directory reference if it exists with an optional
- * parameter to create.
+ * [KmpFsRef]:
+ * All interactions originate from a lightweight reference to a file/directory location called Ref. Refs do not contain
+ * any file data or file handles themselves, only a reference to a location. Refs also contain basic information like
+ * file/directory name and if it is a file or directory. Once a ref is obtained (via [pickFile], [pickDirectory] on
+ * External or [root] on Internal), further operations may be performed.
+ *
+ * Refs can only be created by [KmpFs].
+ *
+ * Refs are safely persistable via [KmpFsRef.toPersistableString] or [KmpFsRef.toPersistableData]. Refs can then be
+ * hydrated via [KmpFsRef.fromPersistableString] or [KmpFsRef.fromPersistableData].
+ * However, since refs only point to a location, there is no guarantee a ref will point to an actual file/directory
+ * if the file/directory has been deleted, moved, or renamed.
  *
  * WASM:
  * Due to browser constraints, [KmpFs] on WASM only supports a subset of functionality available in other targets.
- *  * Directory existence checks will always return true
+ *  External Limitations:
  *  * All `startingDirectory` parameters are ignored
  *  * Chrome and derivatives support all other functionality
  *  * Firefox and Safari have the following limitations:
  *      * Only file picking and reading is supported
- *      * Persisting KmpFileRefs does not work
+ *      * No support for persisting External KmpFileRefs
+ *
+ *  Internal Limitations:
+ *  * All `startingDirectory` parameters are ignored
  *
  * Desktop/JVM:
  * Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath
@@ -69,11 +88,34 @@ expect class KmpFsContext
  *    }
  * }
  * ```
+ *
+ * Usage:
+ * [KmpFs] must be initialized by every platform in order to use it.
+ * ```
+ * KmpFs.init(KmpFsContext())
+ *
+ * // Internal Example
+ * val ref = KmpFs.Internal.resolveFile(KmpFs.Internal.root, "test.txt").unwrapOrReturn { return it }
+ * val sink = ref.sink().unwrapOrReturn { return it }
+ * sink.use {
+ *     it.writeUtf8("Hello World!")
+ * }
+ *
+ * // External Example
+ * val ref = KmpFs.External.pickSaveFile("test.txt").unwrapOrReturn { return it } ?: return // If null, no file was picked
+ * val sink = ref.sink().unwrapOrReturn { return it }
+ * sink.use {
+ *     it.writeUtf8("Hello World!")
+ * }
+ * ```
  */
 object KmpFs {
     val Internal: IInternalKmpFs = platformInternalKmpFs()
     val External: IExternalKmpFs = platformExternalKmpFs()
 
+    /**
+     * Initializes KmpFs. This must be called before any other interactions.
+     */
     fun init(context: KmpFsContext) {
         (Internal as? IInitializableKmpFs)?.init(context)
         (External as? IInitializableKmpFs)?.init(context)
@@ -90,14 +132,18 @@ internal interface IInitializableKmpFs {
 typealias KmpFileFilter = List<KmpFileMimetype>
 
 /**
- * [extension] defines the file extension used i.e. "txt", "png", "jpg"
- * [mimeType] defined the mimetype used i.e. "text/plain", "image/png", "image/jpeg"
+ * Defines a common MimeType interface
+ * @property extension defines the file extension used i.e. "txt", "png", "jpg"
+ * @property mimeType defined the mimetype used i.e. "text/plain", "image/png", "image/jpeg"
  */
 data class KmpFileMimetype(
     val extension: String,
     val mimeType: String,
 )
 
+/**
+ * [KmpFileMetadata] defines metadata for files. Only size is supported for now.
+ */
 data class KmpFileMetadata(
     val size: Long,
 )

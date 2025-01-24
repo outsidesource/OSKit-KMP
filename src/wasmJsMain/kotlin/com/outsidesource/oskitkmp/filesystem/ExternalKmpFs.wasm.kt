@@ -164,8 +164,8 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     override suspend fun resolveRefFromPath(path: String): Outcome<KmpFsRef, KmpFsError> =
         Outcome.Error(KmpFsError.NotSupported)
 
-    override suspend fun resolveFile(dir: KmpFsRef, fileName: String, create: Boolean): Outcome<KmpFsRef, KmpFsError> =
-        fsMixin.resolveFile(dir, fileName, create)
+    override suspend fun resolveFile(dir: KmpFsRef, name: String, create: Boolean): Outcome<KmpFsRef, KmpFsError> =
+        fsMixin.resolveFile(dir, name, create)
 
     override suspend fun resolveDirectory(dir: KmpFsRef, name: String, create: Boolean): Outcome<KmpFsRef, KmpFsError> =
         fsMixin.resolveDirectory(dir, name, create)

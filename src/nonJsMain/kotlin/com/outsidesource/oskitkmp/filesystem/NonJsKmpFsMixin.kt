@@ -13,7 +13,7 @@ internal class NonJsKmpFsMixin(
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        fileName: String,
+        name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         return try {
@@ -21,7 +21,7 @@ internal class NonJsKmpFsMixin(
             if (dir.fsType != fsType) return Outcome.Error(KmpFsError.RefFsType)
             if (!dir.isDirectory) return Outcome.Error(KmpFsError.RefIsNotDirectory)
 
-            val path = joinPathSegments(dir.ref, fileName).toPath()
+            val path = joinPathSegments(dir.ref, name).toPath()
             val exists = FileSystem.SYSTEM.exists(path)
 
             if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
@@ -32,7 +32,7 @@ internal class NonJsKmpFsMixin(
 
             val ref = KmpFsRef(
                 ref = path.pathString,
-                name = fileName,
+                name = name,
                 isDirectory = false,
                 fsType = this@NonJsKmpFsMixin.fsType,
             )

@@ -152,7 +152,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     override suspend fun resolveFile(
         dir: KmpFsRef,
-        fileName: String,
+        name: String,
         create: Boolean,
     ): Outcome<KmpFsRef, KmpFsError> {
         context ?: return Outcome.Error(KmpFsError.NotInitialized)
@@ -166,7 +166,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             directoryUrl.startAccessingSecurityScopedResource()
             deferrer.defer { directoryUrl.stopAccessingSecurityScopedResource() }
 
-            val url = directoryUrl.URLByAppendingPathComponent(fileName) ?: return Outcome.Error(KmpFsError.InvalidRef)
+            val url = directoryUrl.URLByAppendingPathComponent(name) ?: return Outcome.Error(KmpFsError.InvalidRef)
             val exists = NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
 
             if (!exists && !create) return Outcome.Error(KmpFsError.RefNotFound)
