@@ -19,21 +19,21 @@ internal class WasmKmpIoSource(file: File) : IKmpIoSource {
     private val sb = StringBuilder()
 
     override suspend fun require(byteCount: Long) {
-        if (byteCount > size - position) throw KmpIoError.EofError
+        if (byteCount > size - position) throw KmpIoError.Eof
     }
 
-    override suspend fun read(sink: ByteArray, sinkOffset: Int, byteCount: Int): Int {
+    override suspend fun read(buffer: ByteArray, bufferOffset: Int, byteCount: Int): Int {
         if (position >= size) return -1
         check(!isClosed) { "closed" }
         val end = minOf(position + byteCount, size)
         val slice = blob.slice(start = position.toDouble().toJsNumber(), end = end.toDouble().toJsNumber())
-        slice.arrayBuffer().kmpAwait().toUint8Array().copyInto(sink, sinkOffset)
+        slice.arrayBuffer().kmpAwait().toUint8Array().copyInto(buffer, bufferOffset)
         val read = (end - position)
         position += read
         return read.toInt()
     }
 
-    override suspend fun readRemaining(): ByteArray {
+    override suspend fun readAll(): ByteArray {
         val bytes = blob.slice(start = position.toDouble().toJsNumber(), end = blob.size.toDouble().toJsNumber())
             .arrayBuffer()
             .kmpAwaitOutcome()
@@ -43,8 +43,8 @@ internal class WasmKmpIoSource(file: File) : IKmpIoSource {
         return bytes
     }
 
-    override suspend fun readUtf8Line(sink: ByteArray): String? =
-        commonReadUtf8Line(sink, sb, position) { position = it }
+    override suspend fun readUtf8Line(buffer: ByteArray): String? =
+        commonReadUtf8Line(buffer, sb, position) { position = it }
 
     override suspend fun close() { /* Noop in WASM */ }
     override suspend fun isExhausted(): Boolean = position >= size

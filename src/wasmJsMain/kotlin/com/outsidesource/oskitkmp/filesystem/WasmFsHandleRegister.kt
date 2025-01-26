@@ -17,6 +17,15 @@ import kotlinx.datetime.Clock
 import kotlin.Any
 import kotlin.random.Random
 
+/**
+ * Maintains in-memory and long-term persistence of a map of unique ids to FileSystemHandle. The unique ids are used
+ * in the WASM implementation of [KmpFsRef].
+ *
+ * WASM only supports passing around FileSystemHandles which will not serialize properly in [KmpFsRef]. In addition,
+ * WASM only supports persisting FileSystemHandles via IndexedDB. Calling [KmpFsRef.toPersistableBytes] or
+ * [KmpFsRef.toPersistableString] will automatically create an entry in IndexedDb to allow for [KmpFs] to retrieve the
+ * proper handle when the persisted [KmpFsRef] is loaded.
+ */
 internal object WasmFsHandleRegister {
     private val lock = SynchronizedObject()
     private val handles: MutableMap<String, Any> = mutableMapOf()

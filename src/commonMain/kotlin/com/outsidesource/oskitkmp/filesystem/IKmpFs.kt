@@ -72,7 +72,7 @@ interface IExternalKmpFs : IKmpFs {
      * @param fileName The suggested file name to the user. The user can override this.
      */
     suspend fun saveFile(source: IKmpIoSource, fileName: String): Outcome<Unit, KmpFsError> =
-        saveFile(source.readRemaining(), fileName)
+        saveFile(source.readAll(), fileName)
 
     /**
      * Attempts to create a KmpFileRef from the provided path string. This is only supported on
