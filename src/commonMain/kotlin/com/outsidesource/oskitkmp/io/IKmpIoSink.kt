@@ -5,6 +5,8 @@ import com.outsidesource.oskitkmp.lib.toBytesLe
 
 /**
  * Receives a stream of bytes that allows easy writing of multiple data types
+ *
+ * All methods have a possibility of throwing exceptions.
  */
 interface IKmpIoSink : IKmpIoClosable {
 

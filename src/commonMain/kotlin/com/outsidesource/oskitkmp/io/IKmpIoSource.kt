@@ -13,6 +13,8 @@ import com.outsidesource.oskitkmp.lib.toShortLe
 
 /**
  * Supplies a stream of bytes that allows easy reading of multiple data types
+ *
+ * All methods have a possibility of throwing exceptions.
  */
 interface IKmpIoSource : IKmpIoClosable {
     /**
