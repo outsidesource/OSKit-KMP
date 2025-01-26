@@ -1,7 +1,5 @@
 package com.outsidesource.oskitkmp.io
 
-import com.outsidesource.oskitkmp.filesystem.KmpFsError
-
 fun ByteArray.toKmpIoSink(): IKmpIoSink = ByteArrayKmpIoSink(this)
 
 internal class ByteArrayKmpIoSink(private val bytes: ByteArray) : IKmpIoSink {
@@ -15,7 +13,7 @@ internal class ByteArrayKmpIoSink(private val bytes: ByteArray) : IKmpIoSink {
         byteCount: Int,
     ): IKmpIoSink {
         check(!isClosed) { "closed" }
-        if (position + byteCount > bytes.size) throw KmpFsError.Eof
+        if (position + byteCount > bytes.size) throw KmpIoError.Eof
         source.copyInto(bytes, position, sourceOffset, sourceOffset + byteCount)
         position += byteCount
         return this

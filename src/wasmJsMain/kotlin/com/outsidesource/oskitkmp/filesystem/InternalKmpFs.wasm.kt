@@ -25,7 +25,7 @@ internal class WasmInternalKmpFs() : IInternalKmpFs, IInitializableKmpFs {
         this.context = context
         scope.launch {
             if (!supportsOpfs) {
-                internalRoot.completeExceptionally(KmpFsError.NotInitialized)
+                internalRoot.completeExceptionally(KmpFsError.NotSupported)
                 return@launch
             }
 

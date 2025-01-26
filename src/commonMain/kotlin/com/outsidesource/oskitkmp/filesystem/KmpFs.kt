@@ -161,7 +161,6 @@ sealed class KmpFsError(override val message: String) : Throwable(message) {
     data object RefExistsAsDirectory : KmpFsError("Directory with the same name exists")
     data object RefNotPicked : KmpFsError("Ref not picked or saved")
     data object NotSupported : KmpFsError("KmpFs does not support this operation on this platform")
-    data object Eof : KmpFsError("End of File")
     data class Unknown(val error: Any) : KmpFsError(error.toString())
 }
 
