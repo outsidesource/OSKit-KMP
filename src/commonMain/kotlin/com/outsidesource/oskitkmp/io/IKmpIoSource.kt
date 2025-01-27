@@ -116,7 +116,8 @@ interface IKmpIoSource : IKmpIoClosable {
      *
      * @param buffer Allows calling code to pool buffers and pass them in for improved performance.
      */
-    suspend fun readDoubleLe(buffer: ByteArray = ByteArray(8)): Double = buffer.apply { checkedRead(8, this) }.toDoubleLe()
+    suspend fun readDoubleLe(buffer: ByteArray = ByteArray(8)): Double =
+        buffer.apply { checkedRead(8, this) }.toDoubleLe()
 
     /**
      * Reads a long from the source

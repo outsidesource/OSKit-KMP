@@ -67,88 +67,26 @@ interface IRouter {
     val routeFlow: StateFlow<RouteStackEntry>
 
     /**
+     * TODO: documentation
+     */
+    fun transaction(force: Boolean = false, block: IRouterTransactionScope.() -> Unit)
+
+    /**
      * [push] navigates to the given route and moves the current active route to an inactive state
      * [transition] defines the route transition
      * [force] indicates if [push] should ignore the current transition status
      */
     fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false)
-    fun push(
-        route: IRoute,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean,
-    )
-
-    fun push(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    )
-
-    fun <T : IRoute> push(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    )
 
     /**
-     * [replace] replaces the current active route with the provided route
-     * * [transition] defines the route transition
-     * [force] indicates if [push] should ignore the current transition status
+     * TODO: Documentation
      */
     fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false)
-    fun replace(
-        route: IRoute,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean,
-    )
-
-    fun replace(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    )
-
-    fun <T : IRoute> replace(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    )
 
     /**
-     * [pop] pops the current active route off of the route stack and destroys it
+     * TODO: documentation
      */
-    fun pop(force: Boolean = false)
-
-    /**
-     * [popWhile] pops while the passed in [block] returns true
-     * [force] indicates if [push] should ignore the current transition status
-     */
-    fun popWhile(force: Boolean = false, block: (entry: IRoute) -> Boolean)
-
-    /**
-     * [popTo] pops to a specific [IRoute] in the route stack. If the route does not exist, the router will pop back
-     * to the initial route. Setting [inclusive] to `true` will also pop the passed in [to] parameter off of the state.
-     * [inclusive] default is `false`
-     */
-    fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean = false, force: Boolean = false)
-
-    /**
-     * [popTo] pops to a specific [IRoute] in the route stack. If the route does not exist, the router will pop back
-     * to the initial route. Setting [inclusive] to `true` will also pop the passed in [to] parameter off of the state.
-     * [inclusive] default is `false`
-     * [force] indicates if [push] should ignore the current transition status
-     */
-    fun popTo(to: IRoute, inclusive: Boolean = false, force: Boolean = false)
+    fun pop(force: Boolean = false, block: RoutePopFunc = { once() })
 
     /**
      * [hasBackStack] returns `true` if there is a route to pop off of the route stack
@@ -165,6 +103,59 @@ interface IRouter {
      * The listener is automatically removed when the route is destroyed.
      */
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
+}
+
+interface IRouterTransactionScope {
+    fun push(route: IRoute, transition: IRouteTransition? = null)
+    fun replace(route: IRoute, transition: IRouteTransition? = null)
+    fun pop(block: RoutePopFunc = { once() })
+}
+
+typealias RoutePopFunc = IRoutePopScope.() -> (route: IRoute) -> Boolean
+
+interface IRoutePopScope {
+    fun once(): (route: IRoute) -> Boolean {
+        var breakNext = false
+
+        return fun(_: IRoute): Boolean {
+            if (!breakNext) {
+                breakNext = true
+                return true
+            }
+            return false
+        }
+    }
+
+    fun <T : IRoute> toClass(to: KClass<T>, inclusive: Boolean = false): (route: IRoute) -> Boolean {
+        var breakNext = false
+
+        return fun (route: IRoute): Boolean {
+            if (breakNext) {
+                return false
+            } else if (route::class == to) {
+                if (!inclusive) return false
+                breakNext = true
+            }
+            return true
+        }
+    }
+
+    fun toRoute(to: IRoute, inclusive: Boolean = false): (route: IRoute) -> Boolean {
+        var breakNext = false
+
+        return fun (route: IRoute): Boolean {
+            if (breakNext) {
+                return false
+            } else if (route == to) {
+                if (!inclusive) return false
+                breakNext = true
+            }
+
+            return true
+        }
+    }
+
+    fun whileTrue(block: (IRoute) -> Boolean): (route: IRoute) -> Boolean = block
 }
 
 /**

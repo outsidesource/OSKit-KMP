@@ -2,7 +2,6 @@ package com.outsidesource.oskitkmp.coordinator
 
 import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.reflect.KClass
 
 /**
  * An abstraction around [Router] to protect against direct utilization of router methods. Coordinators act as the
@@ -14,75 +13,22 @@ abstract class Coordinator(
 ) {
     internal val router = Router(initialRoute, defaultTransition)
 
-    protected val routeStack
-        get() = router.routeStack
-    protected val current
-        get() = router.current
+    protected val routeStack get() = router.routeStack
+    protected val current get() = router.current
 
     protected fun hasBackStack() = router.hasBackStack()
 
-    protected fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
+    protected fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) =
         router.push(route, transition, force)
 
-    protected fun push(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    ) = router.push(route, popTo, popToInclusive, transition, force)
-
-    protected fun <T : IRoute> push(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    ) = router.push(route, popTo, popToInclusive, transition, force)
-
-    protected fun push(
-        route: IRoute,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean,
-    ) = router.push(route, transition, force, popWhile)
-
-    protected fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
+    protected fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) =
         router.replace(route, transition, force)
 
-    protected fun replace(
-        route: IRoute,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-        popWhile: (entry: IRoute) -> Boolean,
-    ) = router.replace(route, transition, force, popWhile)
+    protected fun pop(force: Boolean, block: RoutePopFunc = { once() }) =
+        router.pop(force, block)
 
-    protected fun replace(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    ) = router.replace(route, popTo, popToInclusive, transition, force)
-
-    protected fun <T : IRoute> replace(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean = false,
-        transition: IRouteTransition? = null,
-        force: Boolean = false,
-    ) = router.replace(route, popTo, popToInclusive, transition, force)
-
-    fun pop(force: Boolean = false) = router.pop(force)
-
-    protected fun popWhile(force: Boolean = false, block: (entry: IRoute) -> Boolean) =
-        router.popWhile(force, block)
-
-    protected fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean = false, force: Boolean = false) =
-        router.popTo(to, inclusive, force)
-
-    protected fun popTo(to: IRoute, inclusive: Boolean = false, force: Boolean = false) =
-        router.popTo(to, inclusive, force)
+    protected fun transaction(force: Boolean, block: IRouterTransactionScope.() -> Unit) =
+        router.transaction(force, block)
 
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener) = router.addRouteLifecycleListener(listener)
 
