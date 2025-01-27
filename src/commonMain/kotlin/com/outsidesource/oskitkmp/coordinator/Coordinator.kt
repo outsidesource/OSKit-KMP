@@ -18,16 +18,16 @@ abstract class Coordinator(
 
     protected fun hasBackStack() = router.hasBackStack()
 
-    protected fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) =
+    protected fun push(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
         router.push(route, transition, force)
 
-    protected fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) =
+    protected fun replace(route: IRoute, transition: IRouteTransition? = null, force: Boolean = false) =
         router.replace(route, transition, force)
 
-    protected fun pop(force: Boolean, block: RoutePopFunc = { once() }) =
+    protected fun pop(force: Boolean = false, block: RoutePopFunc = { once() }) =
         router.pop(force, block)
 
-    protected fun transaction(force: Boolean, block: IRouterTransactionScope.() -> Unit) =
+    protected fun transaction(force: Boolean = false, block: IRouterTransactionScope.() -> Unit) =
         router.transaction(force, block)
 
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener) = router.addRouteLifecycleListener(listener)
