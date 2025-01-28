@@ -70,8 +70,10 @@ actual fun initForPlatform(router: Router) {
 
             handleNewRoute = false
             when {
-                newIndex == -1 -> router.pop(force = true) { whileTrue { true } }
-                newIndex < currentIndex -> router.pop(force = true) { whileTrue { it != routeCache[newIndex].route } }
+                newIndex == -1 -> router.pop(ignoreTransitionLock = true) { whileTrue { true } }
+                newIndex < currentIndex -> router.pop(ignoreTransitionLock = true) {
+                    whileTrue { it != routeCache[newIndex].route }
+                }
                 newIndex > currentIndex -> for (i in currentIndex + 1..newIndex) { router.push(routeCache[i]) }
             }
 

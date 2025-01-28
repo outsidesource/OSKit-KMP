@@ -19,7 +19,7 @@ class Router(
 
     private val _routeStack: AtomicRef<List<RouteStackEntry>>
     private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
-    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
+    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Idle)
     private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
 
     init {
@@ -29,31 +29,28 @@ class Router(
         initForPlatform(this)
     }
 
-    override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) = transaction(force) {
-        push(route, transition)
-    }
+    override fun push(route: IRoute, transition: IRouteTransition?, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { push(route, transition) }
 
-    override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) = transaction(force) {
-        replace(route, transition)
-    }
+    override fun replace(route: IRoute, transition: IRouteTransition?, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { replace(route, transition) }
 
-    internal fun push(route: RouteStackEntry) = transaction {
-        (this as? RouterTransactionScope)?.push(route)
-    }
+    internal fun push(route: RouteStackEntry) =
+        transaction { (this as? RouterTransactionScope)?.push(route) }
 
-    override fun pop(force: Boolean, block: RoutePopFunc) = transaction(force) {
-        pop(block)
-    }
+    override fun pop(ignoreTransitionLock: Boolean, popFunc: RoutePopFunc) =
+        transaction(ignoreTransitionLock) { pop(popFunc) }
 
-    override fun transaction(force: Boolean, block: IRouterTransactionScope.() -> Unit) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
+    override fun transaction(ignoreTransitionLock: Boolean, transaction: IRouterTransactionScope.() -> Unit) {
+        if (transitionStatus == RouteTransitionStatus.Running && !ignoreTransitionLock) return
 
-        _routeStack.value = RouterTransactionScope(
+        val scope = RouterTransactionScope(
             routeStack = routeStack.toList(),
             defaultTransition = defaultTransition,
             onRouteStopped = ::onRouteStopped,
             onRouteDestroyed = ::onRouteDestroyed,
-        ).apply { block() }.routeStack
+        ).apply { transaction() }
+        _routeStack.value = scope.routeStack
 
         val top = _routeStack.value.last()
         routeFlow.value = top
@@ -66,11 +63,11 @@ class Router(
         val previousStatus = transitionStatus
         transitionStatus = status
 
-        if (status == RouteTransitionStatus.Completed && previousStatus != status) {
-            val routeDestroyedCallbacks = onRouteDestroyedTransitionCompletedCallbacks.value
+        if (status == RouteTransitionStatus.Idle && previousStatus == RouteTransitionStatus.Running) {
+            val routeDestroyedTransitionCompleteCallbacks = onRouteDestroyedTransitionCompletedCallbacks.value
             onRouteDestroyedTransitionCompletedCallbacks.value = emptyList()
 
-            for (callback in routeDestroyedCallbacks) {
+            for (callback in routeDestroyedTransitionCompleteCallbacks) {
                 callback()
             }
 

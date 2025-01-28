@@ -1,6 +1,9 @@
 package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
 
 import com.outsidesource.oskitkmp.router.*
+import com.outsidesource.oskitkmp.test.runBlockingTest
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -98,8 +101,76 @@ class RouterTest {
     }
 
     @Test
-    fun testRouteLifecycle() {
-        // TODO
+    fun testRouteLifecycle() = runBlockingTest {
+        val router = Router(Route.Home)
+        val counter = RouteLifecycleCounter()
+
+        router.push(Route.Test(1))
+        router.addRouteLifecycleListener(CounterRouteLifecycleListener(counter))
+
+        assertEquals(1, counter.created, "Created not called")
+        assertEquals(1, counter.started, "Started not called")
+
+        router.push(Route.Test(2))
+        assertEquals(1, counter.stopped, "Stop called wrong number of times")
+
+        router.pop()
+        assertEquals(2, counter.started, "Started not called on reentry")
+
+        router.pop()
+        val job = launch {
+            router.markTransitionStatus(RouteTransitionStatus.Running)
+            delay(400)
+            router.markTransitionStatus(RouteTransitionStatus.Idle)
+        }
+        assertEquals(1, counter.destroyed, "Destroyed called wrong number of times")
+        job.join()
+        assertEquals(1, counter.destroyedTransitionComplete, "Destroyed Transition Complete called wrong number of times")
+    }
+
+    @Test
+    fun testRouteLifecycle2() {
+        val router = Router(Route.Home)
+        val counter = RouteLifecycleCounter()
+
+        router.push(Route.Test(1))
+        router.addRouteLifecycleListener(CounterRouteLifecycleListener(counter))
+        router.push(Route.Test(2))
+        router.push(Route.Test(3))
+        router.pop { toRoute(Route.Home) }
+        assertEquals(1, counter.destroyed, "Destroyed called wrong number of times")
+    }
+}
+
+private class RouteLifecycleCounter(
+    var created: Int = 0,
+    var started: Int = 0,
+    var stopped: Int = 0,
+    var destroyed: Int = 0,
+    var destroyedTransitionComplete: Int = 0,
+)
+
+private class CounterRouteLifecycleListener(
+    val counter: RouteLifecycleCounter,
+) : IRouteLifecycleListener {
+    override fun onRouteCreated() {
+        counter.created++
+    }
+
+    override fun onRouteStarted() {
+        counter.started++
+    }
+
+    override fun onRouteStopped() {
+        counter.stopped++
+    }
+
+    override fun onRouteDestroyed() {
+        counter.destroyed++
+    }
+
+    override fun onRouteDestroyedTransitionComplete() {
+        counter.destroyedTransitionComplete++
     }
 }
 
