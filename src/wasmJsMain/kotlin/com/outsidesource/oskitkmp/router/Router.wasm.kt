@@ -1,23 +1,30 @@
 package com.outsidesource.oskitkmp.router
 
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import org.w3c.dom.PopStateEvent
 import org.w3c.dom.events.Event
 
+private val wasmRouterScopes = atomic<Map<Router, CoroutineScope>>(emptyMap())
+
 actual fun initForPlatform(router: Router) {
-    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     var handleNewRoute = true
     var handlePopState = true
     var routeCache = listOf<RouteStackEntry>()
     var previousRouteStack = emptyList<RouteStackEntry>()
     var currentIndex = -1
+
+    val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    wasmRouterScopes.update { it.toMutableMap().apply { this[router] = scope } }
 
     scope.launch {
         routeCache = routeCache + router.current
@@ -80,6 +87,12 @@ actual fun initForPlatform(router: Router) {
             currentIndex = newIndex
         }
     }
+}
+
+actual fun tearDownForPlatform(router: Router) {
+    val scope = wasmRouterScopes.value[router] ?: return
+    scope.coroutineContext.cancelChildren()
+    wasmRouterScopes.update { it.toMutableMap().apply { remove(router) } }
 }
 
 private fun popStateFlow() = callbackFlow {

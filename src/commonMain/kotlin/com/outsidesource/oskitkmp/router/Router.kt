@@ -87,6 +87,8 @@ class Router(
         }
     }
 
+    override fun tearDown() = tearDownForPlatform(this)
+
     private fun onRouteStopped(route: RouteStackEntry) {
         routeLifecycleListeners.value[route.id]?.forEach { listener -> listener.onRouteStopped() }
     }
@@ -153,6 +155,7 @@ private class RouterTransactionScope(
 }
 
 internal expect fun initForPlatform(router: Router)
+internal expect fun tearDownForPlatform(router: Router)
 
 // Kotlin 2.1.0 has an issue with an anonymous object being created in a class constructor on iOS preventing compilation
 // of any project using OSKit-KMP

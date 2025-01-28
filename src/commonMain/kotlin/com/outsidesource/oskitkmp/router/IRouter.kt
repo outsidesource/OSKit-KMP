@@ -137,6 +137,11 @@ interface IRouter {
      * The listener is automatically removed when the route is destroyed.
      */
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener)
+
+    /**
+     * Allows the router to tear down anything that was initialized when the router was constructed
+     */
+    fun tearDown()
 }
 
 interface IRouterTransactionScope {
