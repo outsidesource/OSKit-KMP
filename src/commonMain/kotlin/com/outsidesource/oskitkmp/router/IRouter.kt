@@ -236,7 +236,6 @@ interface IRoutePopScope {
                 if (!inclusive) return false
                 breakNext = true
             }
-
             return true
         }
     }

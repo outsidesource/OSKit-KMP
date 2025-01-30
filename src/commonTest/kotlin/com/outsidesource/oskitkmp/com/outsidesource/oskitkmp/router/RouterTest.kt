@@ -173,7 +173,7 @@ class RouterTest {
 
         // Test pop without result
         launch {
-            val result = router.transactionWithResult(Boolean::class) {
+            router.transactionWithResult(Boolean::class) {
                 push(Route.Route1)
             }.unwrapOrReturn {
                 assertTrue { it.error is RouteResultError.Cancelled }
@@ -220,6 +220,30 @@ class RouterTest {
         }
 
         assertEquals(3, finalResult)
+    }
+
+    @Test
+    fun testRouteResultDeep() = runBlockingTest {
+        val router = Router(Route.Home)
+
+        launch {
+            delay(20)
+            router.push(Route.Route2)
+            router.push(Route.Route2)
+            router.push(Route.Route2)
+            router.push(Route.Route2)
+
+            router.transaction {
+                pop { toRoute(Route.Route1) }
+                pop { withResult(true) }
+            }
+        }
+
+        val result = router
+            .transactionWithResult(Boolean::class) { push(Route.Route1) }
+            .unwrapOrReturn { fail() }
+
+        assertEquals(result, true)
     }
 }
 
