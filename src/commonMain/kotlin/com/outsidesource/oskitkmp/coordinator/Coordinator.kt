@@ -33,9 +33,9 @@ abstract class Coordinator(
     ) = router.replace(route, transition, ignoreTransitionLock)
 
     protected fun pop(
-        force: Boolean = false,
+        ignoreTransitionLock: Boolean = false,
         popFunc: RoutePopFunc = { once() },
-    ) = router.pop(force, popFunc)
+    ) = router.pop(ignoreTransitionLock, popFunc)
 
     protected fun transaction(
         ignoreTransitionLock: Boolean = false,
