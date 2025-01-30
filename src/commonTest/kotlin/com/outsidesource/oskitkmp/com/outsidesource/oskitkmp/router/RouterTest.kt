@@ -3,6 +3,7 @@ package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import com.outsidesource.oskitkmp.router.*
 import com.outsidesource.oskitkmp.test.runBlockingTest
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.test.Test
@@ -162,7 +163,7 @@ class RouterTest {
             router.transactionWithResult(Boolean::class) {
                 push(Route.Route1)
             }.unwrapOrReturn {
-                assertTrue { it.error is RouteResultError.Unknown }
+                assertTrue { it.error is RouteResultError.UnexpectedResultType }
                 return@launch
             }
             fail()
@@ -182,6 +183,43 @@ class RouterTest {
         }
         delay(100)
         router.pop()
+    }
+
+    @Test
+    fun testRouteResultPropagated() = runBlockingTest {
+        val router = Router(Route.Home)
+        var finalResult = 0
+
+        coroutineScope {
+            launch {
+                finalResult = router
+                    .transactionWithResult(Int::class) { push(Route.Route1) }
+                    .unwrapOrReturn { fail() }
+            }
+
+            launch {
+                delay(20)
+                val result = router
+                    .transactionWithResult(Int::class) { push(Route.Route1) }
+                    .unwrapOrReturn { fail() }
+                router.pop { withResult(result + 1) }
+            }
+
+            launch {
+                delay(40)
+                val result = router
+                    .transactionWithResult(Int::class) { push(Route.Route1) }
+                    .unwrapOrReturn { fail() }
+                router.pop { withResult(result + 1) }
+            }
+
+            launch {
+                delay(60)
+                router.pop { withResult(1) }
+            }
+        }
+
+        assertEquals(3, finalResult)
     }
 }
 

@@ -64,7 +64,7 @@ class Router(
             when {
                 result::class == resultType -> Outcome.Ok(result as T)
                 result is RouteResultError -> Outcome.Error(result)
-                else -> Outcome.Error(RouteResultError.Unknown(result))
+                else -> Outcome.Error(RouteResultError.UnexpectedResultType(result))
             }
         } catch (t: Throwable) {
             Outcome.Error(RouteResultError.Unknown(t))

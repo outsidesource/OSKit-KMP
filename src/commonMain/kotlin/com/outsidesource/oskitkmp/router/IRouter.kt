@@ -138,7 +138,7 @@ interface IRouter {
      * ```
      */
     suspend fun <T : Any> transactionWithResult(
-        clazz: KClass<T>,
+        resultType: KClass<T>,
         ignoreTransitionLock: Boolean = false,
         transaction: IRouterTransactionScope.() -> Unit,
     ): Outcome<T, RouteResultError>
@@ -169,6 +169,7 @@ interface IRouter {
 sealed class RouteResultError {
     object Cancelled : RouteResultError()
     data class Unknown(val error: Any) : RouteResultError()
+    data class UnexpectedResultType(val result: Any) : RouteResultError()
 }
 
 interface IRouterTransactionScope {

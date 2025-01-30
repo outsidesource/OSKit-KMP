@@ -1,7 +1,9 @@
 package com.outsidesource.oskitkmp.coordinator
 
+import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.router.*
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.reflect.KClass
 
 /**
  * An abstraction of [Router] to protect against direct utilization of router methods. Coordinators act as the
@@ -39,6 +41,12 @@ abstract class Coordinator(
         ignoreTransitionLock: Boolean = false,
         transaction: IRouterTransactionScope.() -> Unit,
     ) = router.transaction(ignoreTransitionLock, transaction)
+
+    suspend fun <T : Any> transactionWithResult(
+        resultType: KClass<T>,
+        ignoreTransitionLock: Boolean = false,
+        transaction: IRouterTransactionScope.() -> Unit,
+    ): Outcome<T, RouteResultError> = router.transactionWithResult(resultType, ignoreTransitionLock, transaction)
 
     fun addRouteLifecycleListener(listener: IRouteLifecycleListener) = router.addRouteLifecycleListener(listener)
 
