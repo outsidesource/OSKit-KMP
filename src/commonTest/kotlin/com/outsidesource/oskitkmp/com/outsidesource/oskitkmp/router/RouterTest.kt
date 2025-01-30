@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
 
+import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import com.outsidesource.oskitkmp.router.*
 import com.outsidesource.oskitkmp.test.runBlockingTest
 import kotlinx.coroutines.delay
@@ -7,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class RouterTest {
     @Test
@@ -139,6 +141,47 @@ class RouterTest {
         router.push(Route.Test(3))
         router.pop { toRoute(Route.Home) }
         assertEquals(1, counter.destroyed, "Destroyed called wrong number of times")
+    }
+
+    @Test
+    fun testRouteResult() = runBlockingTest {
+        val router = Router(Route.Home)
+
+        // Test success
+        launch {
+            val result = router.transactionWithResult(Boolean::class) {
+                push(Route.Route1)
+            }.unwrapOrReturn { fail() }
+            assertEquals(true, result)
+        }
+        delay(100)
+        router.pop { withResult(true) }
+
+        // Test wrong type
+        launch {
+            router.transactionWithResult(Boolean::class) {
+                push(Route.Route1)
+            }.unwrapOrReturn {
+                assertTrue { it.error is RouteResultError.Unknown }
+                return@launch
+            }
+            fail()
+        }
+        delay(100)
+        router.pop { withResult(Unit) }
+
+        // Test pop without result
+        launch {
+            val result = router.transactionWithResult(Boolean::class) {
+                push(Route.Route1)
+            }.unwrapOrReturn {
+                assertTrue { it.error is RouteResultError.Cancelled }
+                return@launch
+            }
+            fail()
+        }
+        delay(100)
+        router.pop()
     }
 }
 

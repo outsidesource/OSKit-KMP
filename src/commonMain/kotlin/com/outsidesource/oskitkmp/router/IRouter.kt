@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.router
 
+import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.StateFlow
@@ -122,6 +123,27 @@ interface IRouter {
     fun transaction(ignoreTransitionLock: Boolean = false, transaction: IRouterTransactionScope.() -> Unit)
 
     /**
+     * Does everything [IRouter.transaction] does but suspends until a result is set by [IRoutePopScope.withResult] or
+     * until the top route is popped off the stack. The last statement in [transactionWithResult] should be a [push] or
+     * [replace]
+     *
+     * ```
+     * // HomeScreen.kt
+     * val result = router.transactionWithResult(Boolean::class) {
+     *      push(Route.NewRoute1)
+     * } // Outcome.Ok(true)
+     *
+     * // NewRoute1Screen.kt
+     * pop { withResult(true) }
+     * ```
+     */
+    suspend fun <T : Any> transactionWithResult(
+        clazz: KClass<T>,
+        ignoreTransitionLock: Boolean = false,
+        transaction: IRouterTransactionScope.() -> Unit,
+    ): Outcome<T, RouteResultError>
+
+    /**
      * Returns `true` if there is a route to pop off of the route stack
      */
     fun hasBackStack(): Boolean
@@ -142,6 +164,11 @@ interface IRouter {
      * Allows the router to tear down anything that was initialized when the router was constructed
      */
     fun tearDown()
+}
+
+sealed class RouteResultError {
+    object Cancelled : RouteResultError()
+    data class Unknown(val error: Any) : RouteResultError()
 }
 
 interface IRouterTransactionScope {
@@ -220,6 +247,12 @@ interface IRoutePopScope {
      * the route off the stack. Returning false will stop the popping operation.
      */
     fun whileTrue(predicate: (IRoute) -> Boolean): (route: IRoute) -> Boolean = predicate
+
+    /**
+     * Pops the top route off of the stack and sets the route's result to the provided [result]. This should be used
+     * in conjunction with [IRouter.transactionWithResult]
+     */
+    fun withResult(result: Any): (route: IRoute) -> Boolean
 }
 
 /**

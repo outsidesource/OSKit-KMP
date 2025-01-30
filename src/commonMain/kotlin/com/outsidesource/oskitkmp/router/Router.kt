@@ -1,17 +1,19 @@
 package com.outsidesource.oskitkmp.router
 
+import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.collections.plus
+import kotlin.reflect.KClass
 
 /**
  * [Router] the primary implementation of IRouter
  */
 class Router(
     initialRoute: IRoute,
-    private val defaultTransition: IRouteTransition = DefaultTransition,
+    internal val defaultTransition: IRouteTransition = DefaultTransition,
 ) : IRouter {
     override val routeFlow: MutableStateFlow<RouteStackEntry>
     override val current get() = _routeStack.value.last()
@@ -21,6 +23,7 @@ class Router(
     private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
     private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Idle)
     private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
+    private val routeResults = atomic(mapOf<Int, CompletableDeferred<Any>>())
 
     init {
         val initialStackEntry = RouteStackEntry(initialRoute)
@@ -41,15 +44,37 @@ class Router(
     override fun pop(ignoreTransitionLock: Boolean, popFunc: RoutePopFunc) =
         transaction(ignoreTransitionLock) { pop(popFunc) }
 
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T : Any> transactionWithResult(
+        resultType: KClass<T>,
+        ignoreTransitionLock: Boolean,
+        transaction: IRouterTransactionScope.() -> Unit,
+    ): Outcome<T, RouteResultError> {
+        val result = CompletableDeferred<Any>()
+
+        transaction(ignoreTransitionLock) {
+            transaction()
+
+            if (this !is RouterTransactionScope) return@transaction
+            routeResults.update { it.toMutableMap().apply { this[routeStack.last().id] = result } }
+        }
+
+        return try {
+            val result = result.await()
+            when {
+                result::class == resultType -> Outcome.Ok(result as T)
+                result is RouteResultError -> Outcome.Error(result)
+                else -> Outcome.Error(RouteResultError.Unknown(result))
+            }
+        } catch (t: Throwable) {
+            Outcome.Error(RouteResultError.Unknown(t))
+        }
+    }
+
     override fun transaction(ignoreTransitionLock: Boolean, transaction: IRouterTransactionScope.() -> Unit) {
         if (transitionStatus == RouteTransitionStatus.Running && !ignoreTransitionLock) return
 
-        val scope = RouterTransactionScope(
-            routeStack = routeStack.toList(),
-            defaultTransition = defaultTransition,
-            onRouteStopped = ::onRouteStopped,
-            onRouteDestroyed = ::onRouteDestroyed,
-        ).apply { transaction() }
+        val scope = RouterTransactionScope(this).apply { transaction() }
         _routeStack.value = scope.routeStack
 
         val top = _routeStack.value.last()
@@ -89,27 +114,31 @@ class Router(
 
     override fun tearDown() = tearDownForPlatform(this)
 
-    private fun onRouteStopped(route: RouteStackEntry) {
+    internal fun onRouteStopped(route: RouteStackEntry) {
         routeLifecycleListeners.value[route.id]?.forEach { listener -> listener.onRouteStopped() }
     }
 
-    private fun onRouteDestroyed(route: RouteStackEntry) {
+    internal fun onRouteDestroyed(route: RouteStackEntry) {
+        val result = routeResults.value[route.id]
+        if (result != null && !result.isCompleted) routeResults.value[route.id]?.complete(RouteResultError.Cancelled)
+        routeResults.update { it.toMutableMap().apply { remove(route.id) } }
+
         routeLifecycleListeners.value[route.id]?.forEach { listener ->
             onRouteDestroyedTransitionCompletedCallbacks.update { it + listener::onRouteDestroyedTransitionComplete }
             listener.onRouteDestroyed()
         }
         routeLifecycleListeners.update { it.toMutableMap().apply { remove(route.id) } }
     }
+
+    internal fun onRouteResult(route: RouteStackEntry, result: Any) {
+        routeResults.value[route.id]?.complete(result)
+    }
 }
 
-private class RouterTransactionScope(
-    var routeStack: List<RouteStackEntry>,
-    val defaultTransition: IRouteTransition,
-    val onRouteStopped: (RouteStackEntry) -> Unit,
-    val onRouteDestroyed: (RouteStackEntry) -> Unit,
-) : IRouterTransactionScope {
+private class RouterTransactionScope(private val router: Router) : IRouterTransactionScope {
 
-    private val popScope = object : IRoutePopScope {}
+    var routeStack: List<RouteStackEntry> = router.routeStack.toList()
+    private val popScope = PopScope(router, this)
     private var hasStoppedTop = false
 
     override fun replace(route: IRoute, transition: IRouteTransition?) {
@@ -121,15 +150,15 @@ private class RouterTransactionScope(
         stopTopRoute(routeStack.lastOrNull())
         val entry = RouteStackEntry(
             route = route,
-            transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition,
+            transition = transition ?: if (route is IAnimatedRoute) route.transition else router.defaultTransition,
         )
         routeStack += entry
     }
 
-    override fun pop(block: RoutePopFunc) {
-        val popFunc = popScope.block()
+    override fun pop(popFunc: RoutePopFunc) {
+        val popPredicate = popScope.popFunc()
         while (routeStack.size > 1) {
-            if (!popFunc(routeStack.last().route)) return
+            if (!popPredicate(routeStack.last().route)) return
             destroyTopStackEntry()
         }
     }
@@ -143,14 +172,33 @@ private class RouterTransactionScope(
         val top = routeStack.last()
         routeStack -= top
         stopTopRoute(top)
-        onRouteDestroyed(top)
+        router.onRouteDestroyed(top)
     }
 
     private fun stopTopRoute(route: RouteStackEntry?) {
         if (route == null) return
         if (hasStoppedTop) return
         hasStoppedTop = true
-        onRouteStopped(route)
+        router.onRouteStopped(route)
+    }
+}
+
+private class PopScope(
+    private val router: Router,
+    private val transactionScope: RouterTransactionScope,
+) : IRoutePopScope {
+
+    override fun withResult(result: Any): (IRoute) -> Boolean {
+        var breakNext = false
+
+        return fun(_: IRoute): Boolean {
+            if (!breakNext) {
+                breakNext = true
+                router.onRouteResult(transactionScope.routeStack.last(), result)
+                return true
+            }
+            return false
+        }
     }
 }
 
