@@ -150,7 +150,11 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
         stopTopRoute(routeStack.lastOrNull())
         val entry = RouteStackEntry(
             route = route,
-            transition = transition ?: if (route is IAnimatedRoute) route.transition else router.defaultTransition,
+            transition = transition ?: if (route is IAnimatedRoute) {
+                route.animatedRouteTransition
+            } else {
+                router.defaultTransition
+            },
         )
         routeStack += entry
     }

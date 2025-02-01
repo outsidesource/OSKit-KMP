@@ -20,15 +20,15 @@ interface IRoute
  * paths via [configureWebResources.resourcePathMapping] and potentially web server path rewrites to avoid 404s and errors
  */
 interface IWebRoute : IRoute {
-    val title: String?
-    val path: String?
+    val webRouteTitle: String?
+    val webRoutePath: String?
 }
 
 /**
  * Defines an animated route.
  */
 interface IAnimatedRoute : IRoute {
-    val transition: IRouteTransition
+    val animatedRouteTransition: IRouteTransition
 }
 
 /**

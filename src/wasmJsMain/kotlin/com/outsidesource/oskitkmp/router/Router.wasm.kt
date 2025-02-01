@@ -51,12 +51,12 @@ actual fun initForPlatform(router: Router) {
                     val removeToIndexAdd = if (router.routeStack.size == previousRouteStack.size) 0 else 1
                     routeCache = routeCache.subList(0, currentIndex + removeToIndexAdd) + entry
                     currentIndex = routeCache.size - 1
-                    entry.route.title?.let { document.title = it }
-                    entry.route.path?.let {
+                    entry.route.webRouteTitle?.let { document.title = it }
+                    entry.route.webRoutePath?.let {
                         if (router.routeStack.size == previousRouteStack.size) {
-                            window.history.replaceState(entry.id.toJsNumber(), entry.route.title ?: "", it)
+                            window.history.replaceState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", it)
                         } else {
-                            window.history.pushState(entry.id.toJsNumber(), entry.route.title ?: "", it)
+                            window.history.pushState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", it)
                         }
                     }
                 }
