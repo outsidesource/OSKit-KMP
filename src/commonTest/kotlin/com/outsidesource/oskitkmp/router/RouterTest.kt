@@ -1,7 +1,6 @@
-package com.outsidesource.oskitkmp.com.outsidesource.oskitkmp.router
+package com.outsidesource.oskitkmp.router
 
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import com.outsidesource.oskitkmp.router.*
 import com.outsidesource.oskitkmp.test.runBlockingTest
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
