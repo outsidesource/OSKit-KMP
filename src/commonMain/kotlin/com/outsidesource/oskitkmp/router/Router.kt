@@ -25,6 +25,10 @@ class Router(
     private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
     private val routeResults = atomic(mapOf<Int, CompletableDeferred<Any>>())
 
+    companion object {
+        fun buildDeepLinks(builder: IRouterDeepLinkTrieBuilder.() -> Unit) = RouterDeepLinkTrie(builder)
+    }
+
     init {
         val initialStackEntry = RouteStackEntry(initialRoute)
         _routeStack = atomic(listOf(initialStackEntry))
