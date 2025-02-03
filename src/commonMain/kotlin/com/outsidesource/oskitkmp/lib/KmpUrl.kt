@@ -16,7 +16,25 @@ data class KmpUrl(
 
     override fun toString(): String = encodedUrl
 
+    val queryParameters: Map<String, String> by lazy {
+        buildMap {
+            query.split("&").forEach {
+                val param = it.split("=")
+                this[param[0]] = param[1].decodeURLQueryComponent()
+            }
+        }
+    }
+
     companion object {
+        fun decodeUrlPart(value: String) = value.decodeURLPart()
+        fun decodeQueryParam(value: String) = value.decodeURLQueryComponent()
+
+        fun fromStringOrNull(value: String): KmpUrl? = try {
+            fromString(value)
+        } catch (t: Throwable) {
+            null
+        }
+
         fun fromString(value: String): KmpUrl {
             val url = Url(value)
             return KmpUrl(
