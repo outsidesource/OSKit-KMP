@@ -4,6 +4,7 @@ import com.outsidesource.oskitkmp.lib.Deferrer
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrNull
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
@@ -237,7 +238,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         return Outcome.Error(KmpFsError.NotSupported)
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override suspend fun delete(ref: KmpFsRef): Outcome<Unit, KmpFsError> {
         context ?: return Outcome.Error(KmpFsError.NotInitialized)
         if (ref.fsType != KmpFsType.External) return Outcome.Error(KmpFsError.RefFsType)
@@ -356,7 +357,7 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             deferrer.defer { url.stopAccessingSecurityScopedResource() }
 
             NSFileManager.defaultManager.fileExistsAtPath(url.path ?: "")
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             false
         } finally {
             deferrer.run()

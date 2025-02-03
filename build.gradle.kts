@@ -36,6 +36,8 @@ plugins {
 //    id("app.cash.sqldelight") version "2.0.2"
 }
 
+// Disable SQLDelight Gradle plugin until WASM support is released (https://github.com/sqldelight/sqldelight/pull/5531)
+// Pulled generated database from previous build
 //sqldelight {
 //    databases {
 //        create("KmpKvStoreDatabase") {
