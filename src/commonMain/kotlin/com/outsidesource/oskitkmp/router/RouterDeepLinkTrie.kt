@@ -2,6 +2,31 @@ package com.outsidesource.oskitkmp.router
 
 import com.outsidesource.oskitkmp.lib.KmpUrl
 
+/**
+ * A Trie for resolving deep-linked URLs to IRoutes
+ *
+ * Example Declaration:
+ * ```
+ * sealed class Route: IRoute {
+ *     data object Home: Route()
+ *     data object StaticDeepLinkTest: Route()
+ *     data class DynamicDeepLinkTest(val dynamicValue: String): Route()
+ *
+ *     companion object {
+ *         val deepLinks = Router.buildDeepLinks {
+ *             "/static-deep-link" routesTo { _, _ -> StaticDeepLinkTest }
+ *             "/dynamic-deep-link/:value" routesTo { args, _ -> DynamicDeepLinkTest(args[0]) }
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * Example Usage:
+ * ```
+ * val deepLink = Route.deepLinks.matchRoute(deepLinkUrlFromPlatform)
+ * val router = Router(initialRoute = deepLink ?: Route.Home)
+ * ```
+ */
 class RouterDeepLinkTrie(builder: IRouterDeepLinkTrieBuilder.() -> Unit) {
 
     private val PLACEHOLDER = "__VAR__"
@@ -18,6 +43,16 @@ class RouterDeepLinkTrie(builder: IRouterDeepLinkTrieBuilder.() -> Unit) {
         builderScope.routeList.forEach { deepLink -> addDeepLink(deepLink.key, deepLink.value) }
     }
 
+    /**
+     * Adds a deeplink to the Trie
+     *
+     * @param pattern The path the deep link should match. Any dynamic path segment can be prefixed with `:` to match
+     * any value. i.e. `/devices/:deviceId`. The value for `:deviceId` will be passed in the `args` parameter of
+     * [mapper].
+     *
+     * @param mapper A function that passes in the arguments for any dynamic path segment and a [KmpUrl] and returns an
+     * [IRoute].
+     */
     fun addDeepLink(pattern: String, mapper: RouterDeepLinkMapper) {
         val path = pattern.trim('/')
         if (path.indexOf(':') == -1) {
@@ -42,6 +77,11 @@ class RouterDeepLinkTrie(builder: IRouterDeepLinkTrieBuilder.() -> Unit) {
         }
     }
 
+    /**
+     * Returns an [IRoute] if the passed in [url] matches a deep link stored in the trie
+     *
+     * @param url The URL to match against
+     */
     fun matchRoute(url: String): IRoute? {
         val kmpUrl = KmpUrl.fromString(url)
         val path = kmpUrl.path.trim('/')

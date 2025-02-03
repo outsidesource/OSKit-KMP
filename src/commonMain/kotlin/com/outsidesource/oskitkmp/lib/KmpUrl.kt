@@ -2,6 +2,9 @@ package com.outsidesource.oskitkmp.lib
 
 import io.ktor.http.*
 
+/**
+ * A multiplatform URL parser
+ */
 data class KmpUrl(
     val scheme: String,
     val username: String?,
@@ -20,7 +23,7 @@ data class KmpUrl(
         buildMap {
             query.split("&").forEach {
                 val param = it.split("=")
-                this[param[0]] = param[1].decodeURLQueryComponent()
+                this[param[0]] = param.getOrNull(1)?.decodeURLQueryComponent() ?: ""
             }
         }
     }

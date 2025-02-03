@@ -27,5 +27,8 @@ class KmpUrlTest {
         assertEquals("example.com", testSsh.host)
         assertEquals("", testSsh.path)
         assertEquals(21, testSsh.port)
+
+        val testEmptyAttribute = KmpUrl.fromString("example.com?test1&test2")
+        assertEquals(mapOf("test1" to "", "test2" to ""), testEmptyAttribute.queryParameters)
     }
 }
