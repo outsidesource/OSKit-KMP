@@ -33,20 +33,22 @@ actual fun initForPlatform(router: Router) {
 
             routeCache = routeCache.subList(0, currentIndex + 1) + entry
             currentIndex = routeCache.size - 1
+
             window.history.pushState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
         }
 
-        override fun onPop(entry: RouteStackEntry?) {
+        override fun onReplace(entry: RouteStackEntry) {
+            if (entry.route !is IWebRoute) return
+            val path = entry.route.webRoutePath ?: return
+
+            routeCache = routeCache.subList(0, currentIndex) + entry
+
+            window.history.replaceState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
+        }
+
+        override fun onPop(entry: RouteStackEntry) {
             if (!handlePop) {
                 handlePop = true
-                return
-            }
-
-            // TODO: Handle replaces properly
-            // This only happens when the first route is being replaced
-            if (entry == null) {
-//                currentIndex = -1
-//                routeCache = emptyList()
                 return
             }
 

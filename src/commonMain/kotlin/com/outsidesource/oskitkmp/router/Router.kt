@@ -143,7 +143,8 @@ class Router(
 
 internal interface IRouterListener {
     fun onPush(entry: RouteStackEntry)
-    fun onPop(entry: RouteStackEntry?)
+    fun onReplace(entry: RouteStackEntry)
+    fun onPop(entry: RouteStackEntry)
 }
 
 private class RouterTransactionScope(private val router: Router) : IRouterTransactionScope {
@@ -154,10 +155,16 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
 
     override fun replace(route: IRoute, transition: IRouteTransition?) {
         destroyTopStackEntry()
-        push(route, transition)
+        internalPush(route, transition)
+        router.routerListener?.onReplace(routeStack.last())
     }
 
     override fun push(route: IRoute, transition: IRouteTransition?) {
+        internalPush(route, transition)
+        router.routerListener?.onPush(routeStack.last())
+    }
+
+    private fun internalPush(route: IRoute, transition: IRouteTransition?) {
         stopTopRoute(routeStack.lastOrNull())
         val entry = RouteStackEntry(
             route = route,
@@ -168,7 +175,6 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
             },
         )
         routeStack += entry
-        router.routerListener?.onPush(routeStack.last())
     }
 
     override fun pop(popFunc: RoutePopFunc) {
@@ -176,6 +182,7 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
         while (routeStack.size > 1) {
             if (!popPredicate(routeStack.last().route)) return
             destroyTopStackEntry()
+            router.routerListener?.onPop(routeStack.last())
         }
     }
 
@@ -189,7 +196,6 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
         routeStack -= top
         stopTopRoute(top)
         router.onRouteDestroyed(top)
-        router.routerListener?.onPop(routeStack.lastOrNull())
     }
 
     private fun stopTopRoute(route: RouteStackEntry?) {
