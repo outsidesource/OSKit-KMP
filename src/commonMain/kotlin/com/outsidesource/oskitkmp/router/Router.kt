@@ -142,9 +142,9 @@ class Router(
 }
 
 internal interface IRouterListener {
-    fun onPush(entry: RouteStackEntry)
-    fun onReplace(entry: RouteStackEntry)
-    fun onPop(entry: RouteStackEntry)
+    fun onPush(newTop: RouteStackEntry)
+    fun onReplace(newTop: RouteStackEntry)
+    fun onPop(newTop: RouteStackEntry)
 }
 
 private class RouterTransactionScope(private val router: Router) : IRouterTransactionScope {

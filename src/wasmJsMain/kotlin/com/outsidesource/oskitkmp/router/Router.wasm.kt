@@ -17,8 +17,8 @@ import org.w3c.dom.events.Event
 private val wasmRouterScopes = atomic<Map<Router, CoroutineScope>>(emptyMap())
 
 actual fun initForPlatform(router: Router) {
-    var handlePopState = true
-    var handlePop = true
+    var ignorePopStates = 0
+    var ignorePops = 0
     var routeCache = listOf<RouteStackEntry>()
     var currentIndex = -1
 
@@ -27,34 +27,34 @@ actual fun initForPlatform(router: Router) {
 
     // Listen for route changes
     router.routerListener = object : IRouterListener {
-        override fun onPush(entry: RouteStackEntry) {
-            if (entry.route !is IWebRoute) return
-            val path = entry.route.webRoutePath ?: return
+        override fun onPush(newTop: RouteStackEntry) {
+            if (newTop.route !is IWebRoute) return
+            val path = newTop.route.webRoutePath ?: return
 
-            routeCache = routeCache.subList(0, currentIndex + 1) + entry
+            routeCache = routeCache.subList(0, currentIndex + 1) + newTop
             currentIndex = routeCache.size - 1
 
             window.history.pushState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
         }
 
-        override fun onReplace(entry: RouteStackEntry) {
-            if (entry.route !is IWebRoute) return
-            val path = entry.route.webRoutePath ?: return
+        override fun onReplace(newTop: RouteStackEntry) {
+            if (newTop.route !is IWebRoute) return
+            val path = newTop.route.webRoutePath ?: return
 
             routeCache = routeCache.subList(0, currentIndex) + entry
 
             window.history.replaceState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
         }
 
-        override fun onPop(entry: RouteStackEntry) {
-            if (!handlePop) {
-                handlePop = true
+        override fun onPop(newTop: RouteStackEntry) {
+            if (ignorePops > 0) {
+                ignorePops--
                 return
             }
 
-            if (entry.route !is IWebRoute) return
-            val newIndex = routeCache.indexOfFirst { it.id == entry.id }
-            handlePopState = false
+            if (newTop.route !is IWebRoute) return
+            val newIndex = routeCache.indexOfFirst { it.id == newTop.id }
+            ignorePopStates++
             window.history.go(newIndex - currentIndex)
             currentIndex = newIndex
         }
@@ -64,8 +64,8 @@ actual fun initForPlatform(router: Router) {
 
     // Listen for pops
     popStateFlow().onEach { ev ->
-        if (!handlePopState) {
-            handlePopState = true
+        if (ignorePopStates > 0) {
+            ignorePopStates--
             return@onEach
         }
         currentIndex = routeCache.indexOfFirst { it.id == router.current.id }
@@ -75,7 +75,7 @@ actual fun initForPlatform(router: Router) {
             newIndex == -1 -> {
                 router.pop(ignoreTransitionLock = true) {
                     whileTrue {
-                        handlePop = false
+                        ignorePops++
                         true
                     }
                 }
@@ -85,7 +85,7 @@ actual fun initForPlatform(router: Router) {
                     whileTrue {
                         // TODO: This might not be accurate. I should really use the entry id
                         val shouldPop = it != routeCache[newIndex].route
-                        if (shouldPop) handlePop = false
+                        if (shouldPop) ignorePops++
                         shouldPop
                     }
                 }
