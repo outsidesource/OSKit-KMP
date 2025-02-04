@@ -34,16 +34,16 @@ actual fun initForPlatform(router: Router) {
             routeCache = routeCache.subList(0, currentIndex + 1) + newTop
             currentIndex = routeCache.size - 1
 
-            window.history.pushState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
+            window.history.pushState(newTop.id.toJsNumber(), newTop.route.webRouteTitle ?: "", path)
         }
 
         override fun onReplace(newTop: RouteStackEntry) {
             if (newTop.route !is IWebRoute) return
             val path = newTop.route.webRoutePath ?: return
 
-            routeCache = routeCache.subList(0, currentIndex) + entry
+            routeCache = routeCache.mapIndexed { i, cacheEntry -> if (i == currentIndex) newTop else cacheEntry }
 
-            window.history.replaceState(entry.id.toJsNumber(), entry.route.webRouteTitle ?: "", path)
+            window.history.replaceState(newTop.id.toJsNumber(), newTop.route.webRouteTitle ?: "", path)
         }
 
         override fun onPop(newTop: RouteStackEntry) {
