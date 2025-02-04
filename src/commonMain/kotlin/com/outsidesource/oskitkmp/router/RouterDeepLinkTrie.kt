@@ -83,7 +83,8 @@ class RouterDeepLinkTrie(builder: IRouterDeepLinkTrieBuilder.() -> Unit) {
      * @param url The URL to match against. [matchRoute] only matches against the path. The passed in scheme, host, .etc
      * of the URL is ignored
      */
-    fun matchRoute(url: String): IRoute? {
+    fun matchRoute(url: String?): IRoute? {
+        if (url == null) return null
         val kmpUrl = KmpUrl.fromString(url)
         val path = kmpUrl.path.trim('/')
         staticDeepLinks[path]?.let { return it(emptyList(), kmpUrl) }
