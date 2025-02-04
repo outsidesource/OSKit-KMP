@@ -66,7 +66,8 @@ actual fun initForPlatform(router: Router) {
             ignorePopStates++
             println("Popping - ${newTop.id}")
             window.history.go(newIndex - currentIndex)
-            awaitNavigation().await<JsAny?>() // Need to await first popState event to know when go() is finished
+            // history.go() is asynchronous, so we need to await a popState to know when it's finished
+            awaitNavigation().await<JsAny?>()
             currentIndex = newIndex
         }
     }
