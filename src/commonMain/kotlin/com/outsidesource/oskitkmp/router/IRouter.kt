@@ -178,7 +178,7 @@ interface IRouterTransactionScope {
     fun pop(popFunc: RoutePopFunc = { once() })
 }
 
-typealias RoutePopFunc = IRoutePopScope.() -> (route: IRoute) -> Boolean
+typealias RoutePopFunc = IRoutePopScope.() -> (route: RouteStackEntry) -> Boolean
 
 /**
  * The scope all pop operations are performed in
@@ -188,10 +188,10 @@ interface IRoutePopScope {
     /**
      * Pops the top route off of the stack unless it is the only route. This is the default operation.
      */
-    fun once(): (route: IRoute) -> Boolean {
+    fun once(): (route: RouteStackEntry) -> Boolean {
         var breakNext = false
 
-        return fun(_: IRoute): Boolean {
+        return fun(_: RouteStackEntry): Boolean {
             if (!breakNext) {
                 breakNext = true
                 return true
@@ -206,13 +206,13 @@ interface IRoutePopScope {
      * @param to The class to pop to
      * @param inclusive If true, the route that matches [to] will also be popped unless it is the only route.
      */
-    fun <T : IRoute> toClass(to: KClass<T>, inclusive: Boolean = false): (route: IRoute) -> Boolean {
+    fun <T : IRoute> toClass(to: KClass<T>, inclusive: Boolean = false): (route: RouteStackEntry) -> Boolean {
         var breakNext = false
 
-        return fun (route: IRoute): Boolean {
+        return fun (entry: RouteStackEntry): Boolean {
             if (breakNext) {
                 return false
-            } else if (route::class == to) {
+            } else if (entry.route::class == to) {
                 if (!inclusive) return false
                 breakNext = true
             }
@@ -226,13 +226,13 @@ interface IRoutePopScope {
      * @param to The route to pop to
      * @param inclusive If true, the route that matches [to] will also be popped unless it is the only route.
      */
-    fun toRoute(to: IRoute, inclusive: Boolean = false): (route: IRoute) -> Boolean {
+    fun toRoute(to: IRoute, inclusive: Boolean = false): (route: RouteStackEntry) -> Boolean {
         var breakNext = false
 
-        return fun (route: IRoute): Boolean {
+        return fun (entry: RouteStackEntry): Boolean {
             if (breakNext) {
                 return false
-            } else if (route == to) {
+            } else if (entry.route == to) {
                 if (!inclusive) return false
                 breakNext = true
             }
@@ -246,13 +246,13 @@ interface IRoutePopScope {
      * @param predicate The predicate function that determines what routes will be popped. Returning true will pop
      * the route off the stack. Returning false will stop the popping operation.
      */
-    fun whileTrue(predicate: (IRoute) -> Boolean): (route: IRoute) -> Boolean = predicate
+    fun whileTrue(predicate: (RouteStackEntry) -> Boolean): (route: RouteStackEntry) -> Boolean = predicate
 
     /**
      * Pops the top route off of the stack and sets the route's result to the provided [result]. This should be used
      * in conjunction with [IRouter.transactionWithResult]
      */
-    fun withResult(result: Any): (route: IRoute) -> Boolean
+    fun withResult(result: Any): (route: RouteStackEntry) -> Boolean
 }
 
 /**

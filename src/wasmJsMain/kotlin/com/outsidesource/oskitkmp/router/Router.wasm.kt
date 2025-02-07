@@ -97,8 +97,7 @@ actual fun initForPlatform(router: Router) {
             newIndex < currentIndex -> {
                 router.pop(ignoreTransitionLock = true) {
                     whileTrue {
-                        // TODO: This might not be accurate. I should really use the entry id
-                        val shouldPop = it != routeCache[newIndex].route
+                        val shouldPop = it.id != routeCache[newIndex].id
                         if (shouldPop) ignorePops++
                         shouldPop
                     }

@@ -96,7 +96,7 @@ class RouterTest {
         router.push(Route.Test(4))
         router.push(Route.Test(5))
 
-        router.pop { whileTrue { it is Route.Test && it.test != 2 } }
+        router.pop { whileTrue { it.route is Route.Test && it.route.test != 2 } }
 
         assertEquals(3, router.routeStack.size)
         assertEquals(Route.Test(2), router.routeFlow.value.route)

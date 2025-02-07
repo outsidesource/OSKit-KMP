@@ -180,7 +180,7 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
     override fun pop(popFunc: RoutePopFunc) {
         val popPredicate = popScope.popFunc()
         while (routeStack.size > 1) {
-            if (!popPredicate(routeStack.last().route)) return
+            if (!popPredicate(routeStack.last())) return
             destroyTopStackEntry()
             router.routerListener?.onPop(routeStack.last())
         }
@@ -211,10 +211,10 @@ private class PopScope(
     private val transactionScope: RouterTransactionScope,
 ) : IRoutePopScope {
 
-    override fun withResult(result: Any): (IRoute) -> Boolean {
+    override fun withResult(result: Any): (RouteStackEntry) -> Boolean {
         var breakNext = false
 
-        return fun(_: IRoute): Boolean {
+        return fun(_: RouteStackEntry): Boolean {
             if (!breakNext) {
                 breakNext = true
                 router.onRouteResult(transactionScope.routeStack.last(), result)
