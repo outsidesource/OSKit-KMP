@@ -25,6 +25,8 @@ class Router(
     private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
     private val routeResults = atomic(mapOf<Int, CompletableDeferred<Any>>())
 
+    internal var routerListener: IRouterListener? = null
+
     companion object {
         fun buildDeepLinks(builder: IRouterDeepLinkTrieBuilder.() -> Unit) = RouterDeepLinkTrie(builder)
     }
@@ -42,8 +44,8 @@ class Router(
     override fun replace(route: IRoute, transition: IRouteTransition?, ignoreTransitionLock: Boolean) =
         transaction(ignoreTransitionLock) { replace(route, transition) }
 
-    internal fun push(route: RouteStackEntry) =
-        transaction { (this as? RouterTransactionScope)?.push(route) }
+    internal fun push(route: RouteStackEntry, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { (this as? RouterTransactionScope)?.push(route) }
 
     override fun pop(ignoreTransitionLock: Boolean, popFunc: RoutePopFunc) =
         transaction(ignoreTransitionLock) { pop(popFunc) }
@@ -139,6 +141,12 @@ class Router(
     }
 }
 
+internal interface IRouterListener {
+    fun onPush(newTop: RouteStackEntry)
+    fun onReplace(newTop: RouteStackEntry)
+    fun onPop(newTop: RouteStackEntry)
+}
+
 private class RouterTransactionScope(private val router: Router) : IRouterTransactionScope {
 
     var routeStack: List<RouteStackEntry> = router.routeStack.toList()
@@ -147,10 +155,16 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
 
     override fun replace(route: IRoute, transition: IRouteTransition?) {
         destroyTopStackEntry()
-        push(route, transition)
+        internalPush(route, transition)
+        router.routerListener?.onReplace(routeStack.last())
     }
 
     override fun push(route: IRoute, transition: IRouteTransition?) {
+        internalPush(route, transition)
+        router.routerListener?.onPush(routeStack.last())
+    }
+
+    private fun internalPush(route: IRoute, transition: IRouteTransition?) {
         stopTopRoute(routeStack.lastOrNull())
         val entry = RouteStackEntry(
             route = route,
@@ -166,8 +180,9 @@ private class RouterTransactionScope(private val router: Router) : IRouterTransa
     override fun pop(popFunc: RoutePopFunc) {
         val popPredicate = popScope.popFunc()
         while (routeStack.size > 1) {
-            if (!popPredicate(routeStack.last().route)) return
+            if (!popPredicate(routeStack.last())) return
             destroyTopStackEntry()
+            router.routerListener?.onPop(routeStack.last())
         }
     }
 
@@ -196,10 +211,10 @@ private class PopScope(
     private val transactionScope: RouterTransactionScope,
 ) : IRoutePopScope {
 
-    override fun withResult(result: Any): (IRoute) -> Boolean {
+    override fun withResult(result: Any): (RouteStackEntry) -> Boolean {
         var breakNext = false
 
-        return fun(_: IRoute): Boolean {
+        return fun(_: RouteStackEntry): Boolean {
             if (!breakNext) {
                 breakNext = true
                 router.onRouteResult(transactionScope.routeStack.last(), result)
