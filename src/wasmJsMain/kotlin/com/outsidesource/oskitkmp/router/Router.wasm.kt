@@ -18,29 +18,37 @@ private val wasmRouterScopes = atomic<Map<Router, CoroutineScope>>(emptyMap())
 actual fun initForPlatform(router: Router) {
     var ignorePopStates = 0
     var ignorePops = 0
-    var routeCache = listOf<RouteStackEntry>()
-    var currentIndex = -1
+    var routeCache = listOf<RouteStackEntry>(router.current)
+    var currentIndex = 0
     val queue = Queue()
-
     val popStateFlow = MutableSharedFlow<PopStateEvent>(extraBufferCapacity = Channel.UNLIMITED)
     val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     wasmRouterScopes.update { it.toMutableMap().apply { this[router] = scope } }
 
+    // Initialize cache and index
+    val currentRoute = router.current.route
+    if (currentRoute is IWebRoute) {
+        window.history.replaceState(
+            data = router.current.id.toJsNumber(),
+            title = currentRoute.webRouteTitle ?: "",
+            url = currentRoute.webRoutePath,
+        )
+    }
+
+    // Add popstate listener
     val popStateCallback: (Event) -> Unit = { (it as? PopStateEvent)?.let { popStateFlow.tryEmit(it) } }
     window.addEventListener("popstate", popStateCallback)
     popStateFlow.launchIn(scope).invokeOnCompletion { window.removeEventListener("popstate", popStateCallback) }
 
     // Listen for route changes
     router.routerListener = object : IRouterListener {
-
         override fun onPush(newTop: RouteStackEntry) = queue.enqueue {
             if (newTop.route !is IWebRoute) return@enqueue
             val path = newTop.route.webRoutePath ?: return@enqueue
 
             routeCache = routeCache.subList(0, currentIndex + 1) + newTop
             currentIndex = routeCache.size - 1
-
-            println("Pushing - ${newTop.id}")
             window.history.pushState(newTop.id.toJsNumber(), newTop.route.webRouteTitle ?: "", path)
         }
 
@@ -49,10 +57,7 @@ actual fun initForPlatform(router: Router) {
             val path = newTop.route.webRoutePath ?: return@enqueue
 
             routeCache = routeCache.mapIndexed { i, cacheEntry -> if (i == currentIndex) newTop else cacheEntry }
-            println(routeCache.joinToString(", ") { "${it.id} - ${it.route}" })
-
             window.history.replaceState(newTop.id.toJsNumber(), newTop.route.webRouteTitle ?: "", path)
-            println("Replacing - ${window.history.state} - $path")
         }
 
         override fun onPop(newTop: RouteStackEntry) = queue.enqueue {
@@ -64,7 +69,6 @@ actual fun initForPlatform(router: Router) {
             if (newTop.route !is IWebRoute) return@enqueue
             val newIndex = routeCache.indexOfFirst { it.id == newTop.id }
             ignorePopStates++
-            println("Popping - ${newTop.id}")
             window.history.go(newIndex - currentIndex)
             // history.go() is asynchronous, so we need to await a popState to know when it's finished
             awaitNavigation().await<JsAny?>()
@@ -72,11 +76,8 @@ actual fun initForPlatform(router: Router) {
         }
     }
 
-    router.routerListener?.onPush(router.current)
-
-    // Listen for pops
+    // Handle for popstate events
     popStateFlow.onEach { ev ->
-        println("PopState state - ${ev.state}")
         if (ignorePopStates > 0) {
             ignorePopStates--
             return@onEach
@@ -84,11 +85,8 @@ actual fun initForPlatform(router: Router) {
         currentIndex = routeCache.indexOfFirst { it.id == router.current.id }
         val newIndex = routeCache.indexOfFirst { it.id == (ev.state as? JsNumber?)?.toInt() }
 
-        println("PopState - $currentIndex - $newIndex - ${routeCache[newIndex]} - State: ${window.history.state}")
-
         when {
             newIndex == -1 -> {
-                // TODO: I think this causes problems
                 router.pop(ignoreTransitionLock = true) {
                     whileTrue {
                         ignorePops++
