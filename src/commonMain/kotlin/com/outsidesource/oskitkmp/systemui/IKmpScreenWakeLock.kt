@@ -5,7 +5,7 @@ package com.outsidesource.oskitkmp.systemui
  *
  * Android: Supported
  * iOS: Supported
- * JVM: Not supported
+ * JVM: Not supported - Uses a no-op function
  * Web: Supported on all browsers that support navigator.wakeLock
  */
 interface IKmpScreenWakeLock {

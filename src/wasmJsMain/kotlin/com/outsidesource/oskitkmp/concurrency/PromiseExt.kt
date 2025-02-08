@@ -10,22 +10,20 @@ suspend fun <T : JsAny?> Promise<T>.kmpAwait() = suspendCoroutine<T> { continuat
     then {
         continuation.resume(it)
         it
+    }.catch {
+        continuation.resumeWithException(KmpJsException(it))
+        it
     }
-        .catch {
-            continuation.resumeWithException(KmpJsException(it))
-            it
-        }
 }
 
 suspend fun <T : JsAny?> Promise<T>.kmpAwaitOutcome() = suspendCoroutine<Outcome<T, KmpJsException>> { continuation ->
     then {
         continuation.resume(Outcome.Ok(it))
         it
+    }.catch {
+        continuation.resume(Outcome.Error(KmpJsException(it)))
+        it
     }
-        .catch {
-            continuation.resume(Outcome.Error(KmpJsException(it)))
-            it
-        }
 }
 
 data class KmpJsException(val error: JsAny) : Throwable("JS Exception: $error")
