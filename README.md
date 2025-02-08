@@ -38,6 +38,7 @@ implementation("com.outsidesource:oskit-kmp:5.0.0")
 ## Changelog
 ### 5.0.0 - 2025-02-07
 #### Added
+* Kotlin 2.1.0 support
 * Support for the WASM target
   * All existing and new OsKit feature support all platforms unless explicitly said otherwise in documentation
   * Added some `Promise` helpers
@@ -57,8 +58,7 @@ implementation("com.outsidesource:oskit-kmp:5.0.0")
 * `Router` has been reworked and added a new transactional API for more flexibility and to clean up a lot of rarely used API surface
   * Added `IWebRoute` for handling path changes in the browser
   * Added deep link support
-#### Fixed
-#### Breaking
+#### Breaking Changes
 * Adopted Upper Camel Case for all acronym prefixes on class and function names (i.e. `KMP` changed to `Kmp`)
 * Reworked/renamed `KMPStorage` to `KmpKvStore`
 * `Coordinator` has been reworked to fit the new Transaction API implemented in Router.
