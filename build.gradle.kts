@@ -28,9 +28,9 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.dokka)
     id("com.android.library")
     id("maven-publish")
-    id("org.jetbrains.dokka") version "1.9.10"
     id("com.vanniktech.maven.publish") version "0.28.0"
     // Disable SQLDelight Gradle plugin until WASM support is released (https://github.com/sqldelight/sqldelight/pull/5531)
     // Pulled generated database from previous build
