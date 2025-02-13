@@ -26,45 +26,135 @@
 <link href="styles/prism.css" rel="Stylesheet">
 <link href="styles/logo-styles.css" rel="Stylesheet">
 <link href="styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="scripts/clipboard.js" async="async"></script>
 <script type="text/javascript" src="scripts/navigation-loader.js" async="async"></script>
 <script type="text/javascript" src="scripts/platform-content-handler.js" async="async"></script>
 <script type="text/javascript" src="scripts/main.js" defer="defer"></script>
 <script type="text/javascript" src="scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="ui-kit/ui-kit.min.js" defer="defer"></script>
 <script type="text/javascript" src="scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
 </head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
-                    <a class="library-name--link" href="index.html">
-                            oskit-kmp
-                    </a>
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="index.html">
+                    oskit-kmp
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+5.0.0        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active=""
+                        data-filter=":dokkaHtml/androidMain">android</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/commonMain">common</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/iosMain">ios</button>
+                <button class="platform-tag platform-selector jvm-like" data-active=""
+                        data-filter=":dokkaHtml/jvmMain">jvm</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/nonJsMain">nonJs</button>
+                <button class="platform-tag platform-selector wasm-like" data-active=""
+                        data-filter=":dokkaHtml/wasmJsMain">wasmJs</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/androidMain"
+                                       data-filter=":dokkaHtml/androidMain"/>
+                                <span class="checkbox--icon"></span>
+                                android
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/commonMain"
+                                       data-filter=":dokkaHtml/commonMain"/>
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/iosMain"
+                                       data-filter=":dokkaHtml/iosMain"/>
+                                <span class="checkbox--icon"></span>
+                                ios
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/jvmMain"
+                                       data-filter=":dokkaHtml/jvmMain"/>
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/nonJsMain"
+                                       data-filter=":dokkaHtml/nonJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                nonJs
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option wasm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/wasmJsMain"
+                                       data-filter=":dokkaHtml/wasmJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                wasmJs
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div class="library-version">
-4.6.4            </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":dokkaHtml/androidMain">android</button>
-                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":dokkaHtml/commonMain">common</button>
-                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":dokkaHtml/iosMain">ios</button>
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":dokkaHtml/jvmMain">jvm</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    oskit-kmp
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" id="content" pageIds="oskit-kmp::////PointingToDeclaration//1740993208">
+<div class="main-content" id="content" pageIds="oskit-kmp::////PointingToDeclaration//-326397595">
   <div class="breadcrumbs"></div>
   <div class="cover ">
     <h1 class="cover"><span><span>oskit-kmp</span></span></h1>
@@ -88,18 +178,44 @@
         <div></div>
       </div>
     </div>
-<a data-name="-1406945058%2FPackages%2F788909594" anchor-label="com.outsidesource.oskitkmp.concurrency" id="-1406945058%2FPackages%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+<a data-name="-2128202575%2FPackages%2F576505749" anchor-label="com.outsidesource.oskitkmp.capability" id="-2128202575%2FPackages%2F576505749" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
-              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.concurrency/index.html">com.outsidesource.oskitkmp.concurrency</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1406945058%2FPackages%2F788909594"></span>
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.capability/index.html">com.outsidesource.oskitkmp.capability</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2128202575%2FPackages%2F576505749"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
             <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">android</div>
               <div class="platform-tag common-like">common</div>
+              <div class="platform-tag common-like">ios</div>
+              <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-1406945058%2FPackages%2F576505749" anchor-label="com.outsidesource.oskitkmp.concurrency" id="-1406945058%2FPackages%2F576505749" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.concurrency/index.html">com.outsidesource.oskitkmp.concurrency</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1406945058%2FPackages%2F576505749"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">android</div>
+              <div class="platform-tag common-like">common</div>
+              <div class="platform-tag common-like">ios</div>
+              <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
@@ -124,13 +240,13 @@
         <div></div>
       </div>
     </div>
-<a data-name="334324415%2FPackages%2F1740993208" anchor-label="com.outsidesource.oskitkmp.deeplink" id="334324415%2FPackages%2F1740993208" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain">
+<a data-name="1885718660%2FPackages%2F-326397595" anchor-label="com.outsidesource.oskitkmp.filesystem" id="1885718660%2FPackages%2F-326397595" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
-              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.deeplink/index.html">com.outsidesource.oskitkmp.deeplink</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="334324415%2FPackages%2F1740993208"></span>
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.filesystem/index.html">com.outsidesource.oskitkmp.filesystem</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1885718660%2FPackages%2F-326397595"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
@@ -139,27 +255,8 @@
               <div class="platform-tag common-like">common</div>
               <div class="platform-tag common-like">ios</div>
               <div class="platform-tag jvm-like">jvm</div>
-            </div>
-          </div>
-        </div>
-        <div></div>
-      </div>
-    </div>
-<a data-name="-1025628843%2FPackages%2F1740993208" anchor-label="com.outsidesource.oskitkmp.file" id="-1025628843%2FPackages%2F1740993208" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain">
-      <div>
-        <div class="main-subrow ">
-          <div class=""><span class="inline-flex">
-              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.file/index.html">com.outsidesource.oskitkmp.file</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1025628843%2FPackages%2F1740993208"></span>
-                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-              </span></span></div>
-          <div class="pull-right">
-            <div class="platform-tags no-gutters">
-              <div class="platform-tag jvm-like">android</div>
-              <div class="platform-tag common-like">common</div>
-              <div class="platform-tag common-like">ios</div>
-              <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag common-like">nonJs</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
@@ -184,13 +281,32 @@
         <div></div>
       </div>
     </div>
-<a data-name="-1553130928%2FPackages%2F1740993208" anchor-label="com.outsidesource.oskitkmp.lib" id="-1553130928%2FPackages%2F1740993208" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain">
+<a data-name="-985092545%2FPackages%2F145646004" anchor-label="com.outsidesource.oskitkmp.io" id="-985092545%2FPackages%2F145646004" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/iosMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/commonMain,:dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/iosMain">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.io/index.html">com.outsidesource.oskitkmp.io</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-985092545%2FPackages%2F145646004"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag common-like">common</div>
+              <div class="platform-tag common-like">ios</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-1553130928%2FPackages%2F-326397595" anchor-label="com.outsidesource.oskitkmp.lib" id="-1553130928%2FPackages%2F-326397595" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
               <div><a href="oskit-kmp/com.outsidesource.oskitkmp.lib/index.html">com.outsidesource.oskitkmp.lib</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1553130928%2FPackages%2F1740993208"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1553130928%2FPackages%2F-326397595"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
@@ -199,6 +315,8 @@
               <div class="platform-tag common-like">common</div>
               <div class="platform-tag common-like">ios</div>
               <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag common-like">nonJs</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
@@ -223,31 +341,33 @@
         <div></div>
       </div>
     </div>
-<a data-name="1337347874%2FPackages%2F788909594" anchor-label="com.outsidesource.oskitkmp.router" id="1337347874%2FPackages%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+<a data-name="1337347874%2FPackages%2F1829643079" anchor-label="com.outsidesource.oskitkmp.router" id="1337347874%2FPackages%2F1829643079" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/commonMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
               <div><a href="oskit-kmp/com.outsidesource.oskitkmp.router/index.html">com.outsidesource.oskitkmp.router</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1337347874%2FPackages%2F788909594"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1337347874%2FPackages%2F1829643079"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
             <div class="platform-tags no-gutters">
               <div class="platform-tag common-like">common</div>
+              <div class="platform-tag common-like">nonJs</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
         <div></div>
       </div>
     </div>
-<a data-name="-446867898%2FPackages%2F1740993208" anchor-label="com.outsidesource.oskitkmp.storage" id="-446867898%2FPackages%2F1740993208" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain">
+<a data-name="-446867898%2FPackages%2F-326397595" anchor-label="com.outsidesource.oskitkmp.storage" id="-446867898%2FPackages%2F-326397595" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
               <div><a href="oskit-kmp/com.outsidesource.oskitkmp.storage/index.html">com.outsidesource.oskitkmp.storage</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-446867898%2FPackages%2F1740993208"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-446867898%2FPackages%2F-326397595"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
@@ -256,19 +376,39 @@
               <div class="platform-tag common-like">common</div>
               <div class="platform-tag common-like">ios</div>
               <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag common-like">nonJs</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
         <div></div>
       </div>
     </div>
-<a data-name="-862172730%2FPackages%2F1740993208" anchor-label="com.outsidesource.oskitkmp.text" id="-862172730%2FPackages%2F1740993208" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain"></a>
-    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain">
+<a data-name="-1643965677%2FPackages%2F1621792660" anchor-label="com.outsidesource.oskitkmp.storage.sqldelight" id="-1643965677%2FPackages%2F1621792660" data-filterable-set=":dokkaHtml/nonJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain">
       <div>
         <div class="main-subrow ">
           <div class=""><span class="inline-flex">
-              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.text/index.html">com.outsidesource.oskitkmp.text</a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-862172730%2FPackages%2F1740993208"></span>
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.storage.sqldelight/index.html">com.outsidesource.oskitkmp.storage.sqldelight</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1643965677%2FPackages%2F1621792660"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag common-like">nonJs</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="126296732%2FPackages%2F576505749" anchor-label="com.outsidesource.oskitkmp.systemui" id="126296732%2FPackages%2F576505749" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.systemui/index.html">com.outsidesource.oskitkmp.systemui</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="126296732%2FPackages%2F576505749"></span>
                 <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
               </span></span></div>
           <div class="pull-right">
@@ -277,6 +417,29 @@
               <div class="platform-tag common-like">common</div>
               <div class="platform-tag common-like">ios</div>
               <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
+            </div>
+          </div>
+        </div>
+        <div></div>
+      </div>
+    </div>
+<a data-name="-862172730%2FPackages%2F576505749" anchor-label="com.outsidesource.oskitkmp.text" id="-862172730%2FPackages%2F576505749" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+    <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/commonMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+      <div>
+        <div class="main-subrow ">
+          <div class=""><span class="inline-flex">
+              <div><a href="oskit-kmp/com.outsidesource.oskitkmp.text/index.html">com.outsidesource.oskitkmp.text</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-862172730%2FPackages%2F576505749"></span>
+                <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+              </span></span></div>
+          <div class="pull-right">
+            <div class="platform-tags no-gutters">
+              <div class="platform-tag jvm-like">android</div>
+              <div class="platform-tag common-like">common</div>
+              <div class="platform-tag common-like">ios</div>
+              <div class="platform-tag jvm-like">jvm</div>
+              <div class="platform-tag wasm-like">wasmJs</div>
             </div>
           </div>
         </div>
@@ -303,11 +466,16 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
-                class="pull-right"><span>Generated by </span><a
-                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>

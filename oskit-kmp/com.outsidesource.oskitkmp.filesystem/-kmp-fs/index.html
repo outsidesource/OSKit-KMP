@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>KmpFs</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="../../../index.html">
+                    oskit-kmp
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+5.0.0        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/commonMain"
+                                       data-filter=":dokkaHtml/commonMain"/>
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    oskit-kmp
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="oskit-kmp::com.outsidesource.oskitkmp.filesystem/KmpFs///PointingToDeclaration//788909594">
+  <div class="breadcrumbs"><a href="../../../index.html">oskit-kmp</a><span class="delimiter">/</span><a href="../index.html">com.outsidesource.oskitkmp.filesystem</a><span class="delimiter">/</span><span class="current">KmpFs</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="index.html">KmpFs</a></div><p class="paragraph"><a href="index.html">KmpFs</a> Provides limited multiplatform (iOS, Android, Desktop, and Web Browser) filesystem interactions both inside and outside application sandboxes in iOS and Android via a mostly unified API. <a href="index.html">KmpFs</a> is split into two primary APIs: <a href="../-i-internal-kmp-fs/index.html">IInternalKmpFs</a> and <a href="../-i-external-kmp-fs/index.html">IExternalKmpFs</a> which both implement <a href="../-i-kmp-fs/index.html">IKmpFs</a>.</p><p class="paragraph">Internal: The Internal API deals with files/directories inside the application sandbox. Files/directories made in Internal are not meant for end-users to see. On some platforms (i.e. Android they may even be encrypted).</p><p class="paragraph">External: The External API deals with files/directories outside the application sandbox. Files/directories made in External are visible and accessible to end-users. In order to access any file/directory, a user must call pickDirectory or pickFile. Use pickDirectory to gain permissions to directories and any of their descendants. The user may then take any action within that directory.</p><p class="paragraph"><a href="../-kmp-fs-ref/index.html">KmpFsRef</a>: All interactions originate from a lightweight reference to a file/directory location called Ref. Refs do not contain any file data or file handles themselves, only a reference to a location. Refs also contain basic information like file/directory name and if it is a file or directory. Once a ref is obtained (via pickFile, pickDirectory on External or root on Internal), further operations may be performed.</p><p class="paragraph">Refs can only be created by <a href="index.html">KmpFs</a>.</p><p class="paragraph">Refs are safely persistable via <a href="../-kmp-fs-ref/to-persistable-string.html">KmpFsRef.toPersistableString</a> or <a href="../-kmp-fs-ref/to-persistable-bytes.html">KmpFsRef.toPersistableBytes</a>. Refs can then be hydrated via <a href="../-kmp-fs-ref/-companion/from-persistable-string.html">KmpFsRef.fromPersistableString</a> or <a href="../-kmp-fs-ref/-companion/from-persistable-bytes.html">KmpFsRef.fromPersistableBytes</a>. However, since refs only point to a location, there is no guarantee a ref will point to an actual file/directory if the file/directory has been deleted, moved, or renamed.</p><p class="paragraph">WASM: Due to browser constraints, <a href="index.html">KmpFs</a> on WASM only supports a subset of functionality available in other targets. External Limitations:</p><ul><li><p class="paragraph">All <code class="lang-kotlin">startingDirectory</code> parameters are ignored</p></li><li><p class="paragraph">Chrome and derivatives support all other functionality</p></li><li><p class="paragraph">Firefox and Safari have the following limitations:</p></li><ul><li><p class="paragraph">Only file picking and reading is supported</p></li><li><p class="paragraph">No support for persisting External KmpFileRefs</p></li></ul></ul><p class="paragraph">Internal Limitations:</p><ul><li><p class="paragraph">All <code class="lang-kotlin">startingDirectory</code> parameters are ignored</p></li></ul><p class="paragraph">Desktop/JVM: Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">val lwjglVersion = &quot;3.3.3&quot;<br>val lwjglNatives = Pair(<br>	System.getProperty(&quot;os.name&quot;)!!,<br>	System.getProperty(&quot;os.arch&quot;)!!<br>).let { (name, arch) -&gt;<br>	when {<br>		arrayOf(&quot;Linux&quot;, &quot;SunOS&quot;, &quot;Unit&quot;).any { name.startsWith(it) } -&gt;<br>			if (arrayOf(&quot;arm&quot;, &quot;aarch64&quot;).any { arch.startsWith(it) }) {<br>				&quot;natives-linux${if (arch.contains(&quot;64&quot;) || arch.startsWith(&quot;armv8&quot;)) &quot;-arm64&quot; else &quot;-arm32&quot;}&quot;<br>			} else if (arch.startsWith(&quot;ppc&quot;)) {<br>				&quot;natives-linux-ppc64le&quot;<br>			} else if (arch.startsWith(&quot;riscv&quot;)) {<br>				&quot;natives-linux-riscv64&quot;<br>			} else {<br>				&quot;natives-linux&quot;<br>			}<br>		arrayOf(&quot;Mac OS X&quot;, &quot;Darwin&quot;).any { name.startsWith(it) }     -&gt;<br>			&quot;natives-macos${if (arch.startsWith(&quot;aarch64&quot;)) &quot;-arm64&quot; else &quot;&quot;}&quot;<br>		arrayOf(&quot;Windows&quot;).any { name.startsWith(it) }                -&gt;<br>			if (arch.contains(&quot;64&quot;)) {<br>				&quot;natives-windows${if (arch.startsWith(&quot;aarch64&quot;)) &quot;-arm64&quot; else &quot;&quot;}&quot;<br>			} else {<br>				&quot;natives-windows-x86&quot;<br>			}<br>		else -&gt; throw Error(&quot;Unrecognized or unsupported platform. Please set \&quot;lwjglNatives\&quot; manually&quot;)<br>	 }<br>}<br><br>dependencies {<br>    runtimeOnly(&quot;org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives&quot;)<br>    runtimeOnly(&quot;org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives&quot;)<br>}</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">It may also be necessary to add the <code class="lang-kotlin">jdk.unsupported</code> module for some linux builds:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">compose.desktop {<br>   nativeDistributions {<br>       modules(&quot;jdk.unsupported&quot;)<br>   }<br>}</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">Usage: <a href="index.html">KmpFs</a> must be initialized by every platform in order to use it.</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">KmpFs.init(KmpFsContext())<br><br>// Internal Example<br>val ref = KmpFs.Internal.resolveFile(KmpFs.Internal.root, &quot;test.txt&quot;).unwrapOrReturn { return it }<br>val sink = ref.sink().unwrapOrReturn { return it }<br>sink.use {<br>    it.writeUtf8(&quot;Hello World!&quot;)<br>}<br><br>// External Example<br>val ref = KmpFs.External.pickSaveFile(&quot;test.txt&quot;).unwrapOrReturn { return it } ?: return // If null, no file was picked<br>val sink = ref.sink().unwrapOrReturn { return it }<br>sink.use {<br>    it.writeUtf8(&quot;Hello World!&quot;)<br>}</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="84846289%2FProperties%2F788909594" anchor-label="External" id="84846289%2FProperties%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-external.html"><span><span>External</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="84846289%2FProperties%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="-external.html">External</a><span class="token operator">: </span><a href="../-i-external-kmp-fs/index.html">IExternalKmpFs</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1433724897%2FProperties%2F788909594" anchor-label="Internal" id="-1433724897%2FProperties%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-internal.html"><span><span>Internal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1433724897%2FProperties%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="-internal.html">Internal</a><span class="token operator">: </span><a href="../-i-internal-kmp-fs/index.html">IInternalKmpFs</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1559102676%2FFunctions%2F788909594" anchor-label="init" id="-1559102676%2FFunctions%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="init.html"><span><span>init</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1559102676%2FFunctions%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="init.html"><span class="token function">init</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="../-kmp-fs-context/index.html">KmpFsContext</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Initializes KmpFs. This must be called before any other interactions.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

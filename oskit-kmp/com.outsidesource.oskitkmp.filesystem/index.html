@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>com.outsidesource.oskitkmp.filesystem</title>
+    <link href="../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer="defer"></script>
+<script type="text/javascript" src="../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="../../index.html">
+                    oskit-kmp
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+5.0.0        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active=""
+                        data-filter=":dokkaHtml/androidMain">android</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/commonMain">common</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/iosMain">ios</button>
+                <button class="platform-tag platform-selector jvm-like" data-active=""
+                        data-filter=":dokkaHtml/jvmMain">jvm</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/nonJsMain">nonJs</button>
+                <button class="platform-tag platform-selector wasm-like" data-active=""
+                        data-filter=":dokkaHtml/wasmJsMain">wasmJs</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/androidMain"
+                                       data-filter=":dokkaHtml/androidMain"/>
+                                <span class="checkbox--icon"></span>
+                                android
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/commonMain"
+                                       data-filter=":dokkaHtml/commonMain"/>
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/iosMain"
+                                       data-filter=":dokkaHtml/iosMain"/>
+                                <span class="checkbox--icon"></span>
+                                ios
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/jvmMain"
+                                       data-filter=":dokkaHtml/jvmMain"/>
+                                <span class="checkbox--icon"></span>
+                                jvm
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/nonJsMain"
+                                       data-filter=":dokkaHtml/nonJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                nonJs
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option wasm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/wasmJsMain"
+                                       data-filter=":dokkaHtml/wasmJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                wasmJs
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </div>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    oskit-kmp
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="package" id="content" pageIds="oskit-kmp::com.outsidesource.oskitkmp.filesystem////PointingToDeclaration//-326397595">
+  <div class="breadcrumbs"><a href="../../index.html">oskit-kmp</a><span class="delimiter">/</span><span class="current">com.outsidesource.oskitkmp.filesystem</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1961456707%2FClasslikes%2F1685800001" anchor-label="FileSystemHandleKind" id="-1961456707%2FClasslikes%2F1685800001" data-filterable-set=":dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-file-system-handle-kind/index.html"><span>File</span><wbr></wbr><span>System</span><wbr></wbr><span>Handle</span><wbr></wbr><span><span>Kind</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1961456707%2FClasslikes%2F1685800001"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-active="" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-file-system-handle-kind/index.html">FileSystemHandleKind</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-file-system-handle-kind/index.html">FileSystemHandleKind</a><span class="token operator">&gt; </span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="982679189%2FClasslikes%2F-879532132" anchor-label="FsUtil" id="982679189%2FClasslikes%2F-879532132" data-filterable-set=":dokkaHtml/jvmMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-fs-util/index.html"><span>Fs</span><wbr></wbr><span><span>Util</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="982679189%2FClasslikes%2F-879532132"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-active="" data-toggle=":dokkaHtml/jvmMain">jvm</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-fs-util/index.html">FsUtil</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="891703101%2FClasslikes%2F788909594" anchor-label="IExternalKmpFs" id="891703101%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-external-kmp-fs/index.html"><span>IExternal</span><wbr></wbr><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="891703101%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a> : <a href="-i-kmp-fs/index.html">IKmpFs</a></div><div class="brief "><p class="paragraph">The External API interface for interacting with non-sandboxed files/directories. A ref must be picked for a starting point.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-169705809%2FClasslikes%2F788909594" anchor-label="IInternalKmpFs" id="-169705809%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-internal-kmp-fs/index.html"><span>IInternal</span><wbr></wbr><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-169705809%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-internal-kmp-fs/index.html">IInternalKmpFs</a> : <a href="-i-kmp-fs/index.html">IKmpFs</a></div><div class="brief "><p class="paragraph">The Internal API interface for interacting with sandboxed files/directories</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1318629230%2FClasslikes%2F788909594" anchor-label="IKmpFs" id="-1318629230%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-kmp-fs/index.html"><span>IKmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1318629230%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-kmp-fs/index.html">IKmpFs</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1297220380%2FClasslikes%2F788909594" anchor-label="KmpFileFilter" id="1297220380%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-file-filter/index.html"><span>Kmp</span><wbr></wbr><span>File</span><wbr></wbr><span><span>Filter</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1297220380%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-kmp-file-filter/index.html">KmpFileFilter</a><span class="token operator"> = </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="-kmp-file-mimetype/index.html">KmpFileMimetype</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2120756603%2FClasslikes%2F788909594" anchor-label="KmpFileMetadata" id="-2120756603%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-file-metadata/index.html"><span>Kmp</span><wbr></wbr><span>File</span><wbr></wbr><span><span>Metadata</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2120756603%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-file-metadata/index.html">KmpFileMetadata</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>size<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph"><a href="-kmp-file-metadata/index.html">KmpFileMetadata</a> defines metadata for files. Only size is supported for now.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1566968102%2FClasslikes%2F788909594" anchor-label="KmpFileMimetype" id="1566968102%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-file-mimetype/index.html"><span>Kmp</span><wbr></wbr><span>File</span><wbr></wbr><span><span>Mimetype</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1566968102%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-file-mimetype/index.html">KmpFileMimetype</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>extension<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>mimeType<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Defines a common MimeType interface</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2076108925%2FClasslikes%2F788909594" anchor-label="KmpFs" id="-2076108925%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs/index.html"><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2076108925%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-kmp-fs/index.html">KmpFs</a></div><div class="brief "><p class="paragraph"><a href="-kmp-fs/index.html">KmpFs</a> Provides limited multiplatform (iOS, Android, Desktop, and Web Browser) filesystem interactions both inside and outside application sandboxes in iOS and Android via a mostly unified API. <a href="-kmp-fs/index.html">KmpFs</a> is split into two primary APIs: <a href="-i-internal-kmp-fs/index.html">IInternalKmpFs</a> and <a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a> which both implement <a href="-i-kmp-fs/index.html">IKmpFs</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="716117488%2FClasslikes%2F576505749" anchor-label="KmpFsContext" id="716117488%2FClasslikes%2F576505749" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-context/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span><span>Context</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="716117488%2FClasslikes%2F576505749"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/androidMain" data-filterable-set=":dokkaHtml/androidMain" data-active="" data-toggle=":dokkaHtml/androidMain">android</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain" data-toggle=":dokkaHtml/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/iosMain" data-toggle=":dokkaHtml/iosMain">ios</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-toggle=":dokkaHtml/jvmMain">jvm</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-fs-context/index.html">KmpFsContext</a></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">class </span><a href="-kmp-fs-context/index.html">KmpFsContext</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/iosMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-fs-context/index.html">KmpFsContext</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="-kmp-fs-context/index.html">KmpFsContext</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="-kmp-fs-context/index.html">KmpFsContext</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1186081591%2FClasslikes%2F788909594" anchor-label="KmpFsError" id="1186081591%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-error/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span><span>Error</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1186081591%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-kmp-fs-error/index.html">KmpFsError</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-throwable/index.html">Throwable</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1942203764%2FClasslikes%2F788909594" anchor-label="KmpFsRef" id="-1942203764%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-ref/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span><span>Ref</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1942203764%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="kotlinx.serialization/Serializable///PointingToDeclaration/"><span class="token annotation builtin">Serializable</span></span></div></div><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a></div><div class="brief "><p class="paragraph">Represents a lightweight reference to a file/directory location. Refs do not contain any file data or file handles themselves, only a reference to a location. Refs also contain basic information like file/directory name and if it is a file or directory.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-193133637%2FClasslikes%2F788909594" anchor-label="KmpFsRefListItem" id="-193133637%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-ref-list-item/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span>Ref</span><wbr></wbr><span>List</span><wbr></wbr><span><span>Item</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-193133637%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-kmp-fs-ref-list-item/index.html">KmpFsRefListItem</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>depth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>ref<span class="token operator">: </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Returned from <a href="-i-kmp-fs/list-with-depth.html">IKmpFs.listWithDepth</a></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1018475625%2FClasslikes%2F788909594" anchor-label="KmpFsType" id="1018475625%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-type/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1018475625%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-kmp-fs-type/index.html">KmpFsType</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-kmp-fs-type/index.html">KmpFsType</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The <a href="-kmp-fs/index.html">KmpFs</a> API being used</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="494352733%2FClasslikes%2F788909594" anchor-label="KmpFsWriteMode" id="494352733%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-kmp-fs-write-mode/index.html"><span>Kmp</span><wbr></wbr><span>Fs</span><wbr></wbr><span>Write</span><wbr></wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="494352733%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">The write mode for a sink</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1942003523%2FFunctions%2F1621792660" anchor-label="internalClearPersistedDataCache" id="-1942003523%2FFunctions%2F1621792660" data-filterable-set=":dokkaHtml/nonJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="internal-clear-persisted-data-cache.html"><span>internal</span><wbr></wbr><span>Clear</span><wbr></wbr><span>Persisted</span><wbr></wbr><span>Data</span><wbr></wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1942003523%2FFunctions%2F1621792660"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain" data-active="" data-toggle=":dokkaHtml/nonJsMain">nonJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/nonJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="internal-clear-persisted-data-cache.html"><span class="token function">internalClearPersistedDataCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="885470948%2FFunctions%2F1621792660" anchor-label="nonJsSaveFile" id="885470948%2FFunctions%2F1621792660" data-filterable-set=":dokkaHtml/nonJsMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="non-js-save-file.html"><span>non</span><wbr></wbr><span>Js</span><wbr></wbr><span>Save</span><wbr></wbr><span><span>File</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="885470948%2FFunctions%2F1621792660"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain" data-active="" data-toggle=":dokkaHtml/nonJsMain">nonJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/nonJsMain"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a><span class="token punctuation">.</span><a href="non-js-save-file.html"><span class="token function">nonJsSaveFile</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bytes<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-byte-array/index.html">ByteArray</a><span class="token punctuation">, </span></span><span class="parameter ">fileName<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-981318832%2FFunctions%2F1621792660" anchor-label="onKmpFileRefPersisted" id="-981318832%2FFunctions%2F1621792660" data-filterable-set=":dokkaHtml/nonJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-kmp-file-ref-persisted.html"><span>on</span><wbr></wbr><span>Kmp</span><wbr></wbr><span>File</span><wbr></wbr><span>Ref</span><wbr></wbr><span><span>Persisted</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-981318832%2FFunctions%2F1621792660"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain" data-active="" data-toggle=":dokkaHtml/nonJsMain">nonJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/nonJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="on-kmp-file-ref-persisted.html"><span class="token function">onKmpFileRefPersisted</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">ref<span class="token operator">: </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-252192670%2FFunctions%2F1621653231" anchor-label="platformExternalKmpFs" id="-252192670%2FFunctions%2F1621653231" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="platform-external-kmp-fs.html"><span>platform</span><wbr></wbr><span>External</span><wbr></wbr><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-252192670%2FFunctions%2F1621653231"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/androidMain" data-filterable-set=":dokkaHtml/androidMain" data-active="" data-toggle=":dokkaHtml/androidMain">android</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/iosMain" data-toggle=":dokkaHtml/iosMain">ios</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-toggle=":dokkaHtml/jvmMain">jvm</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-external-kmp-fs.html"><span class="token function">platformExternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/iosMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-external-kmp-fs.html"><span class="token function">platformExternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-external-kmp-fs/index.html#891703101%2FMain%2F1621792660">IExternalKmpFs</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-external-kmp-fs.html"><span class="token function">platformExternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-external-kmp-fs.html"><span class="token function">platformExternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-external-kmp-fs/index.html">IExternalKmpFs</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1313601580%2FFunctions%2F1621653231" anchor-label="platformInternalKmpFs" id="-1313601580%2FFunctions%2F1621653231" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="platform-internal-kmp-fs.html"><span>platform</span><wbr></wbr><span>Internal</span><wbr></wbr><span>Kmp</span><wbr></wbr><span><span>Fs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1313601580%2FFunctions%2F1621653231"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/androidMain" data-filterable-set=":dokkaHtml/androidMain" data-active="" data-toggle=":dokkaHtml/androidMain">android</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/iosMain" data-toggle=":dokkaHtml/iosMain">ios</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-toggle=":dokkaHtml/jvmMain">jvm</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-internal-kmp-fs.html"><span class="token function">platformInternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-internal-kmp-fs/index.html">IInternalKmpFs</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/iosMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-internal-kmp-fs.html"><span class="token function">platformInternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="com.outsidesource.oskitkmp.filesystem/IInternalKmpFs///PointingToDeclaration/">IInternalKmpFs</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-internal-kmp-fs.html"><span class="token function">platformInternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-internal-kmp-fs/index.html">IInternalKmpFs</a></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="platform-internal-kmp-fs.html"><span class="token function">platformInternalKmpFs</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="-i-internal-kmp-fs/index.html">IInternalKmpFs</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-541961959%2FFunctions%2F576505749" anchor-label="sink" id="-541961959%2FFunctions%2F576505749" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sink.html"><span><span>sink</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-541961959%2FFunctions%2F576505749"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/androidMain" data-filterable-set=":dokkaHtml/androidMain" data-active="" data-toggle=":dokkaHtml/androidMain">android</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain" data-toggle=":dokkaHtml/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/iosMain" data-toggle=":dokkaHtml/iosMain">ios</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-toggle=":dokkaHtml/jvmMain">jvm</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="sink.html"><span class="token function">sink</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-sink/index.html">IKmpIoSink</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="sink.html"><span class="token function">sink</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a><span class="token operator"> = </span>KmpFsWriteMode.Overwrite</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-sink/index.html">IKmpIoSink</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Creates a writable sink for the ref</p></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/iosMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html#-1942203764%2FMain%2F1882441730">KmpFsRef</a><span class="token punctuation">.</span><a href="sink.html"><span class="token function">sink</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><span data-unresolved-link="com.outsidesource.oskitkmp.filesystem/KmpFsWriteMode///PointingToDeclaration/">KmpFsWriteMode</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="com.outsidesource.oskitkmp.outcome/Outcome///PointingToDeclaration/">Outcome</span><span class="token operator">&lt;</span><span data-unresolved-link="com.outsidesource.oskitkmp.io/IKmpIoSink///PointingToDeclaration/">IKmpIoSink</span><span class="token punctuation">, </span><span data-unresolved-link="com.outsidesource.oskitkmp.filesystem/KmpFsError///PointingToDeclaration/">KmpFsError</span><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="sink.html"><span class="token function">sink</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-sink/index.html">IKmpIoSink</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="sink.html"><span class="token function">sink</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">mode<span class="token operator">: </span><a href="-kmp-fs-write-mode/index.html">KmpFsWriteMode</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-sink/index.html">IKmpIoSink</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1652376316%2FFunctions%2F576505749" anchor-label="source" id="-1652376316%2FFunctions%2F576505749" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/commonMain,:dokkaHtml/androidMain,:dokkaHtml/iosMain,:dokkaHtml/jvmMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="source.html"><span><span>source</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1652376316%2FFunctions%2F576505749"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/androidMain" data-filterable-set=":dokkaHtml/androidMain" data-active="" data-toggle=":dokkaHtml/androidMain">android</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain" data-toggle=":dokkaHtml/commonMain">common</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/iosMain" data-filterable-set=":dokkaHtml/iosMain" data-toggle=":dokkaHtml/iosMain">ios</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/jvmMain" data-filterable-set=":dokkaHtml/jvmMain" data-toggle=":dokkaHtml/jvmMain">jvm</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="source.html"><span class="token function">source</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-source/index.html">IKmpIoSource</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="source.html"><span class="token function">source</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-source/index.html">IKmpIoSource</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Creates a readable source for the ref</p></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/iosMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html#-1942203764%2FMain%2F1882441730">KmpFsRef</a><span class="token punctuation">.</span><a href="source.html"><span class="token function">source</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="com.outsidesource.oskitkmp.outcome/Outcome///PointingToDeclaration/">Outcome</span><span class="token operator">&lt;</span><span data-unresolved-link="com.outsidesource.oskitkmp.io/IKmpIoSource///PointingToDeclaration/">IKmpIoSource</span><span class="token punctuation">, </span><span data-unresolved-link="com.outsidesource.oskitkmp.filesystem/KmpFsError///PointingToDeclaration/">KmpFsError</span><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/jvmMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="source.html"><span class="token function">source</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-source/index.html">IKmpIoSource</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="-kmp-fs-ref/index.html">KmpFsRef</a><span class="token punctuation">.</span><a href="source.html"><span class="token function">source</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.outcome/-outcome/index.html">Outcome</a><span class="token operator">&lt;</span><a href="../com.outsidesource.oskitkmp.io/-i-kmp-io-source/index.html">IKmpIoSource</a><span class="token punctuation">, </span><a href="-kmp-fs-error/index.html">KmpFsError</a><span class="token operator">&gt;</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

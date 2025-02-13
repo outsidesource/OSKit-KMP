@@ -26,48 +26,111 @@
 <link href="../../styles/prism.css" rel="Stylesheet">
 <link href="../../styles/logo-styles.css" rel="Stylesheet">
 <link href="../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
 <script type="text/javascript" src="../../scripts/clipboard.js" async="async"></script>
 <script type="text/javascript" src="../../scripts/navigation-loader.js" async="async"></script>
 <script type="text/javascript" src="../../scripts/platform-content-handler.js" async="async"></script>
 <script type="text/javascript" src="../../scripts/main.js" defer="defer"></script>
 <script type="text/javascript" src="../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer="defer"></script>
 <script type="text/javascript" src="../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
 </head>
 <body>
     <div class="root">
-<nav class="navigation" id="navigation-wrapper">
-    <div class="navigation--inner">
-        <div class="navigation-title">
-            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
-            <div class="library-name">
-                    <a class="library-name--link" href="../../index.html">
-                            oskit-kmp
-                    </a>
+    <nav class="navigation theme-dark" id="navigation-wrapper">
+            <a class="library-name--link" href="../../index.html">
+                    oskit-kmp
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+5.0.0        </div>
+        <div class="navigation-controls">
+        <div class="filter-section filter-section_loading" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/commonMain">common</button>
+                <button class="platform-tag platform-selector common-like" data-active=""
+                        data-filter=":dokkaHtml/nonJsMain">nonJs</button>
+                <button class="platform-tag platform-selector wasm-like" data-active=""
+                        data-filter=":dokkaHtml/wasmJsMain">wasmJs</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
+                    <div class="dropdown--header"><span>Platform filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/commonMain"
+                                       data-filter=":dokkaHtml/commonMain"/>
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/nonJsMain"
+                                       data-filter=":dokkaHtml/nonJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                nonJs
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option wasm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":dokkaHtml/wasmJsMain"
+                                       data-filter=":dokkaHtml/wasmJsMain"/>
+                                <span class="checkbox--icon"></span>
+                                wasmJs
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div class="library-version">
-4.6.4            </div>
         </div>
-        <div class="filter-section" id="filter-section">
-                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":dokkaHtml/commonMain">common</button>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
         </div>
-    </div>
-    <div class="navigation-controls">
-        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
-        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
-    </div>
-</nav>
+    </nav>
         <div id="container">
             <div class="sidebar" id="leftColumn">
-                <div class="sidebar--inner" id="sideMenu"></div>
+                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                        data-role="dropdown-listbox">
+                        <div class="dropdown--header">
+                            <span>
+                                    oskit-kmp
+                            </span>
+                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                            </button>
+                        </div>
+                        <div class="sidebar--inner" id="sideMenu"></div>
+                    </ul>
+                    <div class="dropdown--overlay"></div>
+                </div>
             </div>
             <div id="main">
-<div class="main-content" data-page-type="package" id="content" pageIds="oskit-kmp::com.outsidesource.oskitkmp.router////PointingToDeclaration//788909594">
+<div class="main-content" data-page-type="package" id="content" pageIds="oskit-kmp::com.outsidesource.oskitkmp.router////PointingToDeclaration//1829643079">
   <div class="breadcrumbs"><a href="../../index.html">oskit-kmp</a><span class="delimiter">/</span><span class="current">com.outsidesource.oskitkmp.router</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
   </div>
   <div class="tabbedcontent">
-    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button></div>
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button><button class="section-tab" data-togglable="FUNCTION,EXTENSION_FUNCTION">Functions</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
         <h2 class="">Types</h2>
@@ -81,7 +144,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-animated-route/index.html">IAnimatedRoute</a> : <a href="-i-route/index.html">IRoute</a></div><div class="brief "><p class="paragraph"><a href="-i-animated-route/index.html">IAnimatedRoute</a> the empty interface that defines an animated route. This must be unique and implement equals(). This is normally a data class.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-animated-route/index.html">IAnimatedRoute</a> : <a href="-i-route/index.html">IRoute</a></div><div class="brief "><p class="paragraph">Defines an animated route.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -96,7 +159,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-route/index.html">IRoute</a></div><div class="brief "><p class="paragraph"><a href="-i-route/index.html">IRoute</a> the empty interface that defines a route. This must be unique and implement equals(). This is normally a data class.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-route/index.html">IRoute</a></div><div class="brief "><p class="paragraph">Defines a route. This must be unique and implement equals(). This is normally a data class.</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -116,6 +179,21 @@
               </div>
             </div>
           </div>
+<a data-name="-1006690145%2FClasslikes%2F788909594" anchor-label="IRoutePopScope" id="-1006690145%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-route-pop-scope/index.html"><span>IRoute</span><wbr></wbr><span>Pop</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1006690145%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-route-pop-scope/index.html">IRoutePopScope</a></div><div class="brief "><p class="paragraph">The scope all pop operations are performed in</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="996198254%2FClasslikes%2F788909594" anchor-label="IRouter" id="996198254%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
           <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
             <div class="main-subrow keyValue ">
@@ -126,7 +204,37 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-router/index.html">IRouter</a></div><div class="brief "><p class="paragraph"><a href="-i-router/index.html">IRouter</a> the public navigation interface for use in composables</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-router/index.html">IRouter</a></div><div class="brief "><p class="paragraph">A Router is stack of <a href="-route-stack-entry/index.html">RouteStackEntry</a> that allows pushing and popping of routes.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2053359847%2FClasslikes%2F788909594" anchor-label="IRouterDeepLinkTrieBuilder" id="-2053359847%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-router-deep-link-trie-builder/index.html"><span>IRouter</span><wbr></wbr><span>Deep</span><wbr></wbr><span>Link</span><wbr></wbr><span>Trie</span><wbr></wbr><span><span>Builder</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2053359847%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-router-deep-link-trie-builder/index.html">IRouterDeepLinkTrieBuilder</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="391027704%2FClasslikes%2F788909594" anchor-label="IRouterTransactionScope" id="391027704%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-router-transaction-scope/index.html"><span>IRouter</span><wbr></wbr><span>Transaction</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="391027704%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-router-transaction-scope/index.html">IRouterTransactionScope</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -141,7 +249,37 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-route-transition/index.html">IRouteTransition</a></div><div class="brief "><p class="paragraph"><a href="-i-route-transition/index.html">IRouteTransition</a> the abstract interface that defines a route transition. An IRouteTransition may define a transition however the UI needs.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-route-transition/index.html">IRouteTransition</a></div><div class="brief "><p class="paragraph">Defines a route transition. An IRouteTransition may define a transition however the UI needs.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1504925538%2FClasslikes%2F788909594" anchor-label="IWebRoute" id="1504925538%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-i-web-route/index.html"><span>IWeb</span><wbr></wbr><span><span>Route</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1504925538%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">interface </span><a href="-i-web-route/index.html">IWebRoute</a> : <a href="-i-route/index.html">IRoute</a></div><div class="brief "><p class="paragraph">Defines a route that supports Web Browsers and allows a router to update the title and URL bar. Note: When using <a href="-i-web-route/index.html">IWebRoute</a> with Compose Multiplatform your application and web server must be configured to handle paths via configureWebResources.resourcePathMapping and potentially web server path rewrites to avoid 404s and errors</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="442981590%2FClasslikes%2F788909594" anchor-label="RoutePopFunc" id="442981590%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-route-pop-func/index.html"><span>Route</span><wbr></wbr><span>Pop</span><wbr></wbr><span><span>Func</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="442981590%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-route-pop-func/index.html">RoutePopFunc</a><span class="token operator"> = </span><a href="-i-route-pop-scope/index.html">IRoutePopScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token punctuation">(</span>route<span class="token operator">: </span><a href="-route-stack-entry/index.html">RouteStackEntry</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -156,7 +294,52 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-router/index.html">Router</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">initialRoute<span class="token operator">: </span><a href="-i-route/index.html">IRoute</a><span class="token punctuation">, </span></span><span class="parameter ">defaultTransition<span class="token operator">: </span><a href="-i-route-transition/index.html">IRouteTransition</a><span class="token operator"> = </span>object : IRouteTransition {}</span></span><span class="token punctuation">)</span> : <a href="-i-router/index.html">IRouter</a></div><div class="brief "><p class="paragraph"><a href="-router/index.html">Router</a> the primary implementation of IRouter</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-router/index.html">Router</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">initialRoute<span class="token operator">: </span><a href="-i-route/index.html">IRoute</a><span class="token punctuation">, </span></span><span class="parameter ">defaultTransition<span class="token operator">: </span><a href="-i-route-transition/index.html">IRouteTransition</a><span class="token operator"> = </span>DefaultTransition</span></span><span class="token punctuation">)</span> : <a href="-i-router/index.html">IRouter</a></div><div class="brief "><p class="paragraph"><a href="-router/index.html">Router</a> the primary implementation of IRouter</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1659164146%2FClasslikes%2F788909594" anchor-label="RouterDeepLinkMapper" id="1659164146%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-router-deep-link-mapper/index.html"><span>Router</span><wbr></wbr><span>Deep</span><wbr></wbr><span>Link</span><wbr></wbr><span><span>Mapper</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1659164146%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">typealias </span><a href="-router-deep-link-mapper/index.html">RouterDeepLinkMapper</a><span class="token operator"> = </span><span class="token punctuation">(</span>pathArgs<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token punctuation">, </span>url<span class="token operator">: </span><a href="../com.outsidesource.oskitkmp.lib/-kmp-url/index.html">KmpUrl</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="-i-route/index.html">IRoute</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="823559865%2FClasslikes%2F788909594" anchor-label="RouterDeepLinkTrie" id="823559865%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-router-deep-link-trie/index.html"><span>Router</span><wbr></wbr><span>Deep</span><wbr></wbr><span>Link</span><wbr></wbr><span><span>Trie</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="823559865%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-router-deep-link-trie/index.html">RouterDeepLinkTrie</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">builder<span class="token operator">: </span><a href="-i-router-deep-link-trie-builder/index.html">IRouterDeepLinkTrieBuilder</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A Trie for resolving deep-linked URLs to IRoutes</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1767379616%2FClasslikes%2F788909594" anchor-label="RouteResultError" id="-1767379616%2FClasslikes%2F788909594" data-filterable-set=":dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/commonMain" data-filterable-set=":dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-route-result-error/index.html"><span>Route</span><wbr></wbr><span>Result</span><wbr></wbr><span><span>Error</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1767379616%2FClasslikes%2F788909594"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">sealed </span><span class="token keyword">class </span><a href="-route-result-error/index.html">RouteResultError</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -171,7 +354,7 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-route-stack-entry/index.html">RouteStackEntry</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>route<span class="token operator">: </span><a href="-i-route/index.html">IRoute</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>transition<span class="token operator">: </span><a href="-i-route-transition/index.html">IRouteTransition</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>id<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>uid()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph"><a href="-route-stack-entry/index.html">RouteStackEntry</a> defines an entry in the route stack. It contains a unique id for the entry, the <a href="-i-route/index.html">IRoute</a> that identifies the route, and its lifecycle</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">data </span><span class="token keyword">class </span><a href="-route-stack-entry/index.html">RouteStackEntry</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>route<span class="token operator">: </span><a href="-i-route/index.html">IRoute</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>transition<span class="token operator">: </span><a href="-i-route-transition/index.html">IRouteTransition</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>id<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>uid()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Defines an entry in the route stack. It contains a unique id for the entry, the <a href="-i-route/index.html">IRoute</a> that identifies the route, and its lifecycle</p></div></div></div>
                 </div>
               </div>
             </div>
@@ -186,7 +369,45 @@
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-route-transition-status/index.html">RouteTransitionStatus</a> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><span class="token keyword"></span><a href="-route-transition-status/index.html">RouteTransitionStatus</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph"><a href="-route-transition-status/index.html">RouteTransitionStatus</a> defines if a transition is running</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-route-transition-status/index.html">RouteTransitionStatus</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-route-transition-status/index.html">RouteTransitionStatus</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Defines if a transition between routes is running or Idle</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-2043382918%2FFunctions%2F-2127385287" anchor-label="initForPlatform" id="-2043382918%2FFunctions%2F-2127385287" data-filterable-set=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="init-for-platform.html"><span>init</span><wbr></wbr><span>For</span><wbr></wbr><span><span>Platform</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2043382918%2FFunctions%2F-2127385287"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain" data-active="" data-toggle=":dokkaHtml/nonJsMain">nonJs</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/nonJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="init-for-platform.html"><span class="token function">initForPlatform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">router<span class="token operator">: </span><a href="-router/index.html">Router</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="init-for-platform.html"><span class="token function">initForPlatform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">router<span class="token operator">: </span><a href="-router/index.html">Router</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="285555342%2FFunctions%2F-2127385287" anchor-label="tearDownForPlatform" id="285555342%2FFunctions%2F-2127385287" data-filterable-set=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain"></a>
+          <div class="table-row" data-filterable-current=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/nonJsMain,:dokkaHtml/wasmJsMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tear-down-for-platform.html"><span>tear</span><wbr></wbr><span>Down</span><wbr></wbr><span>For</span><wbr></wbr><span><span>Platform</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="285555342%2FFunctions%2F-2127385287"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":dokkaHtml/nonJsMain" data-filterable-set=":dokkaHtml/nonJsMain" data-active="" data-toggle=":dokkaHtml/nonJsMain">nonJs</button><button class="platform-bookmark" data-filterable-current=":dokkaHtml/wasmJsMain" data-filterable-set=":dokkaHtml/wasmJsMain" data-toggle=":dokkaHtml/wasmJsMain">wasmJs</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":dokkaHtml/nonJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="tear-down-for-platform.html"><span class="token function">tearDownForPlatform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">router<span class="token operator">: </span><a href="-router/index.html">Router</a></span></span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":dokkaHtml/wasmJsMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">fun </span><a href="tear-down-for-platform.html"><span class="token function">tearDownForPlatform</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">router<span class="token operator">: </span><a href="-router/index.html">Router</a></span></span><span class="token punctuation">)</span></div></div>                  </div>
                 </div>
               </div>
             </div>
@@ -196,11 +417,16 @@
     </div>
   </div>
 </div>
-      <div class="footer">
-        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
-                class="pull-right"><span>Generated by </span><a
-                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
-      </div>
+    <div class="footer">
+        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+        <span>© 2025 Copyright</span>
+        <span class="pull-right">
+            <span>Generated by </span>
+            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                <span>dokka</span>
+            </a>
+        </span>
+    </div>
             </div>
         </div>
     </div>
