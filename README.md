@@ -13,10 +13,11 @@ implemented.
 <https://outsidesource.github.io/OSKit-KMP/>
 
 ## Features
-* An easy-to-use, concurrent, reactive, state management system
-* Platform independent routing
-* Platform independent non-sandboxed file handling
-* A typed result type for better railway oriented programming
+* `Interactor` An easy-to-use, concurrent, and reactive state management system
+* `Router` Platform independent routing with backstack management, deep link, and transition support
+* `KmpFs` Platform independent library for sandboxed and non-sandboxed file system interactions
+* `KmpCapabilities` Platform independent permissions and service enablement for common capabilities (Bluetooth, Location)
+* `Outcome` A result type with helpers for better railway oriented programming
 * Some general helpers and extensions we have found helpful over time
 
 ## Supported Platforms
@@ -24,19 +25,55 @@ Currently supported platforms include:
 * Android
 * JVM (MacOS/Windows/Linux)
 * iOS
+* WASM (browser primarily)
 
 ## Installation
 ```
-implementation("com.outsidesource:oskit-kmp:4.6.0")
+implementation("com.outsidesource:oskit-kmp:5.0.0")
 ```
 
 ## Example App
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+### 5.0.0 - 2025-02-07
+#### Added
+* Kotlin 2.1.0 support
+* Support for the WASM target
+  * All existing and new OsKit feature support all platforms unless explicitly said otherwise in documentation
+  * Added some `Promise` helpers
+  * Added some `JsInterop` helpers
+* `KmpCapabilities` for testing for permissions and enablement of some common platform services (Bluetooth, Location)
+* `KmpFs` Supports internal (sandboxed) and external (non-sandboxed) filesystem interactions
+* `IKmpIoSource` and `IKmpIoSink` interfaces and implementations for cross-platform asynchronous file interactions.
+* `KmpScreenWakeLock` Allows preventing a user's screen from sleeping
+* `KmpDispatchers` for a common `IO` dispatcher
+* `Deferred<t>.awaitOutcome()`
+* `Queue` for creating a queue of sequentially executing coroutines
+* `BytesExt` Allows converting common data types to and from byte arrays
+* `LocalDateTime.kmpFormat()` For a cross-platform date-time formatter
+* `KmpUrl` A multiplatform URL parser
+* `Any?.printed()` and `printAll` helpers
+* Updated `Platform` to add `WebBrowser`
+* `Router` has been reworked and added a new transactional API for more flexibility and to clean up a lot of rarely used API surface
+  * Added `IWebRoute` for handling path changes in the browser
+  * Added deep link support
+#### Breaking Changes
+* Adopted Upper Camel Case for all acronym prefixes on class and function names (i.e. `KMP` changed to `Kmp`)
+* Reworked/renamed `KMPStorage` to `KmpKvStore`
+* `Coordinator` has been reworked to fit the new Transaction API implemented in Router.
+* `KmpDeepLink` was deemed unnecessary and was removed
+* `KMPFileHandler` was renamed/repurposed into `KmpFs`
+* `KMPFileRef` was renamed/repurposed into `KmpFsRef`
+* `LazyComputed` was changed to use the invoke operator instead of `value()` function
+* `Outcome.unwrapOrReturn()` was changed to pass a parameter instead of `this` for the error
+* Reworked the `Router` API
+* `KMPStorage` was renamed/reworked into `KmpKvStore`
+* `FileUtil` was renamed to `FsUtil`
+
 ### 4.6.0 - 2024-05-21
 #### Added
-* InMemoryKMPStorageNode
+* InMemoryKmpStorageNode
 * withTimeoutOrOutcome
 * Deferrable code helpers
   * Deferrer/SuspendDeferrer
@@ -47,10 +84,10 @@ implementation("com.outsidesource:oskit-kmp:4.6.0")
 #### Updated
 * Default parameters in Coordinator
 #### Fixed
-* KMPFileRef being broken after reboot on iOS
-* Large iOS KMPFileRef sink() writes 
-* Issue when resolving KMPFileRef on desktop
-* Issue with resolving KMPFileRef directory on Linux
+* KmpFileRef being broken after reboot on iOS
+* Large iOS KmpFileRef sink() writes 
+* Issue when resolving KmpFileRef on desktop
+* Issue with resolving KmpFileRef directory on Linux
 * Issue with file pickers on Linux with Plasma
 
 ### 4.5.0 - 2024-03-23
@@ -65,7 +102,7 @@ implementation("com.outsidesource:oskit-kmp:4.6.0")
 
 ### 4.4.0 - 2024-03-06
 #### Added
-* KMPStorage
+* KmpStorage
 * Double.toFixed()
 * List extensions
 #### Breaking Changes

@@ -6,6 +6,7 @@ enum class Platform {
     MacOS,
     Windows,
     Linux,
+    WebBrowser,
     Unknown,
     ;
 

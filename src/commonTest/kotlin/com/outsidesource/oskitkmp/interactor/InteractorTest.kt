@@ -1,30 +1,31 @@
 package com.outsidesource.oskitkmp.interactor
 
+import com.outsidesource.oskitkmp.test.runBlockingTest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class InteractorTest {
     @Test
-    fun getCurrentStateOnSubscribe() = runBlocking {
+    fun getCurrentStateOnSubscribe() = runBlockingTest {
         val interactor = TestInteractor()
         val result = interactor.flow().first()
         assertTrue(result.testInt == 0, "State not returned on subscription")
     }
 
     @Test
-    fun stateGetter() = runBlocking {
+    fun stateGetter() = runBlockingTest {
         val interactor = TestInteractor()
         interactor.increment()
         assertTrue(interactor.state.testInt == 1, "asserted state getter to return 1. Got ${interactor.state.testInt}")
     }
 
     @Test
-    fun subscribe() = runBlocking {
+    fun subscribe() = runBlockingTest {
         val interactor = TestInteractor()
         var eventCount = 0
 
@@ -41,7 +42,7 @@ class InteractorTest {
     }
 
     @Test
-    fun distinctUpdates() = runBlocking {
+    fun distinctUpdates() = runBlockingTest {
         val interactor = TestInteractor()
         var eventCount = 0
 
@@ -63,7 +64,7 @@ class InteractorTest {
     }
 
     @Test
-    fun update() = runBlocking {
+    fun update() = runBlockingTest {
         val interactor = TestInteractor()
         val originalState = interactor.state
         assertTrue(interactor.state.testInt == 0, "testInt was not 0")
@@ -76,7 +77,7 @@ class InteractorTest {
     }
 
     @Test
-    fun computedValue() = runBlocking {
+    fun computedValue() = runBlockingTest {
         val interactor = TestInteractor()
         val subscription = launch { interactor.flow().collect { } }
         delay(100)
@@ -87,7 +88,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependency() = runBlocking {
+    fun testDependency() = runBlockingTest {
         val testBloc = TestInteractor()
         testBloc.setString("dependency")
         testBloc.increment()
@@ -134,7 +135,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependentInteractorDependencySubscriptionsCancelled() = runBlocking {
+    fun testDependentInteractorDependencySubscriptionsCancelled() = runBlockingTest {
         val testBloc = TestInteractor()
         val dependencyBloc = TestDependencyInteractor(testBloc)
         assertTrue(dependencyBloc.subscriptionCount.value == 0, "Dependency subscription count should be 0")
@@ -155,7 +156,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testDependencyComputedCalls() = runBlocking {
+    fun testDependencyComputedCalls() = runBlockingTest {
         var testBlocComputedCount = 0
         val testBloc = TestInteractor(onComputedCallback = { testBlocComputedCount++ })
 
@@ -173,7 +174,7 @@ class InteractorTest {
     }
 
     @Test
-    fun testFunctionalInteractor() = runBlocking {
+    fun testFunctionalInteractor() = runBlockingTest {
         val interactor = createInteractor(
             initialState = TestState(),
             dependencies = emptyList(),

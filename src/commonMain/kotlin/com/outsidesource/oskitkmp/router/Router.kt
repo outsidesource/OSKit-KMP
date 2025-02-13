@@ -1,8 +1,10 @@
 package com.outsidesource.oskitkmp.router
 
+import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.reflect.KClass
 
@@ -11,192 +13,79 @@ import kotlin.reflect.KClass
  */
 class Router(
     initialRoute: IRoute,
-    private val defaultTransition: IRouteTransition = object : IRouteTransition {},
+    internal val defaultTransition: IRouteTransition = DefaultTransition,
 ) : IRouter {
-    private val _routeStack: AtomicRef<List<RouteStackEntry>>
-    private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
-    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Completed)
-
     override val routeFlow: MutableStateFlow<RouteStackEntry>
     override val current get() = _routeStack.value.last()
-    override val routeStack: List<RouteStackEntry>
-        get() = _routeStack.value
+    override val routeStack: List<RouteStackEntry> get() = _routeStack.value
+
+    private val _routeStack: AtomicRef<List<RouteStackEntry>>
+    private val routeLifecycleListeners = atomic(mapOf<Int, List<IRouteLifecycleListener>>())
+    private var transitionStatus: RouteTransitionStatus by atomic(RouteTransitionStatus.Idle)
+    private val onRouteDestroyedTransitionCompletedCallbacks = atomic<List<() -> Unit>>(emptyList())
+    private val routeResults = atomic(mapOf<Int, CompletableDeferred<Any>>())
+
+    internal var routerListener: IRouterListener? = null
+
+    companion object {
+        fun buildDeepLinks(builder: IRouterDeepLinkTrieBuilder.() -> Unit) = RouterDeepLinkTrie(builder)
+    }
 
     init {
         val initialStackEntry = RouteStackEntry(initialRoute)
         _routeStack = atomic(listOf(initialStackEntry))
         routeFlow = MutableStateFlow(initialStackEntry)
+        initForPlatform(this)
     }
 
-    override fun push(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
-    ) {
-        notifyRouteStopped()
-        popToInternal(popTo, popToInclusive, force)
-        push(route = route, transition = transition, force = force)
-    }
+    override fun push(route: IRoute, transition: IRouteTransition?, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { push(route, transition) }
 
-    override fun <T : IRoute> push(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
-    ) {
-        notifyRouteStopped()
-        popToInternal(popTo, popToInclusive, force)
-        push(route = route, transition = transition, force = force)
-    }
+    override fun replace(route: IRoute, transition: IRouteTransition?, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { replace(route, transition) }
 
-    override fun push(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        notifyRouteStopped()
-        pushInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
+    internal fun push(route: RouteStackEntry, ignoreTransitionLock: Boolean) =
+        transaction(ignoreTransitionLock) { (this as? RouterTransactionScope)?.push(route) }
 
-    override fun push(
-        route: IRoute,
-        transition: IRouteTransition?,
-        force: Boolean,
-        popWhile: (entry: IRoute) -> Boolean,
-    ) {
-        notifyRouteStopped()
-        popWhileInternal(force, popWhile)
-        pushInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
+    override fun pop(ignoreTransitionLock: Boolean, popFunc: RoutePopFunc) =
+        transaction(ignoreTransitionLock) { pop(popFunc) }
 
-    private fun pushInternal(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        val entry = RouteStackEntry(
-            route = route,
-            transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition,
-        )
-        _routeStack.update { it + entry }
-    }
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T : Any> transactionWithResult(
+        resultType: KClass<T>,
+        ignoreTransitionLock: Boolean,
+        transaction: IRouterTransactionScope.() -> Unit,
+    ): Outcome<T, RouteResultError> {
+        val result = CompletableDeferred<Any>()
 
-    override fun replace(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        replaceInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
+        transaction(ignoreTransitionLock) {
+            transaction()
 
-    override fun replace(
-        route: IRoute,
-        transition: IRouteTransition?,
-        force: Boolean,
-        popWhile: (entry: IRoute) -> Boolean,
-    ) {
-        popWhileInternal(force, popWhile)
-        replaceInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
+            if (this !is RouterTransactionScope) return@transaction
+            routeResults.update { it.toMutableMap().apply { this[routeStack.last().id] = result } }
+        }
 
-    override fun replace(
-        route: IRoute,
-        popTo: IRoute,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
-    ) {
-        popToInternal(popTo, popToInclusive, force)
-        replaceInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
-
-    override fun <T : IRoute> replace(
-        route: IRoute,
-        popTo: KClass<T>,
-        popToInclusive: Boolean,
-        transition: IRouteTransition?,
-        force: Boolean,
-    ) {
-        popToInternal(popTo, popToInclusive, force)
-        replaceInternal(route, transition, force)
-        notifyRouteFlowListeners()
-    }
-
-    private fun replaceInternal(route: IRoute, transition: IRouteTransition?, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        if (_routeStack.value.last().route == route) return
-        val entry = RouteStackEntry(
-            route = route,
-            transition = transition ?: if (route is IAnimatedRoute) route.transition else defaultTransition,
-        )
-        destroyTopStackEntry()
-        _routeStack.update { it + entry }
-    }
-
-    override fun pop(force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        if (_routeStack.value.size <= 1) return
-        destroyTopStackEntry()
-        notifyRouteFlowListeners()
-        notifyRouteStarted()
-    }
-
-    override fun <T : IRoute> popTo(to: KClass<T>, inclusive: Boolean, force: Boolean) {
-        popToInternal(to, inclusive, force)
-        notifyRouteFlowListeners()
-        notifyRouteStarted()
-    }
-
-    override fun popTo(to: IRoute, inclusive: Boolean, force: Boolean) {
-        popToInternal(to, inclusive, force)
-        notifyRouteFlowListeners()
-        notifyRouteStarted()
-    }
-
-    private fun <T : IRoute> popToInternal(to: KClass<T>, inclusive: Boolean, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        var breakNext = false
-
-        popWhileInternal {
-            if (breakNext) {
-                return@popWhileInternal false
-            } else if (it::class == to) {
-                if (!inclusive) return@popWhileInternal false
-                breakNext = true
+        return try {
+            val result = result.await()
+            when {
+                result::class == resultType -> Outcome.Ok(result as T)
+                result is RouteResultError -> Outcome.Error(result)
+                else -> Outcome.Error(RouteResultError.UnexpectedResultType(result))
             }
-
-            return@popWhileInternal true
+        } catch (t: Throwable) {
+            Outcome.Error(RouteResultError.Unknown(t))
         }
     }
 
-    private fun popToInternal(to: IRoute, inclusive: Boolean, force: Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        var breakNext = false
+    override fun transaction(ignoreTransitionLock: Boolean, transaction: IRouterTransactionScope.() -> Unit) {
+        if (transitionStatus == RouteTransitionStatus.Running && !ignoreTransitionLock) return
 
-        popWhileInternal {
-            if (breakNext) {
-                return@popWhileInternal false
-            } else if (it == to) {
-                if (!inclusive) return@popWhileInternal false
-                breakNext = true
-            }
+        val scope = RouterTransactionScope(this).apply { transaction() }
+        _routeStack.value = scope.routeStack
 
-            return@popWhileInternal true
-        }
-    }
-
-    override fun popWhile(force: Boolean, block: (route: IRoute) -> Boolean) {
-        popWhileInternal(force, block)
-        notifyRouteFlowListeners()
-        notifyRouteStarted()
-    }
-
-    private fun popWhileInternal(force: Boolean = false, block: (route: IRoute) -> Boolean) {
-        if (transitionStatus == RouteTransitionStatus.Running && !force) return
-        if (_routeStack.value.size <= 1) return
-        destroyTopStackEntry()
-
-        while (_routeStack.value.size > 1) {
-            if (!block(_routeStack.value.last().route)) break
-            destroyTopStackEntry(callOnStop = false)
-        }
+        val top = _routeStack.value.last()
+        routeFlow.value = top
+        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStarted() }
     }
 
     override fun hasBackStack(): Boolean = _routeStack.value.size > 1
@@ -205,7 +94,14 @@ class Router(
         val previousStatus = transitionStatus
         transitionStatus = status
 
-        if (status == RouteTransitionStatus.Completed && previousStatus != status) {
+        if (status == RouteTransitionStatus.Idle && previousStatus == RouteTransitionStatus.Running) {
+            val routeDestroyedTransitionCompleteCallbacks = onRouteDestroyedTransitionCompletedCallbacks.value
+            onRouteDestroyedTransitionCompletedCallbacks.value = emptyList()
+
+            for (callback in routeDestroyedTransitionCompleteCallbacks) {
+                callback()
+            }
+
             val top = _routeStack.value.last()
             routeLifecycleListeners.value[top.id]?.forEach { it.onRouteEnterTransitionComplete() }
         }
@@ -222,27 +118,116 @@ class Router(
         }
     }
 
-    private fun destroyTopStackEntry(callOnStop: Boolean = true) {
-        val top = _routeStack.value.last()
-        _routeStack.update { it.toMutableList().apply { remove(top) } }
-        routeLifecycleListeners.value[top.id]?.forEach {
-            if (callOnStop) it.onRouteStopped()
-            it.onRouteDestroyed()
+    override fun tearDown() = tearDownForPlatform(this)
+
+    internal fun onRouteStopped(route: RouteStackEntry) {
+        routeLifecycleListeners.value[route.id]?.forEach { listener -> listener.onRouteStopped() }
+    }
+
+    internal fun onRouteDestroyed(route: RouteStackEntry) {
+        val result = routeResults.value[route.id]
+        if (result != null && !result.isCompleted) routeResults.value[route.id]?.complete(RouteResultError.Cancelled)
+        routeResults.update { it.toMutableMap().apply { remove(route.id) } }
+
+        routeLifecycleListeners.value[route.id]?.forEach { listener ->
+            onRouteDestroyedTransitionCompletedCallbacks.update { it + listener::onRouteDestroyedTransitionComplete }
+            listener.onRouteDestroyed()
         }
-        routeLifecycleListeners.update { it.toMutableMap().apply { remove(top.id) } }
+        routeLifecycleListeners.update { it.toMutableMap().apply { remove(route.id) } }
     }
 
-    private fun notifyRouteFlowListeners() {
-        routeFlow.value = _routeStack.value.last()
-    }
-
-    private fun notifyRouteStopped() {
-        val top = _routeStack.value.last()
-        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStopped() }
-    }
-
-    private fun notifyRouteStarted() {
-        val top = _routeStack.value.last()
-        routeLifecycleListeners.value[top.id]?.forEach { it.onRouteStarted() }
+    internal fun onRouteResult(route: RouteStackEntry, result: Any) {
+        routeResults.value[route.id]?.complete(result)
     }
 }
+
+internal interface IRouterListener {
+    fun onPush(newTop: RouteStackEntry)
+    fun onReplace(newTop: RouteStackEntry)
+    fun onPop(newTop: RouteStackEntry)
+}
+
+private class RouterTransactionScope(private val router: Router) : IRouterTransactionScope {
+
+    var routeStack: List<RouteStackEntry> = router.routeStack.toList()
+    private val popScope = PopScope(router, this)
+    private var hasStoppedTop = false
+
+    override fun replace(route: IRoute, transition: IRouteTransition?) {
+        destroyTopStackEntry()
+        internalPush(route, transition)
+        router.routerListener?.onReplace(routeStack.last())
+    }
+
+    override fun push(route: IRoute, transition: IRouteTransition?) {
+        internalPush(route, transition)
+        router.routerListener?.onPush(routeStack.last())
+    }
+
+    private fun internalPush(route: IRoute, transition: IRouteTransition?) {
+        stopTopRoute(routeStack.lastOrNull())
+        val entry = RouteStackEntry(
+            route = route,
+            transition = transition ?: if (route is IAnimatedRoute) {
+                route.animatedRouteTransition
+            } else {
+                router.defaultTransition
+            },
+        )
+        routeStack += entry
+    }
+
+    override fun pop(popFunc: RoutePopFunc) {
+        val popPredicate = popScope.popFunc()
+        while (routeStack.size > 1) {
+            if (!popPredicate(routeStack.last())) return
+            destroyTopStackEntry()
+            router.routerListener?.onPop(routeStack.last())
+        }
+    }
+
+    fun push(entry: RouteStackEntry) {
+        stopTopRoute(routeStack.last())
+        routeStack += entry
+    }
+
+    private fun destroyTopStackEntry() {
+        val top = routeStack.last()
+        routeStack -= top
+        stopTopRoute(top)
+        router.onRouteDestroyed(top)
+    }
+
+    private fun stopTopRoute(route: RouteStackEntry?) {
+        if (route == null) return
+        if (hasStoppedTop) return
+        hasStoppedTop = true
+        router.onRouteStopped(route)
+    }
+}
+
+private class PopScope(
+    private val router: Router,
+    private val transactionScope: RouterTransactionScope,
+) : IRoutePopScope {
+
+    override fun withResult(result: Any): (RouteStackEntry) -> Boolean {
+        var breakNext = false
+
+        return fun(_: RouteStackEntry): Boolean {
+            if (!breakNext) {
+                breakNext = true
+                router.onRouteResult(transactionScope.routeStack.last(), result)
+                return true
+            }
+            return false
+        }
+    }
+}
+
+internal expect fun initForPlatform(router: Router)
+internal expect fun tearDownForPlatform(router: Router)
+
+// Kotlin 2.1.0 has an issue with an anonymous object being created in a class constructor on iOS preventing compilation
+// of any project using OSKit-KMP
+internal val DefaultTransition = object : IRouteTransition {}

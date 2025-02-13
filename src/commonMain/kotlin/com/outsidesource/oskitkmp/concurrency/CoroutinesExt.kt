@@ -2,6 +2,14 @@ package com.outsidesource.oskitkmp.concurrency
 
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.*
+import kotlin.jvm.JvmName
+
+expect object KmpDispatchers {
+    val IO: CoroutineDispatcher
+    val Default: CoroutineDispatcher
+    val Main: CoroutineDispatcher
+    val Unconfined: CoroutineDispatcher
+}
 
 /**
  * Creates a deferred result that does not cancel the parent upon failure but instead returns an Outcome.
@@ -19,12 +27,22 @@ fun <T> CoroutineScope.asyncOutcome(
 
 /**
  * Awaits a deferred and returns an outcome instead of throwing an error on cancellation.
+ */
+suspend fun <T> Deferred<T>.awaitOutcome(): Outcome<T, Any> = try {
+    Outcome.Ok(await())
+} catch (t: Throwable) {
+    Outcome.Error(t)
+}
+
+/**
+ * Awaits a deferred and returns an outcome instead of throwing an error on cancellation.
  * Best used with [asyncOutcome].
  */
+@JvmName("awaitDeferredOutcome")
 suspend fun <T> Deferred<Outcome<T, Any>>.awaitOutcome(): Outcome<T, Any> = try {
     await()
-} catch (e: Throwable) {
-    Outcome.Error(e)
+} catch (t: Throwable) {
+    Outcome.Error(t)
 }
 
 /**

@@ -10,7 +10,7 @@ import kotlinx.coroutines.*
  */
 class WorkerPool(
     private val workerCount: Int = 10,
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+    private val scope: CoroutineScope = CoroutineScope(KmpDispatchers.IO + SupervisorJob()),
 ) {
 
     private val jobCount = atomic(0)

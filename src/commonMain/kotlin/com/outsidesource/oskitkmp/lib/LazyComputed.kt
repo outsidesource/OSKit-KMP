@@ -11,7 +11,7 @@ class LazyComputed<P1, R>(private val initializer: (P1) -> R) {
     private val _value = atomic<R?>(null)
     private var hasInitialized = false
 
-    fun value(p1: P1): R {
+    operator fun invoke(p1: P1): R {
         if (hasInitialized) return _value.value as R
         hasInitialized = true
         _value.update { initializer(p1) }

@@ -24,19 +24,19 @@ fun <V, E> Outcome<V, E>.unwrapOrNull(): V? = when (this) {
     else -> null
 }
 
-inline fun <reified T, reified E> Outcome<T, E>.unwrapOrReturn(block: Outcome.Error<E>.() -> Nothing): T {
+inline fun <T, E> Outcome<T, E>.unwrapOrReturn(block: (Outcome.Error<E>) -> Nothing): T {
     when (this) {
         is Outcome.Ok -> return value
         is Outcome.Error -> block(this)
     }
 }
 
-inline fun <reified T, reified E> Outcome<T, E>.runOnOk(block: (T) -> Unit): Outcome<T, E> {
+inline fun <T, E> Outcome<T, E>.runOnOk(block: (T) -> Unit): Outcome<T, E> {
     if (this is Outcome.Ok) block(value)
     return this
 }
 
-inline fun <reified T, reified E> Outcome<T, E>.runOnError(block: (E) -> Unit): Outcome<T, E> {
+inline fun <T, E> Outcome<T, E>.runOnError(block: (E) -> Unit): Outcome<T, E> {
     if (this is Outcome.Error) block(error)
     return this
 }

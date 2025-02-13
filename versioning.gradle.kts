@@ -26,7 +26,6 @@ data class SemVer(val major: Int = 0, val minor: Int = 0, val patch: Int = 0) : 
         val Invalid = SemVer()
 
         fun fromString(version: String): SemVer {
-
             val versions = version.replace("[^0-9\\.]".toRegex(), "")
                 .split(".")
                 .map { it.take(1) }
@@ -35,14 +34,13 @@ data class SemVer(val major: Int = 0, val minor: Int = 0, val patch: Int = 0) : 
             return SemVer(
                 versions.getOrNull(0)?.toInt() ?: 0,
                 versions.getOrNull(1)?.toInt() ?: 0,
-                versions.getOrNull(2)?.toInt() ?: 0
+                versions.getOrNull(2)?.toInt() ?: 0,
             )
         }
 
         fun isValidSemVer(version: String): Boolean = version.matches("[0-9]+\\.[0-9]+\\.[0-9]+".toRegex())
     }
 }
-
 
 fun readVersionProps(): Properties {
     val versionFile = File(project.rootDir, "version.properties")
@@ -63,7 +61,7 @@ fun incrementMajorVersion() {
     val props = readVersionProps()
     val version = readSemVerFromProps(props)
 
-    props.setProperty("version", version.copy(major = version.major+1, minor = 0, patch = 0).toString())
+    props.setProperty("version", version.copy(major = version.major + 1, minor = 0, patch = 0).toString())
     FileOutputStream(versionFile).use { stream -> props.store(stream, null) }
     println("Major Version has been updated to: ${props["version"]}")
 }
