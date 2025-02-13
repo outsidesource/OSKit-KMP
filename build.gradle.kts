@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -190,11 +191,11 @@ tasks.getByName("preBuild").dependsOn("ktlintFormat")
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.S01, automaticRelease = true)
-//    signAllPublications()
+    signAllPublications()
 
     configure(
         platform = KotlinMultiplatform(
-//            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true,
             androidVariantsToPublish = listOf("debug", "release"),
         )
