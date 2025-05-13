@@ -1,6 +1,8 @@
 package com.outsidesource.oskitkmp.capability
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import com.outsidesource.oskitkmp.systemui.KmpSettingsScreen
+import com.outsidesource.oskitkmp.systemui.SettingsScreenType
 
 actual class KmpCapabilityContext()
 
@@ -12,4 +14,6 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
 
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: KmpCapabilityContext?,
-): Outcome<Unit, Any> = Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
+): Outcome<Unit, Any> {
+    return KmpSettingsScreen().open(SettingsScreenType.App)
+}
