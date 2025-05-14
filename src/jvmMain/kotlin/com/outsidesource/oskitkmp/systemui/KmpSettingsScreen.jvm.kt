@@ -61,11 +61,12 @@ actual class KmpSettingsScreen : IKmpSettingsScreenOpener {
             SettingsScreenType.Bluetooth -> try {
                 Runtime.getRuntime().exec(
                     arrayOf(
-                        "osascript", "-e",
+                        "osascript",
+                        "-e",
                         "tell application \"System Preferences\"\n" +
-                                "reveal anchor \"Bluetooth\" of pane id \"com.apple.preferences.Bluetooth\"\n" +
-                                "activate\n" +
-                                "end tell",
+                            "reveal anchor \"Bluetooth\" of pane id \"com.apple.preferences.Bluetooth\"\n" +
+                            "activate\n" +
+                            "end tell",
                     ),
                 )
                 Outcome.Ok(Unit)
@@ -76,11 +77,13 @@ actual class KmpSettingsScreen : IKmpSettingsScreenOpener {
             SettingsScreenType.Location -> try {
                 Runtime.getRuntime().exec(
                     arrayOf(
-                        "osascript", "-e",
+                        "osascript",
+                        "-e",
                         "tell application \"System Preferences\"\n" +
-                                "reveal anchor \"Privacy_LocationServices\" of pane id \"com.apple.preference.security\"\n" +
-                                "activate\n" +
-                                "end tell",
+                            "reveal anchor \"Privacy_LocationServices\" " +
+                            "of pane id \"com.apple.preference.security\"\n" +
+                            "activate\n" +
+                            "end tell",
                     ),
                 )
                 Outcome.Ok(Unit)
@@ -90,7 +93,7 @@ actual class KmpSettingsScreen : IKmpSettingsScreenOpener {
         }
     }
 
-    //TODO: Detect and support more desktop envs like KDE, etc....
+    // TODO: Detect and support more desktop envs like KDE, etc....
     private fun openLinuxSettings(type: SettingsScreenType): Outcome<Unit, KmpSettingsScreenError> {
         return when (type) {
             SettingsScreenType.App -> Outcome.Error(KmpSettingsScreenError.NotSupportedByThisPlatform)

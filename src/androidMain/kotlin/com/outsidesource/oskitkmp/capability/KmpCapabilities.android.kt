@@ -1,8 +1,5 @@
 package com.outsidesource.oskitkmp.capability
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.systemui.KmpSettingsScreen

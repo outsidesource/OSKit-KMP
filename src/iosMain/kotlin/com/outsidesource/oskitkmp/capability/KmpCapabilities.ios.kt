@@ -19,4 +19,3 @@ internal actual suspend fun internalOpenAppSettingsScreen(
 ): Outcome<Unit, Any> = withContext(Dispatchers.Main) {
     KmpSettingsScreen().open(SettingsScreenType.App)
 }
-
