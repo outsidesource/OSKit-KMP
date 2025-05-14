@@ -20,7 +20,7 @@ interface IKmpSettingsScreenOpener {
  *
  * Usage:
  * - Create platform-specifc instances of this class via DI or expect/actual helper and use in your common module
- * 
+ *
  * Functions:
  * - `open`: Opens the specified settings screen type.
  *   - Arguments:
