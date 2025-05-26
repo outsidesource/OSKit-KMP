@@ -4,6 +4,14 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class BytesExtTest {
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalUnsignedTypes::class)
+    @Test
+    fun testFind() {
+        val data = "0000000000000000000001020304050600000000".hexToByteArray()
+        assertTrue(data.find("010203040506".hexToByteArray()) == 10, "Incorrect position")
+        assertTrue(data.find("01020304050607".hexToByteArray()) == -1, "Should not have found")
+    }
+
     @Test
     fun testShortConversion() {
         val bytes1 = byteArrayOf(0x00, 0x01)

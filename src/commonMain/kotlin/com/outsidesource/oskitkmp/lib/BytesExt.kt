@@ -7,6 +7,22 @@ fun ByteArray.encodeToHex(): String = joinToString(separator = "") {
     it.toUByte().toString(16).padStart(2, '0')
 }
 
+fun ByteArray.find(
+    pattern: ByteArray,
+    fromIndex: Int = 0
+): Int {
+    if (pattern.isEmpty()) return -1
+    val lastStart = size - pattern.size
+
+    outer@ for (i in fromIndex.coerceAtLeast(0)..lastStart) {
+        for (j in pattern.indices) {
+            if (this[i + j] != pattern[j]) continue@outer
+        }
+        return i
+    }
+    return -1
+}
+
 fun UInt.reverse(): UInt {
     var reversed = 0u
     var input = this
