@@ -9,7 +9,7 @@ fun ByteArray.encodeToHex(): String = joinToString(separator = "") {
 
 fun ByteArray.find(
     pattern: ByteArray,
-    fromIndex: Int = 0
+    fromIndex: Int = 0,
 ): Int {
     if (pattern.isEmpty()) return -1
     val lastStart = size - pattern.size

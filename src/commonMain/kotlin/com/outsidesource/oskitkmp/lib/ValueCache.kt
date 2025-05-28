@@ -23,7 +23,7 @@ class ValueCache<T> {
 
     operator fun invoke(
         vararg dependencies: Any?,
-        compute: () -> T
+        compute: () -> T,
     ): T {
         if (value === UNINITIALIZED || !storedDependencies.contentEquals(dependencies)) {
             storedDependencies = dependencies.copyOf()
@@ -60,7 +60,7 @@ class ConcurrentValueCache<T> {
 
     operator fun invoke(
         vararg dependencies: Any?,
-        compute: () -> T
+        compute: () -> T,
     ): T {
         val (currentDeps, currentValue) = cache.value
 
