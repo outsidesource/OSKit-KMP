@@ -55,7 +55,7 @@ abstract class Coordinator(
             object : ICoordinatorObserver {
                 override fun hasBackStack() = coordinator.router.hasBackStack()
 
-                override fun pop() = coordinator.router.pop()
+                override fun pop(ignoreTransitionLock: Boolean) = coordinator.router.pop(ignoreTransitionLock)
 
                 override val routeFlow: StateFlow<RouteStackEntry> = coordinator.router.routeFlow
                 override val routeStack: List<RouteStackEntry>
@@ -75,7 +75,7 @@ abstract class Coordinator(
  */
 interface ICoordinatorObserver {
     fun hasBackStack(): Boolean
-    fun pop()
+    fun pop(ignoreTransitionLock: Boolean = false)
     val routeFlow: StateFlow<RouteStackEntry>
     val routeStack: List<RouteStackEntry>
     fun markTransitionStatus(status: RouteTransitionStatus)
