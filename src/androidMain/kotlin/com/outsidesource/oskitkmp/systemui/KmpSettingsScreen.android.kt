@@ -6,67 +6,39 @@ import android.net.Uri
 import android.provider.Settings
 import com.outsidesource.oskitkmp.outcome.Outcome
 
-actual class KmpSettingsScreen(private val context: Context) : IKmpSettingsScreenOpener {
+actual class KmpSettingsScreenOpener(private val context: Context) : IKmpSettingsScreenOpener {
     actual override suspend fun open(
         type: SettingsScreenType,
         fallbackToAppSettings: Boolean,
-    ): Outcome<Unit, KmpSettingsScreenError> {
-        val res = when (type) {
-            SettingsScreenType.App -> openAppSettings()
-            SettingsScreenType.SystemSettings -> openSystemSettings()
-            SettingsScreenType.Bluetooth -> openBluetoothSettings()
-            SettingsScreenType.Location -> openLocationSettings()
+    ): Outcome<Unit, KmpSettingsScreenOpenerError> {
+        val appSettingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", context.packageName, null)
         }
 
+        val res = launchIntent(
+            context,
+            when (type) {
+                SettingsScreenType.App -> appSettingsIntent
+                SettingsScreenType.SystemSettings -> Intent(Settings.ACTION_SETTINGS)
+                SettingsScreenType.Bluetooth -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+                SettingsScreenType.Location -> Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            },
+        )
+
         return if (res is Outcome.Error && type != SettingsScreenType.App && fallbackToAppSettings) {
-            openAppSettings()
+            launchIntent(context, appSettingsIntent)
         } else {
             res
         }
     }
 
-    private fun openAppSettings(): Outcome<Unit, KmpSettingsScreenError> {
+    private fun launchIntent(context: Context, intent: Intent): Outcome<Unit, KmpSettingsScreenOpenerError> {
         return try {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-            }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             Outcome.Ok(Unit)
         } catch (e: Exception) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
+            Outcome.Error(KmpSettingsScreenOpenerError.Unknown)
         }
     }
 
-    private fun openBluetoothSettings(): Outcome<Unit, KmpSettingsScreenError> {
-        return try {
-            val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
-        }
-    }
-
-    private fun openLocationSettings(): Outcome<Unit, KmpSettingsScreenError> {
-        return try {
-            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
-        }
-    }
-
-    private fun openSystemSettings(): Outcome<Unit, KmpSettingsScreenError> {
-        return try {
-            val intent = Intent(Settings.ACTION_SETTINGS)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            Outcome.Ok(Unit)
-        } catch (e: Exception) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
-        }
-    }
 }

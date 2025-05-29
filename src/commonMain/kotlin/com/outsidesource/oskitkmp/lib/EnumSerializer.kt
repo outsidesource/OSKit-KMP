@@ -20,7 +20,7 @@ import kotlin.enums.enumEntries
 inline fun <reified T : Enum<T>> EnumSerializer(
     crossinline value: (T) -> Any,
     default: T? = null,
-) : KSerializer<T> = object : KSerializer<T> {
+): KSerializer<T> = object : KSerializer<T> {
 
     private val entries = enumEntries<T>()
     private val valueMap = entries.associateBy { value(it) }
@@ -72,6 +72,8 @@ inline fun <reified T : Enum<T>> EnumSerializer(
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): T {
         val raw = decoder.decodeAny()
-        return valueMap[raw] ?: default ?: throw SerializationException("Unknown enum value '$raw' for ${descriptor.serialName}")
+        return valueMap[raw] ?: default ?: throw SerializationException(
+            "Unknown enum value '$raw' for ${descriptor.serialName}",
+        )
     }
 }

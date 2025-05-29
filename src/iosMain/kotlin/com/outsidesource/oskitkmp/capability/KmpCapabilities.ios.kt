@@ -1,7 +1,7 @@
 package com.outsidesource.oskitkmp.capability
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.systemui.KmpSettingsScreen
+import com.outsidesource.oskitkmp.systemui.KmpSettingsScreenOpener
 import com.outsidesource.oskitkmp.systemui.SettingsScreenType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,6 +16,4 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
 
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: KmpCapabilityContext?,
-): Outcome<Unit, Any> = withContext(Dispatchers.Main) {
-    KmpSettingsScreen().open(SettingsScreenType.App)
-}
+): Outcome<Unit, Any> = KmpSettingsScreenOpener().open(SettingsScreenType.App)

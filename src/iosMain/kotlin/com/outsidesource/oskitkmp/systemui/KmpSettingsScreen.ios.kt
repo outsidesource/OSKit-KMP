@@ -1,20 +1,20 @@
 package com.outsidesource.oskitkmp.systemui
 
 import com.outsidesource.oskitkmp.outcome.Outcome
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
-actual class KmpSettingsScreen : IKmpSettingsScreenOpener {
+actual class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
     actual override suspend fun open(
         type: SettingsScreenType,
         fallbackToAppSettings: Boolean,
-    ): Outcome<Unit, KmpSettingsScreenError> {
+    ): Outcome<Unit, KmpSettingsScreenOpenerError> {
         val res = when (type) {
             SettingsScreenType.App -> openAppSettings()
-            SettingsScreenType.SystemSettings -> launchUrl("App-prefs:")
-            SettingsScreenType.Bluetooth -> launchUrl("App-prefs:Bluetooth")
-            SettingsScreenType.Location -> launchUrl("App-prefs:Privacy&path=LOCATION")
+            else -> Outcome.Error(KmpSettingsScreenOpenerError.UnsupportedPlatform)
         }
 
         return if (res is Outcome.Error && type != SettingsScreenType.App && fallbackToAppSettings) {
@@ -24,27 +24,20 @@ actual class KmpSettingsScreen : IKmpSettingsScreenOpener {
         }
     }
 
-    private fun openAppSettings(): Outcome<Unit, KmpSettingsScreenError> {
-        return try {
-            val settingsUrl: NSURL = NSURL.URLWithString(UIApplicationOpenSettingsURLString)!!
-            UIApplication.sharedApplication.openURL(settingsUrl, emptyMap<Any?, Any>(), null)
-            Outcome.Ok(Unit)
-        } catch (e: Throwable) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
+    private suspend fun openAppSettings(): Outcome<Unit, KmpSettingsScreenOpenerError> {
+        return withContext(Dispatchers.Main) {
+            try {
+                val url = NSURL(string = UIApplicationOpenSettingsURLString)
+                if (UIApplication.sharedApplication.canOpenURL(url)) {
+                    UIApplication.sharedApplication.openURL(url)
+                    Outcome.Ok(Unit)
+                } else {
+                    Outcome.Error(KmpSettingsScreenOpenerError.UnsupportedPlatform)
+                }
+            } catch (e: Throwable) {
+                Outcome.Error(KmpSettingsScreenOpenerError.Unknown)
+            }
         }
     }
 
-    private fun launchUrl(urlString: String): Outcome<Unit, KmpSettingsScreenError> {
-        return try {
-            val url = NSURL(string = urlString)
-            if (UIApplication.sharedApplication.canOpenURL(url)) {
-                UIApplication.sharedApplication.openURL(url)
-                Outcome.Ok(Unit)
-            } else {
-                Outcome.Error(KmpSettingsScreenError.NotSupportedByThisPlatform)
-            }
-        } catch (_: Throwable) {
-            Outcome.Error(KmpSettingsScreenError.InternalPlatformException)
-        }
-    }
 }

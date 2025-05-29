@@ -2,7 +2,7 @@ package com.outsidesource.oskitkmp.capability
 
 import androidx.activity.ComponentActivity
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.systemui.KmpSettingsScreen
+import com.outsidesource.oskitkmp.systemui.KmpSettingsScreenOpener
 import com.outsidesource.oskitkmp.systemui.SettingsScreenType
 
 actual class KmpCapabilityContext(
@@ -17,7 +17,7 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
 
 internal actual suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any> {
     try {
-        return KmpSettingsScreen(context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized))
+        return KmpSettingsScreenOpener(context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized))
             .open(SettingsScreenType.App)
     } catch (e: Exception) {
         return Outcome.Error(e)
