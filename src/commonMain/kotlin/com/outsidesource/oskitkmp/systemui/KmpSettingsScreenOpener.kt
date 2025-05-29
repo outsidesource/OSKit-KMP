@@ -11,13 +11,13 @@ interface IKmpSettingsScreenOpener {
  * Represents a cross-platform settings screen opener implementation.
  *
  * This class allows opening specific types of settings screens
- * defined by the `SettingsScreenType` enum, such as application settings,
+ * defined by the [SettingsScreenType] enum, such as application settings,
  * system settings, Bluetooth settings, or location settings.
  * Depending on the platform's support and implementation, not all screen types
  * may be available.
  *
  * On platforms that do not support this functionality, the method will return
- * an error with `KmpSettingsScreenError.NotSupportedByThisPlatform`.
+ * an error with `[KmpSettingsScreenOpenerError.UnsupportedPlatform]`.
  *
  * Usage:
  * - Create platform-specifc instances of this class via DI or expect/actual helper and use in your common module
@@ -29,7 +29,7 @@ interface IKmpSettingsScreenOpener {
  *     - `fallbackToAppSettings`: Specifies whether to fall back to the app settings
  *       when the requested type is not supported.
  *   - Returns:
- *     - `Outcome<Unit, KmpSettingsScreenError>` representing success or failure.
+ *     - Outcome representing the success or failure.
  */
 expect class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
     override suspend fun open(
