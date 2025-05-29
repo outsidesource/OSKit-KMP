@@ -40,5 +40,4 @@ actual class KmpSettingsScreenOpener(private val context: Context) : IKmpSetting
             Outcome.Error(KmpSettingsScreenOpenerError.Unknown)
         }
     }
-
 }

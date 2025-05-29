@@ -3,8 +3,6 @@ package com.outsidesource.oskitkmp.capability
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.systemui.KmpSettingsScreenOpener
 import com.outsidesource.oskitkmp.systemui.SettingsScreenType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 actual class KmpCapabilityContext()
 

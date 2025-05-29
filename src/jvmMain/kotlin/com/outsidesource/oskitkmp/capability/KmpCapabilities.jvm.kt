@@ -1,8 +1,6 @@
 package com.outsidesource.oskitkmp.capability
 
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.systemui.KmpSettingsScreenOpener
-import com.outsidesource.oskitkmp.systemui.SettingsScreenType
 
 actual class KmpCapabilityContext()
 

@@ -39,5 +39,4 @@ actual class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
             }
         }
     }
-
 }
