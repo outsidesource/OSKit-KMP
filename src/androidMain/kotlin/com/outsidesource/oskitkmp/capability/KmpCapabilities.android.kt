@@ -16,6 +16,9 @@ internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapa
 internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
     LocationKmpCapability(flags)
 
+internal actual fun createPlatformNotificationsCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
+    NotificationsKmpCapability(flags)
+
 internal actual suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any> {
     try {
         val activity = context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
