@@ -7,6 +7,7 @@ import kotlinx.atomicfu.locks.withLock
 import kotlinx.atomicfu.update
 import kotlinx.browser.localStorage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -71,7 +72,7 @@ internal class LocalStorageWasmKmpKvStoreNode(val name: String) : IKmpKvStoreNod
     override suspend fun getBoolean(key: String): Boolean? = get(key) { it.toBooleanStrictOrNull() }
     override suspend fun observeBoolean(key: String): Flow<Boolean?> = observe(key) { it.toBooleanStrictOrNull() }
 
-    override suspend fun putString(key: String, value: String): Outcome<Unit, Exception> = put(key) { value.toString() }
+    override suspend fun putString(key: String, value: String): Outcome<Unit, Exception> = put(key) { value }
     override suspend fun getString(key: String): String? = get(key) { it }
     override suspend fun observeString(key: String): Flow<String?> = observe(key) { it }
 
@@ -158,6 +159,7 @@ internal class LocalStorageWasmKmpKvStoreNode(val name: String) : IKmpKvStoreNod
 
     private inline fun <T> observe(key: String, crossinline mapper: (rawValue: String) -> T?): Flow<T?> =
         KmpKvStoreObserverRegistry.observe<String, T>(nodeName = name, key = key, mapper)
+            .onStart { emit(get(key, mapper)) }
 
     fun normalizeKey(key: String) = "${normalizedNodeName()}$key"
     fun normalizedNodeName() = "__${name}__:"

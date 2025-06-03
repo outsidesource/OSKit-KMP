@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.storage
 
-class JvmKmpKvStoreTest : KmpKvStoreTestBase() {
-    override val kvStore: IKmpKvStore = JvmKmpKvStore("oskit-kmp")
-}
+internal actual fun getPlatformKmpKvStores(): List<IKmpKvStore> = listOf(
+    JvmKmpKvStore("oskit-kmp"),
+    InMemoryKmpKvStore(),
+)

@@ -8,6 +8,7 @@ import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.atomicfu.update
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -228,8 +229,9 @@ internal class IndexedDbWasmKmpKvStoreNode(private val name: String) : IKmpKvSto
         }
     }
 
-    private inline fun <reified T, R> observe(key: String, crossinline mapper: (rawValue: T) -> R?): Flow<R?> =
+    private inline fun <reified T : JsAny, R> observe(key: String, crossinline mapper: (rawValue: T) -> R?): Flow<R?> =
         KmpKvStoreObserverRegistry.observe<T, R>(nodeName = name, key = key, mapper)
+            .onStart { emit(get(key, mapper)) }
 }
 
 class IndexedDbClosedException : Exception("IndexedDb is closed")
