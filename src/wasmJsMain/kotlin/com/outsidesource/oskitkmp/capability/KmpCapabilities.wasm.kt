@@ -10,7 +10,7 @@ internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapa
 internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
     LocationKmpCapability(flags)
 
-internal actual fun createPlatformNotificationsCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
+internal actual fun createPlatformNotificationsCapability(): IKmpCapability =
     NotificationsKmpCapability()
 
 internal actual suspend fun internalOpenAppSettingsScreen(
