@@ -12,6 +12,7 @@ internal interface ICapabilityContextScope {
 internal expect suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any>
 internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability
 internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability
+internal expect fun createPlatformStorageCapability(flags: Array<StorageCapabilityFlags>): IKmpCapability
 
 /**
  * [KmpCapabilities] allows querying and requesting of permissions and enablement of certain platform capabilities.
@@ -27,6 +28,7 @@ internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabi
 class KmpCapabilities(
     bluetoothFlags: Array<BluetoothCapabilityFlags> = emptyArray(),
     locationFlags: Array<LocationCapabilityFlags> = emptyArray(),
+    storageFlags: Array<StorageCapabilityFlags> = emptyArray(),
 ) {
     private var context: KmpCapabilityContext? = null
 
@@ -46,10 +48,13 @@ class KmpCapabilities(
      */
     val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
 
+    val storage: IKmpCapability = createPlatformStorageCapability(storageFlags)
+
     fun init(context: KmpCapabilityContext) {
         this.context = context
         (bluetooth as? IInitializableKmpCapability)?.init(context)
         (location as? IInitializableKmpCapability)?.init(context)
+        (storage as? IInitializableKmpCapability)?.init(context)
     }
 }
 
@@ -71,6 +76,13 @@ enum class LocationCapabilityFlags {
     BackgroundLocation,
     CoarseLocation,
     FineLocation,
+}
+
+enum class StorageCapabilityFlags {
+    ReadExternal,
+    WriteExternal,
+    ReadMedia,
+    WriteMedia,
 }
 
 interface IInitializableKmpCapability : IKmpCapability {
