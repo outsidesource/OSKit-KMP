@@ -15,6 +15,9 @@ internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapa
 internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
     LocationKmpCapability(flags)
 
+internal actual fun createPlatformNfcCapability(): IKmpCapability =
+    NfcKmpCapability()
+
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: KmpCapabilityContext?,
 ): Outcome<Unit, Any> = withContext(Dispatchers.Main) {
