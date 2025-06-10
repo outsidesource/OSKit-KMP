@@ -8,11 +8,7 @@ class StorageKmpCapability(
     private val flags: Array<StorageCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
 
-    private var context: KmpCapabilityContext? = null
-
-    override fun init(context: KmpCapabilityContext) {
-        this.context = context
-    }
+    override fun init(context: KmpCapabilityContext) {}
 
     override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }
     override val hasPermissions: Boolean = false

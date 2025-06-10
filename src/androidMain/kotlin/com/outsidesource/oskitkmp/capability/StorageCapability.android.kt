@@ -18,14 +18,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 internal class StorageKmpCapability(
     private val flags: Array<StorageCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
-
 
     private var context: KmpCapabilityContext? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -41,29 +39,45 @@ internal class StorageKmpCapability(
         flags.forEach { flag ->
             when (flag) {
                 StorageCapabilityFlags.ReadExternal -> {
-                    if (Build.VERSION.SDK_INT < 33) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                         result += Manifest.permission.READ_EXTERNAL_STORAGE
                     }
                 }
 
                 StorageCapabilityFlags.WriteExternal -> {
-                    result += Manifest.permission.WRITE_EXTERNAL_STORAGE
-                }
-
-                StorageCapabilityFlags.ReadMedia -> {
-                    if (Build.VERSION.SDK_INT >= 33) {
-                        result += Manifest.permission.READ_MEDIA_AUDIO
-                        result += Manifest.permission.READ_MEDIA_IMAGES
-                        result += Manifest.permission.READ_MEDIA_VIDEO
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                        result += Manifest.permission.WRITE_EXTERNAL_STORAGE
                     }
                 }
 
-                StorageCapabilityFlags.WriteMedia -> Unit
+                StorageCapabilityFlags.ReadMedia -> {
+                    when {
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                            result += Manifest.permission.READ_MEDIA_AUDIO
+                            result += Manifest.permission.READ_MEDIA_IMAGES
+                            result += Manifest.permission.READ_MEDIA_VIDEO
+                            result += Manifest.permission.ACCESS_MEDIA_LOCATION
+                        }
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                            result += Manifest.permission.READ_EXTERNAL_STORAGE
+                            result += Manifest.permission.ACCESS_MEDIA_LOCATION
+                        }
+                        else -> {
+                            result += Manifest.permission.READ_EXTERNAL_STORAGE
+                        }
+                    }
+                }
+
+                StorageCapabilityFlags.WriteMedia -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        result += Manifest.permission.ACCESS_MEDIA_LOCATION
+                    }
+                }
             }
         }
 
-        result
-    }.toTypedArray()
+        result.distinct().toTypedArray()
+    }
 
     override val status: Flow<CapabilityStatus> = callbackFlow {
         val activity = context?.activity ?: return@callbackFlow
@@ -83,8 +97,14 @@ internal class StorageKmpCapability(
         this.context = context
 
         permissionResultLauncher = context.activity
-            .registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-                scope.launch { permissionsResultFlow.emit(Unit) }
+            .registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+                scope.launch {
+                    permissionsResultFlow.emit(Unit)
+
+                    if (results.all { it.value }) {
+                        hasRequestedPermissions = false
+                    }
+                }
             }
     }
 
@@ -101,7 +121,11 @@ internal class StorageKmpCapability(
             .all { ContextCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED }
 
         if (!hasAuthorization) {
-            val reason = NoPermissionReason.NotRequested
+            val reason = if (hasRequestedPermissions) {
+                NoPermissionReason.DeniedPermanently
+            } else {
+                NoPermissionReason.NotRequested
+            }
             return CapabilityStatus.NoPermission(reason)
         }
 
@@ -111,6 +135,7 @@ internal class StorageKmpCapability(
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> {
         try {
             context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized)
+            hasRequestedPermissions = true
             withContext(Dispatchers.Main) {
                 permissionResultLauncher?.launch(permissions)
             }
@@ -121,11 +146,12 @@ internal class StorageKmpCapability(
         }
     }
 
-    override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> = Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
+    override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> = Outcome.Error(
+        KmpCapabilitiesError.UnsupportedOperation,
+    )
 
     override suspend fun openServiceSettingsScreen(): Outcome<Unit, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> = internalOpenAppSettingsScreen(context)
-
 }
