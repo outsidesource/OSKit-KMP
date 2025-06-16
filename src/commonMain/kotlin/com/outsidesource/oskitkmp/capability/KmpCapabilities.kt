@@ -47,7 +47,7 @@ class KmpCapabilities(
      */
     val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
 
-    val nfc: IKmpCapability = createPlatformLocationCapability(locationFlags)
+    val nfc: IKmpCapability = createPlatformNfcCapability()
 
     fun init(context: KmpCapabilityContext) {
         this.context = context
