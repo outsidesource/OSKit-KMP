@@ -12,6 +12,7 @@ internal interface ICapabilityContextScope {
 internal expect suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any>
 internal expect fun createPlatformBluetoothCapability(flags: Array<BluetoothCapabilityFlags>): IKmpCapability
 internal expect fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability
+internal expect fun createPlatformCameraCapability(): IKmpCapability
 
 /**
  * [KmpCapabilities] allows querying and requesting of permissions and enablement of certain platform capabilities.
@@ -46,10 +47,13 @@ class KmpCapabilities(
      */
     val location: IKmpCapability = createPlatformLocationCapability(locationFlags)
 
+    val camera: IKmpCapability = createPlatformCameraCapability()
+
     fun init(context: KmpCapabilityContext) {
         this.context = context
         (bluetooth as? IInitializableKmpCapability)?.init(context)
         (location as? IInitializableKmpCapability)?.init(context)
+        (camera as? IInitializableKmpCapability)?.init(context)
     }
 }
 
