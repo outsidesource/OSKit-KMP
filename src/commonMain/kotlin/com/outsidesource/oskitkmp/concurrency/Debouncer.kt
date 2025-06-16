@@ -30,20 +30,20 @@ class Debouncer(
     private var lastEmit: Instant = Clock.System.now()
     private val lock = reentrantLock()
 
-    fun emit(func: suspend () -> Unit) = lock.withLock {
+    fun emit(func: suspend (isLastEmit: Boolean) -> Unit) = lock.withLock {
         job?.cancel()
 
         if (maxWaitMillis < 0) {
             lastEmit = Clock.System.now()
         } else if ((Clock.System.now() - lastEmit).inWholeMilliseconds >= maxWaitMillis) {
             lastEmit = Clock.System.now()
-            scope.launch { func() }
+            scope.launch { func(false) }
             return
         }
 
         job = scope.launch {
             delay(timeoutMillis.toLong())
-            func()
+            func(true)
         }
     }
 }
