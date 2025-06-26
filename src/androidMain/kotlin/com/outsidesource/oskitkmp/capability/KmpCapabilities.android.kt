@@ -16,9 +16,12 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
     LocationKmpCapability(flags)
 
 internal actual suspend fun internalOpenAppSettingsScreen(context: KmpCapabilityContext?): Outcome<Unit, Any> {
-    try {
-        return KmpSettingsScreenOpener(context?.activity ?: return Outcome.Error(KmpCapabilitiesError.Uninitialized))
-            .open(SettingsScreenType.App)
+    return try {
+        if (context != null) {
+            KmpSettingsScreenOpener.open(context, SettingsScreenType.App)
+        } else {
+            Outcome.Error(KmpCapabilitiesError.Uninitialized)
+        }
     } catch (e: Exception) {
         return Outcome.Error(e)
     }

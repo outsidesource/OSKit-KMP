@@ -4,19 +4,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import com.outsidesource.oskitkmp.capability.KmpCapabilityContext
 import com.outsidesource.oskitkmp.outcome.Outcome
 
-actual class KmpSettingsScreenOpener(private val context: Context) : IKmpSettingsScreenOpener {
+actual object KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
     actual override suspend fun open(
+        context: KmpCapabilityContext,
         type: SettingsScreenType,
         fallbackToAppSettings: Boolean,
     ): Outcome<Unit, KmpSettingsScreenOpenerError> {
         val appSettingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", context.packageName, null)
+            data = Uri.fromParts("package", context.activity.packageName, null)
         }
 
         val res = launchIntent(
-            context,
+            context.activity,
             when (type) {
                 SettingsScreenType.App -> appSettingsIntent
                 SettingsScreenType.SystemSettings -> Intent(Settings.ACTION_SETTINGS)
@@ -26,7 +28,7 @@ actual class KmpSettingsScreenOpener(private val context: Context) : IKmpSetting
         )
 
         return if (res is Outcome.Error && type != SettingsScreenType.App && fallbackToAppSettings) {
-            launchIntent(context, appSettingsIntent)
+            launchIntent(context.activity, appSettingsIntent)
         } else {
             res
         }

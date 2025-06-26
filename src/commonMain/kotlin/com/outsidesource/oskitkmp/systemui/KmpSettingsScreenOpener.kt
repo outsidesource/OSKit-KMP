@@ -1,9 +1,14 @@
 package com.outsidesource.oskitkmp.systemui
 
+import com.outsidesource.oskitkmp.capability.KmpCapabilityContext
 import com.outsidesource.oskitkmp.outcome.Outcome
 
 interface IKmpSettingsScreenOpener {
-    suspend fun open(type: SettingsScreenType, fallbackToAppSettings: Boolean = true):
+    suspend fun open(
+        context: KmpCapabilityContext,
+        type: SettingsScreenType = SettingsScreenType.App,
+        fallbackToAppSettings: Boolean = true,
+    ):
         Outcome<Unit, KmpSettingsScreenOpenerError>
 }
 
@@ -31,8 +36,9 @@ interface IKmpSettingsScreenOpener {
  *   - Returns:
  *     - Outcome representing the success or failure.
  */
-expect class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
+expect object KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
     override suspend fun open(
+        context: KmpCapabilityContext,
         type: SettingsScreenType,
         fallbackToAppSettings: Boolean,
     ): Outcome<Unit, KmpSettingsScreenOpenerError>

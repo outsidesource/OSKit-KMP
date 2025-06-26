@@ -14,6 +14,4 @@ internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabi
 
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: KmpCapabilityContext?,
-): Outcome<Unit, Any> {
-    return KmpSettingsScreenOpener().open(SettingsScreenType.App)
-}
+): Outcome<Unit, Any> = Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)

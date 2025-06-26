@@ -1,5 +1,6 @@
 package com.outsidesource.oskitkmp.systemui
 
+import com.outsidesource.oskitkmp.capability.KmpCapabilityContext
 import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -7,8 +8,9 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
-actual class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
+actual object KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
     actual override suspend fun open(
+        context: KmpCapabilityContext,
         type: SettingsScreenType,
         fallbackToAppSettings: Boolean,
     ): Outcome<Unit, KmpSettingsScreenOpenerError> {
@@ -29,7 +31,7 @@ actual class KmpSettingsScreenOpener : IKmpSettingsScreenOpener {
             try {
                 val url = NSURL(string = UIApplicationOpenSettingsURLString)
                 if (UIApplication.sharedApplication.canOpenURL(url)) {
-                    UIApplication.sharedApplication.openURL(url)
+                    UIApplication.sharedApplication.openURL(url, emptyMap<Any?, Any>(), null)
                     Outcome.Ok(Unit)
                 } else {
                     Outcome.Error(KmpSettingsScreenOpenerError.UnsupportedPlatform)
