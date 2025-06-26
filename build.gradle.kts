@@ -191,7 +191,7 @@ tasks.getByName("preBuild").dependsOn("ktlintFormat")
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.S01, automaticRelease = true)
-    //signAllPublications()
+    signAllPublications()
 
     configure(
         platform = KotlinMultiplatform(
