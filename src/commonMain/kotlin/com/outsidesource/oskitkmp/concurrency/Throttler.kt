@@ -6,8 +6,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * A coroutine-based throttler
@@ -24,6 +25,7 @@ import kotlinx.datetime.Instant
  * @param timeoutMillis The minimum time interval to wait before running the provided action
  * @param scope The coroutine scope to run the action in
  */
+@OptIn(ExperimentalTime::class)
 class Throttler(
     private val timeoutMillis: Int,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + Job()),

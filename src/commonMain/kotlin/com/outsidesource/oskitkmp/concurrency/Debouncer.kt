@@ -3,8 +3,9 @@ package com.outsidesource.oskitkmp.concurrency
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.atomicfu.locks.withLock
 import kotlinx.coroutines.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * A coroutine based debouncer
@@ -21,6 +22,7 @@ import kotlinx.datetime.Instant
  * @param maxWaitMillis The maximum time to wait before running the action. This works similar to a throttle.
  * @param scope The coroutine scope to run the action in
  */
+@OptIn(ExperimentalTime::class)
 class Debouncer(
     private val timeoutMillis: Int,
     private val maxWaitMillis: Int = -1,

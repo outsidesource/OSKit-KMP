@@ -13,9 +13,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlin.Any
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * Maintains in-memory and long-term persistence of a map of unique ids to FileSystemHandle. The unique ids are used
@@ -26,6 +27,7 @@ import kotlin.random.Random
  * [KmpFsRef.toPersistableString] will automatically create an entry in IndexedDb to allow for [KmpFs] to retrieve the
  * proper handle when the persisted [KmpFsRef] is loaded.
  */
+@OptIn(ExperimentalTime::class)
 internal object WasmFsHandleRegister {
     private val lock = SynchronizedObject()
     private val handles: MutableMap<String, Any> = mutableMapOf()
