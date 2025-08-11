@@ -11,7 +11,7 @@ expect class KmpFsContext
  *
  * Internal:
  * The Internal API deals with files/directories inside the application sandbox. Files/directories made in Internal
- * are not meant for end-users to see. On some platforms (i.e. Android they may even be encrypted).
+ * are not meant for end-users to see. On some platforms (i.e. Android) they may even be encrypted.
  *
  * External:
  * The External API deals with files/directories outside the application sandbox. Files/directories made in External

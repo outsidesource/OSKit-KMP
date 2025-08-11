@@ -146,9 +146,8 @@ kotlin {
             dependsOn(nonJsMain)
             dependencies {
                 implementation(libs.sqldelight.jvm.driver)
-                implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:3.3.3"))
-                implementation(libs.lwjgl)
-                implementation(libs.lwjgl.tinyfd)
+                implementation("net.java.dev.jna:jna:5.17.0")
+                implementation("net.java.dev.jna:jna-platform:5.17.0")
             }
         }
         val wasmJsMain by getting {
