@@ -11,8 +11,8 @@ import com.outsidesource.oskitkmp.filesystem.ObjCJNA.runVoid
 import com.outsidesource.oskitkmp.filesystem.ObjCJNA.sel
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import com.sun.jna.Callback
+import com.sun.jna.CallbackReference
 import com.sun.jna.Function
 import com.sun.jna.Native
 import com.sun.jna.NativeLibrary
@@ -291,8 +291,7 @@ object MacFilePicker {
     }
 
     private fun setFilters(panel: Pointer, filters: KmpFileFilter?) {
-        val normalized = filters?.map { it.extension.trim().removePrefix(".") }?.filter { it.isNotEmpty() }
-            ?: emptyList()
+        val normalized = filters?.map { it.extension } ?: emptyList()
         if (normalized.isNotEmpty()) runVoid(panel, _setAllowedFileTypes, nsStringArrayFromUtf8Array(normalized))
     }
 
@@ -338,6 +337,7 @@ object MacFilePicker {
 }
 
 object ObjCJNA {
+    private val oskitRunnerTasks = ConcurrentHashMap<Long, Runnable>()
     private val objc = NativeLibrary.getInstance("objc")
 
     private val objc_msgSend = func("objc_msgSend")
@@ -352,6 +352,21 @@ object ObjCJNA {
     private val _NSString = cls("NSString")
     private val _NSArray = cls("NSArray")
     private val _NSURL = cls("NSURL")
+    private val _OSKitRunner: Pointer by lazy {
+        val name = "OSKitRunner_${System.identityHashCode(this)}"
+        val runnerClass = objc_allocateClassPair.invokePointer(arrayOf(_NSObject, name, 0))!!
+        val callback = ObjcJNACallback { self: Pointer? ->
+            try {
+                oskitRunnerTasks.remove(Pointer.nativeValue(self))?.run()
+            } catch (t: Throwable) {
+                t.printStackTrace()
+            }
+        }
+
+        class_addMethod.invokeInt(arrayOf(runnerClass, _run, callback, "v"))
+        objc_registerClassPair.invokeVoid(arrayOf(runnerClass))
+        runnerClass
+    }
 
     private val _performOnMain = sel("performSelectorOnMainThread:withObject:waitUntilDone:")
     private val _new = sel("new")
@@ -363,34 +378,15 @@ object ObjCJNA {
     private val _arrayWithObjects_count = sel("arrayWithObjects:count:")
     private val _fileURLWithPath = sel("fileURLWithPath:")
 
-    private val tasks = ConcurrentHashMap<Long, Runnable>()
-
-    private val _OSKitRunner: Pointer by lazy {
-        val name = "OSKitRunner_${System.identityHashCode(this)}"
-        val runnerClass = objc_allocateClassPair.invokePointer(arrayOf(_NSObject, name, 0))!!
-        class_addMethod.invokeInt(arrayOf(runnerClass, _run, executeOnMainThreadCallback as Callback, "v@:@"))
-        objc_registerClassPair.invokeVoid(arrayOf(runnerClass))
-        runnerClass
-    }
-
     private fun interface ObjcJNACallback : Callback {
-        fun invoke(self: Pointer?, cmd: Pointer?, arg: Pointer?)
+        fun invoke(self: Pointer?)
     }
 
-    private val executeOnMainThreadCallback = ObjcJNACallback { self: Pointer?, _, _ ->
-        withAutoReleasePool {
-            try {
-                tasks.remove(Pointer.nativeValue(self))?.run()
-            } catch (t: Throwable) {
-                t.printStackTrace()
-            }
-        }
-    }
-
+    // TODO: Should this use an auto-release pool?
     fun <T> runOnMainThread(block: () -> T): T {
         val runner = runPtr(_OSKitRunner, _new)!!
         var result: T? = null
-        tasks[Pointer.nativeValue(runner)] = Runnable { result = block() }
+        oskitRunnerTasks[Pointer.nativeValue(runner)] = Runnable { result = block() }
         runVoid(runner, _performOnMain, _run, Pointer.NULL, 1)
         return result!!
     }
