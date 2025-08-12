@@ -1,14 +1,14 @@
 package com.outsidesource.oskitkmp.filesystem
 
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.cls
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.nsStringArrayFromUtf8Array
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.nsStringFromUtf8
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.nsUrlFileURLWithPath
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.msgSendLong
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.runOnMainThread
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.msgSendPtr
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.msgSendVoid
-import com.outsidesource.oskitkmp.filesystem.ObjCJNA.sel
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.cls
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.invokeLong
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.invokePtr
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.invokeVoid
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.nsStringArrayFromUtf8Array
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.nsStringFromUtf8
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.nsUrlFileURLFromPath
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.runOnMainThread
+import com.outsidesource.oskitkmp.filesystem.ObjCJna.sel
 import com.outsidesource.oskitkmp.lib.pathString
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.sun.jna.Callback
@@ -215,41 +215,41 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 }
 
 object MacFilePicker {
-    private val _NSOpenPanel = cls("NSOpenPanel")
-    private val _NSSavePanel = cls("NSSavePanel")
+    private val NSOpenPanel = cls("NSOpenPanel")
+    private val NSSavePanel = cls("NSSavePanel")
 
-    private val _URLs = sel("URLs")
-    private val _URL = sel("URL")
-    private val _openPanel = sel("openPanel")
-    private val _savePanel = sel("savePanel")
-    private val _runModal = sel("runModal")
-    private val _setAllowsMultipleSelection = sel("setAllowsMultipleSelection:")
-    private val _setCanChooseDirectories = sel("setCanChooseDirectories:")
-    private val _setCanChooseFiles = sel("setCanChooseFiles:")
-    private val _setAllowedFileTypes = sel("setAllowedFileTypes:")
-    private val _setDirectoryURL = sel("setDirectoryURL:")
-    private val _count = sel("count")
-    private val _objectAtIndex = sel("objectAtIndex:")
-    private val _path = sel("path")
-    private val _UTF8String = sel("UTF8String")
-    private val _setMessage = sel("setMessage:")
-    private val _setNameFieldStringValue = sel("setNameFieldStringValue:")
+    private val URLs = sel("URLs")
+    private val URL = sel("URL")
+    private val openPanel = sel("openPanel")
+    private val savePanel = sel("savePanel")
+    private val runModal = sel("runModal")
+    private val setAllowsMultipleSelection = sel("setAllowsMultipleSelection:")
+    private val setCanChooseDirectories = sel("setCanChooseDirectories:")
+    private val setCanChooseFiles = sel("setCanChooseFiles:")
+    private val setAllowedFileTypes = sel("setAllowedFileTypes:")
+    private val setDirectoryURL = sel("setDirectoryURL:")
+    private val count = sel("count")
+    private val objectAtIndex = sel("objectAtIndex:")
+    private val path = sel("path")
+    private val UTF8String = sel("UTF8String")
+    private val setMessage = sel("setMessage:")
+    private val setNameFieldStringValue = sel("setNameFieldStringValue:")
 
     fun openFile(
         start: KmpFsRef? = null,
         filters: KmpFileFilter? = emptyList(),
         allowMultiple: Boolean = true,
         title: String? = null,
-    ): List<KmpFsRef> = ObjCJNA.withAutoReleasePool {
+    ): List<KmpFsRef> = ObjCJna.withAutoReleasePool {
         runOnMainThread {
-            val panel = msgSendPtr(_NSOpenPanel, _openPanel)!!
-            msgSendVoid(panel, _setAllowsMultipleSelection, if (allowMultiple) 1 else 0)
-            msgSendVoid(panel, _setCanChooseFiles, 1)
+            val panel = NSOpenPanel.invokePtr(openPanel)!!
+            panel.invokeVoid(setAllowsMultipleSelection, if (allowMultiple) 1 else 0)
+            panel.invokeVoid(setCanChooseFiles, 1)
 
             setFilters(panel, filters)
             setStartDir(panel, start)
             setTitle(panel, title)
-            val result = msgSendLong(panel, _runModal)
+            val result = panel.invokeLong(runModal)
             if (result != 1L) emptyList() else collectURLs(panel, multiple = allowMultiple)
         }
     }
@@ -258,17 +258,17 @@ object MacFilePicker {
         start: KmpFsRef? = null,
         allowMultiple: Boolean = false,
         title: String? = null,
-    ): List<KmpFsRef> = ObjCJNA.withAutoReleasePool {
-        val panel = msgSendPtr(_NSOpenPanel, _openPanel)!!
+    ): List<KmpFsRef> = ObjCJna.withAutoReleasePool {
+        val panel = NSOpenPanel.invokePtr(openPanel)!!
 
-        msgSendVoid(panel, _setAllowsMultipleSelection, if (allowMultiple) 1 else 0)
-        msgSendVoid(panel, _setCanChooseDirectories, 1)
-        msgSendVoid(panel, _setCanChooseFiles, 0)
+        panel.invokeVoid(setAllowsMultipleSelection, if (allowMultiple) 1 else 0)
+        panel.invokeVoid(setCanChooseDirectories, 1)
+        panel.invokeVoid(setCanChooseFiles, 0)
 
         setStartDir(panel, start)
         setTitle(panel, title)
 
-        if (msgSendLong(panel, _runModal) != 1L) emptyList() else collectURLs(panel, multiple = allowMultiple)
+        if (panel.invokeLong(runModal) != 1L) emptyList() else collectURLs(panel, multiple = allowMultiple)
     }
 
     fun saveDialog(
@@ -276,39 +276,39 @@ object MacFilePicker {
         suggestedName: String? = null,
         filters: KmpFileFilter = emptyList(), // restrict save types (adds extension popup)
         title: String? = null,
-    ): KmpFsRef? = ObjCJNA.withAutoReleasePool {
-        val panel = msgSendPtr(_NSSavePanel, _savePanel)!!
+    ): KmpFsRef? = ObjCJna.withAutoReleasePool {
+        val panel = NSSavePanel.invokePtr(savePanel)!!
 
         setFilters(panel, filters)
         setStartDir(panel, start)
         setTitle(panel, title)
         if (!suggestedName.isNullOrBlank()) {
-            msgSendVoid(panel, _setNameFieldStringValue, nsStringFromUtf8(suggestedName))
+            panel.invokeVoid(setNameFieldStringValue, nsStringFromUtf8(suggestedName))
         }
 
-        if (msgSendLong(panel, _runModal) != 1L) null else collectSingleURL(panel)
+        if (panel.invokeLong(runModal) != 1L) null else collectSingleURL(panel)
     }
 
     private fun setFilters(panel: Pointer, filters: KmpFileFilter?) {
         val normalized = filters?.map { it.extension } ?: emptyList()
-        if (normalized.isNotEmpty()) msgSendVoid(panel, _setAllowedFileTypes, nsStringArrayFromUtf8Array(normalized))
+        if (normalized.isNotEmpty()) panel.invokeVoid(setAllowedFileTypes, nsStringArrayFromUtf8Array(normalized))
     }
 
     private fun setStartDir(panel: Pointer, start: KmpFsRef?) {
         if (start == null) return
-        msgSendVoid(panel, _setDirectoryURL, nsUrlFileURLWithPath(start.ref))
+        panel.invokeVoid(setDirectoryURL, nsUrlFileURLFromPath(start.ref))
     }
 
     private fun setTitle(panel: Pointer, title: String?) {
-        if (!title.isNullOrBlank()) msgSendVoid(panel, _setMessage, nsStringFromUtf8(title))
+        if (!title.isNullOrBlank()) panel.invokeVoid(setMessage, nsStringFromUtf8(title))
     }
 
     private fun collectURLs(panel: Pointer, multiple: Boolean): List<KmpFsRef> {
         return if (multiple) {
-            val urls = msgSendPtr(panel, _URLs)!!
-            val count = msgSendLong(urls, _count).toInt()
+            val urls = panel.invokePtr(URLs)!!
+            val count = urls.invokeLong(count).toInt()
             (0 until count).mapNotNull { i ->
-                val url = msgSendPtr(urls, _objectAtIndex, i) ?: return@mapNotNull null
+                val url = urls.invokePtr(objectAtIndex, i) ?: return@mapNotNull null
                 urlToUri(url)
             }
         } else {
@@ -317,14 +317,14 @@ object MacFilePicker {
     }
 
     private fun collectSingleURL(panel: Pointer): KmpFsRef? {
-        val url = msgSendPtr(panel, _URL) ?: return null
+        val url = panel.invokePtr(URL) ?: return null
         return urlToUri(url)
     }
 
     // TODO: Clean up
     private fun urlToUri(nsUrl: Pointer): KmpFsRef? {
-        val nsPath = msgSendPtr(nsUrl, _path) ?: return null
-        val cStr = msgSendPtr(nsPath, _UTF8String) ?: return null
+        val nsPath = nsUrl.invokePtr(path) ?: return null
+        val cStr = nsPath.invokePtr(UTF8String) ?: return null
         val path = cStr.getString(0, StandardCharsets.UTF_8.name())
         return KmpFsRef(
             ref = Paths.get(path).toUri().toString(),
@@ -335,7 +335,7 @@ object MacFilePicker {
     }
 }
 
-object ObjCJNA {
+object ObjCJna {
     private val oskitRunnerTasks = ConcurrentHashMap<Long, Runnable>()
     private val objc = NativeLibrary.getInstance("objc")
 
@@ -378,26 +378,28 @@ object ObjCJNA {
     private val arrayWithObjects_count = sel("arrayWithObjects:count:")
     private val fileURLWithPath = sel("fileURLWithPath:")
     private val numberWithInt = sel("numberWithInt:")
+    private val numberWithLong = sel("numberWithLong:")
     private val intValue = sel("intValue")
+    private val longValue = sel("longValue")
 
     private fun interface ObjcJNACallback : Callback {
         fun invoke(self: Pointer?, cmd: Pointer?, arg: Pointer?)
     }
 
     fun <T> runOnMainThread(block: () -> T): T {
-        val runner = msgSendPtr(OSKitRunner, new)!!
+        val runner = OSKitRunner.invokePtr(new)!!
         var result: T? = null
         oskitRunnerTasks[Pointer.nativeValue(runner)] = Runnable { result = block() }
-        msgSendVoid(runner, performOnMain, run, Pointer.NULL, 1)
+        runner.invokeVoid(performOnMain, run, Pointer.NULL, 1)
         return result!!
     }
 
     fun <T> withAutoReleasePool(block: () -> T): T {
-        val pool = msgSendPtr(msgSendPtr(NSAutoreleasePool, alloc)!!, init)!!
+        val pool = NSAutoreleasePool.invokePtr(alloc)!!.invokePtr(init)!!
         return try {
             block()
         } finally {
-            msgSendVoid(pool, drain)
+            pool.invokeVoid(drain)
         }
     }
 
@@ -405,29 +407,31 @@ object ObjCJNA {
     fun sel(name: String): Pointer = sel_registerName.invokePointer(arrayOf(name))!!
     fun cls(name: String): Pointer = objc_getClass.invokePointer(arrayOf(name))!!
 
-    fun msgSendPtr(rcv: Pointer, sel: Pointer, vararg args: Any?): Pointer? =
-        objc_msgSend.invokePointer(arrayOf(rcv, sel, *args))
-    fun msgSendLong(rcv: Pointer, sel: Pointer, vararg args: Any?): Long =
-        objc_msgSend.invokeLong(arrayOf(rcv, sel, *args))
-    fun msgSendVoid(rcv: Pointer, sel: Pointer, vararg args: Any?): Unit =
-        objc_msgSend.invokeVoid(arrayOf(rcv, sel, *args))
+    fun Pointer.invokePtr(sel: Pointer, vararg args: Any?): Pointer? =
+        objc_msgSend.invokePointer(arrayOf(this, sel, *args))
+    fun Pointer.invokeLong(sel: Pointer, vararg args: Any?): Long =
+        objc_msgSend.invokeLong(arrayOf(this, sel, *args))
+    fun Pointer.invokeVoid(sel: Pointer, vararg args: Any?): Unit =
+        objc_msgSend.invokeVoid(arrayOf(this, sel, *args))
 
     fun nsStringFromUtf8(s: String): Pointer {
         val bytes = Native.toByteArray(s, StandardCharsets.UTF_8.name())
-        return msgSendPtr(NSString, stringWithUTF8String, bytes)!!
+        return NSString.invokePtr(stringWithUTF8String, bytes)!!
     }
 
     fun nsStringArrayFromUtf8Array(items: List<String>): Pointer {
         val nsStrings = items.map { nsStringFromUtf8(it) }.toTypedArray()
-        return msgSendPtr(NSArray, arrayWithObjects_count, nsStrings, nsStrings.size)!!
+        return NSArray.invokePtr(arrayWithObjects_count, nsStrings, nsStrings.size)!!
     }
 
-    fun nsUrlFileURLWithPath(path: String): Pointer {
+    fun nsUrlFileURLFromPath(path: String): Pointer {
         val nsPath = nsStringFromUtf8(path)
-        return msgSendPtr(NSURL, fileURLWithPath, nsPath)!!
+        return NSURL.invokePtr(fileURLWithPath, nsPath)!!
     }
 
-    fun nsArrayOf(vararg obj: Pointer): Pointer = msgSendPtr(NSArray, arrayWithObjects_count, obj, obj.size)!!
-    fun nsNumberFromInt(value: Int) = msgSendPtr(NSNumber, numberWithInt, value)
-    fun nsNumberToInt(value: Pointer): Int = msgSendLong(value, intValue).toInt()
+    fun nsArrayOf(vararg obj: Pointer): Pointer = NSArray.invokePtr(arrayWithObjects_count, obj, obj.size)!!
+    fun nsNumberFromInt(value: Int) = NSNumber.invokePtr(numberWithInt, value)
+    fun nsNumberFromLong(value: Long) = NSNumber.invokePtr(numberWithLong, value)
+    fun nsNumberToInt(value: Pointer): Int = value.invokeLong(intValue).toInt()
+    fun nsNumberToLong(value: Pointer): Long = value.invokeLong(longValue)
 }
