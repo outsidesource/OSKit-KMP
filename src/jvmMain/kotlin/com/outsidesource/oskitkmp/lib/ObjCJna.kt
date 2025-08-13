@@ -55,6 +55,7 @@ internal object ObjCJna {
     private val numberWithLong = sel("numberWithLong:")
     private val intValue = sel("intValue")
     private val longValue = sel("longValue")
+    private val UTF8String = sel("UTF8String")
 
     private fun interface ObjcJNACallback : Callback {
         fun invoke(self: Pointer?, cmd: Pointer?, arg: Pointer?)
@@ -91,6 +92,11 @@ internal object ObjCJna {
     fun nsStringFromUtf8(s: String): Pointer {
         val bytes = Native.toByteArray(s, StandardCharsets.UTF_8.name())
         return NSString.invokePtr(stringWithUTF8String, bytes)!!
+    }
+
+    fun nsStringToUtf8(value: Pointer): String {
+        val cString = value.invokePtr(UTF8String)!!
+        return cString.getString(0, StandardCharsets.UTF_8.name())
     }
 
     fun nsStringArrayFromUtf8Array(items: List<String>): Pointer {

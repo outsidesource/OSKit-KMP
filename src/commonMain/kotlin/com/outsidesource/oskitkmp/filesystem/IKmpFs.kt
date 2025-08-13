@@ -231,7 +231,10 @@ interface IKmpFs {
 
 interface IKmpFsFilePicker {
     suspend fun pickFile(startingDir: KmpFsRef? = null, filter: KmpFileFilter? = null): Outcome<KmpFsRef?, KmpFsError>
-    suspend fun pickFiles(startingDir: KmpFsRef? = null, filter: KmpFileFilter? = null): Outcome<List<KmpFsRef>?, KmpFsError>
+    suspend fun pickFiles(
+        startingDir: KmpFsRef? = null,
+        filter: KmpFileFilter? = null,
+    ): Outcome<List<KmpFsRef>?, KmpFsError>
     suspend fun pickDirectory(startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
     suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
 }
