@@ -146,8 +146,10 @@ kotlin {
             dependsOn(nonJsMain)
             dependencies {
                 implementation(libs.sqldelight.jvm.driver)
-                implementation("net.java.dev.jna:jna:5.17.0")
-                implementation("net.java.dev.jna:jna-platform:5.17.0")
+                implementation(libs.jna)
+                implementation(libs.jna.platform)
+                implementation(libs.dbus.java.core)
+                implementation(libs.dbus.java.transport.native.unixsocket)
             }
         }
         val wasmJsMain by getting {
