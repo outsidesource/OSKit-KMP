@@ -18,7 +18,7 @@ interface IInternalKmpFs : IKmpFs {
 /**
  * The External API interface for interacting with non-sandboxed files/directories. A ref must be picked for a starting point.
  */
-interface IExternalKmpFs : IKmpFs {
+interface IExternalKmpFs : IKmpFs, IKmpFsFilePicker {
 
     /**
      * Shows a file picker for a user to select a single file.
@@ -26,10 +26,7 @@ interface IExternalKmpFs : IKmpFs {
      * @param startingDir The directory the file picker will start from.
      * @param filter Allows preventing selection of specific file types.
      */
-    suspend fun pickFile(
-        startingDir: KmpFsRef? = null,
-        filter: KmpFileFilter? = null,
-    ): Outcome<KmpFsRef?, KmpFsError>
+    override suspend fun pickFile(startingDir: KmpFsRef?, filter: KmpFileFilter?): Outcome<KmpFsRef?, KmpFsError>
 
     /**
      * Shows a file picker for a user to select multiple files.
@@ -37,17 +34,14 @@ interface IExternalKmpFs : IKmpFs {
      * @param startingDir The directory the file picker will start from.
      * @param filter Allows preventing selection of specific file types.
      */
-    suspend fun pickFiles(
-        startingDir: KmpFsRef? = null,
-        filter: KmpFileFilter? = null,
-    ): Outcome<List<KmpFsRef>?, KmpFsError>
+    override suspend fun pickFiles(startingDir: KmpFsRef?, filter: KmpFileFilter?): Outcome<List<KmpFsRef>?, KmpFsError>
 
     /**
      * Shows a directory picker for a user to select a directory.
      *
      * @param startingDir The directory the file picker will start from.
      */
-    suspend fun pickDirectory(startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
+    override suspend fun pickDirectory(startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError>
 
     /**
      * Opens a picker for saving a new file. Android and Desktop allow the user to specify the name.
@@ -57,7 +51,7 @@ interface IExternalKmpFs : IKmpFs {
      * @param fileName The suggested file name to the user. The user can override this.
      * @param startingDir The directory the file picker will start from.
      */
-    suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
+    override suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef?): Outcome<KmpFsRef?, KmpFsError>
 
     /**
      * Saves data into a new file. This will present a file picker on all non-JS platforms. On JS platforms
@@ -233,6 +227,16 @@ interface IKmpFs {
 
         return Outcome.Ok(Unit)
     }
+}
+
+interface IKmpFsFilePicker {
+    suspend fun pickFile(startingDir: KmpFsRef? = null, filter: KmpFileFilter? = null): Outcome<KmpFsRef?, KmpFsError>
+    suspend fun pickFiles(
+        startingDir: KmpFsRef? = null,
+        filter: KmpFileFilter? = null,
+    ): Outcome<List<KmpFsRef>?, KmpFsError>
+    suspend fun pickDirectory(startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
+    suspend fun pickSaveFile(fileName: String, startingDir: KmpFsRef? = null): Outcome<KmpFsRef?, KmpFsError>
 }
 
 /**
