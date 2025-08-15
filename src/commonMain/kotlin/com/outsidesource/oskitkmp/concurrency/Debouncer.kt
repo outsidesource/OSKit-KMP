@@ -32,6 +32,10 @@ class Debouncer(
     private var lastEmit: Instant = Clock.System.now()
     private val lock = reentrantLock()
 
+    /**
+     * Schedules [func] to be run after the debounce [timeoutMillis] or when [maxWaitMillis] has elapsed
+     * [isLastEmit] denotes if the func is running after the delay
+     */
     fun emit(func: suspend (isLastEmit: Boolean) -> Unit) = lock.withLock {
         job?.cancel()
 

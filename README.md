@@ -36,6 +36,21 @@ implementation("com.outsidesource:oskit-kmp:5.0.0")
 <https://github.com/outsidesource/OSKit-Example-App-KMP>
 
 ## Changelog
+### 5.1.0 - 2025-08-15
+#### Added
+* Kotlin 2.2.0 support
+* RcCoroutine
+* KmpFs no longer depends on lwjgl for file pickers on the JVM
+* ByteArray.find
+* Collections.mapValuesNotNull
+* EnumSerializer for kotlinx.serialization allowing for deserialization into a default enum value
+* measureTimePrinted
+* ValueCache
+* Outcome.guard allows for syntactic sugar for unwrapOrReturn. `val result = outcome guard { return it }`
+* String.parseFloatOrNull()
+#### Breaking Changes
+* Renamed NumberFormatter to KmpNumberFormatter
+
 ### 5.0.0 - 2025-02-07
 #### Added
 * Kotlin 2.1.0 support
