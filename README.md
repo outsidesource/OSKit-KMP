@@ -29,7 +29,7 @@ Currently supported platforms include:
 
 ## Installation
 ```
-implementation("com.outsidesource:oskit-kmp:5.0.0")
+implementation("com.outsidesource:oskit-kmp:{latestVersion}")
 ```
 
 ## Example App
