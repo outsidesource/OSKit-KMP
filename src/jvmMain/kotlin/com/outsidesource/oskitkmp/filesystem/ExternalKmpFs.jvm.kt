@@ -15,7 +15,7 @@ internal class JvmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
 
     private val picker: IKmpFsFilePicker? = when (Platform.current) {
         Platform.MacOS -> MacOsFilePicker
-        Platform.Windows -> WindowsFilePicker
+        Platform.Windows -> WindowsFilePicker { context }
         Platform.Linux -> LinuxFilePicker { context }
         else -> null
     }
