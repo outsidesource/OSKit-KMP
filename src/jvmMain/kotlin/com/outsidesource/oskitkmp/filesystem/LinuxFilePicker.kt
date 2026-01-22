@@ -3,7 +3,6 @@ package com.outsidesource.oskitkmp.filesystem
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.sun.jna.Native
 import kotlinx.coroutines.CompletableDeferred
-import org.freedesktop.dbus.DBusMatchRule
 import org.freedesktop.dbus.DBusPath
 import org.freedesktop.dbus.Tuple
 import org.freedesktop.dbus.annotations.DBusInterfaceName
@@ -11,7 +10,9 @@ import org.freedesktop.dbus.annotations.Position
 import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder
 import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.DBusSigHandler
+import org.freedesktop.dbus.matchrules.DBusMatchRuleBuilder
 import org.freedesktop.dbus.messages.DBusSignal
+import org.freedesktop.dbus.messages.constants.MessageTypes
 import org.freedesktop.dbus.types.UInt32
 import org.freedesktop.dbus.types.Variant
 import java.net.URI
@@ -116,7 +117,12 @@ class LinuxFilePicker(private val context: () -> KmpFsContext?) : IKmpFsFilePick
             )
 
             val deferred = CompletableDeferred<Response>()
-            val matchRule = DBusMatchRule("signal", "org.freedesktop.portal.Request", "Response")
+            val matchRule = DBusMatchRuleBuilder
+                .create()
+                .withType(MessageTypes.SIGNAL)
+                .withInterface("org.freedesktop.portal.Request")
+                .withMember("Response")
+                .build()
             val handler = DBusSigHandler<DBusSignal> { signal ->
                 if (signal?.path?.endsWith(handleToken) != true) return@DBusSigHandler
                 val response = Response(

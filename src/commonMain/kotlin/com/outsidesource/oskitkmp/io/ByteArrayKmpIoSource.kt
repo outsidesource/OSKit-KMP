@@ -12,7 +12,7 @@ internal class ByteArrayKmpIoSource(private val bytes: ByteArray) : IKmpIoSource
         bytes.copyOfRange(position, end).copyInto(buffer, bufferOffset)
         val read = (end - position)
         position += read
-        return read.toInt()
+        return read
     }
 
     override suspend fun readAll(): ByteArray =

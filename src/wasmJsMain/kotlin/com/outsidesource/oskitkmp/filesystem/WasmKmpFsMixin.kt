@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwait

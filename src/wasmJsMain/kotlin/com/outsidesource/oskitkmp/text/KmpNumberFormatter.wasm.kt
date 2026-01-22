@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.text
 
 actual class KmpNumberFormatter actual constructor(

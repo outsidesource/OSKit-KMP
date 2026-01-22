@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.filesystem
 
 import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
@@ -19,7 +21,7 @@ internal class WasmExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     private val fsMixin = WasmKmpFsMixin(KmpFsType.External, { it }, { context != null })
     private var context: KmpFsContext? = null
 
-    override fun init(fileHandlerContext: KmpFsContext) { context = fileHandlerContext }
+    override fun init(context: KmpFsContext) { this@WasmExternalKmpFs.context = context }
 
     override suspend fun pickFile(
         startingDir: KmpFsRef?,

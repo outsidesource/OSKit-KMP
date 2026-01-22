@@ -39,10 +39,10 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
     private val pickFolderResultFlow =
         MutableSharedFlow<Uri?>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun init(fileHandlerContext: KmpFsContext) {
-        context = fileHandlerContext
+    override fun init(context: KmpFsContext) {
+        Companion.context = context
 
-        pickFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickFileResultLauncher = context.activity.registerForActivityResult(
             ActivityResultContracts.OpenDocument(),
         ) { data ->
             coroutineScope.launch {
@@ -50,7 +50,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             }
         }
 
-        pickFilesResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickFilesResultLauncher = context.activity.registerForActivityResult(
             ActivityResultContracts.OpenMultipleDocuments(),
         ) { data ->
             coroutineScope.launch {
@@ -58,7 +58,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             }
         }
 
-        pickSaveFileResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickSaveFileResultLauncher = context.activity.registerForActivityResult(
             ActivityResultContracts.CreateDocument("*/*"),
         ) { data ->
             coroutineScope.launch {
@@ -66,7 +66,7 @@ internal class AndroidExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
             }
         }
 
-        pickFolderResultLauncher = fileHandlerContext.activity.registerForActivityResult(
+        pickFolderResultLauncher = context.activity.registerForActivityResult(
             ActivityResultContracts.OpenDocumentTree(),
         ) { data ->
             coroutineScope.launch {

@@ -45,8 +45,8 @@ internal class IosExternalKmpFs : IExternalKmpFs, IInitializableKmpFs {
         allowsMultipleSelection = false
     }
 
-    override fun init(fileHandlerContext: KmpFsContext) {
-        context = fileHandlerContext
+    override fun init(context: KmpFsContext) {
+        this@IosExternalKmpFs.context = context
     }
 
     override suspend fun pickFile(
