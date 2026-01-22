@@ -19,6 +19,8 @@ testrunner = "1.7.0"
 dokka = "2.1.0"
 jna = "5.18.1"
 dbus-java = "5.2.0"
+ktfmt = "0.25.0"
+androidGradlePlugin = "9.0.0"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -48,4 +50,6 @@ dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-jav
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }

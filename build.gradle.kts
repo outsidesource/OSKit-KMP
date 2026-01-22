@@ -5,6 +5,8 @@ import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import java.io.FileInputStream
 import java.util.*
 
@@ -27,8 +29,8 @@ repositories {
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.dokka)
-    id("com.android.library")
     id("maven-publish")
     id("com.vanniktech.maven.publish") version "0.28.0"
     // Disable SQLDelight Gradle plugin until WASM support is released (https://github.com/sqldelight/sqldelight/pull/5531)
@@ -69,7 +71,22 @@ kotlin {
         }
     }
 
-    androidTarget()
+    androidLibrary {
+        namespace = "com.outsidesource.oskitkmp"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            execution = "HOST"
+        }
+    }
 
     listOf(
         iosX64(),
@@ -127,8 +144,7 @@ kotlin {
                 implementation(libs.documentfile)
             }
         }
-        val androidInstrumentedTest by getting {
-            dependsOn(commonTest)
+        val androidDeviceTest by getting {
             dependencies {
                 implementation(libs.androidx.test.runner)
                 implementation(libs.androidx.test.core)
@@ -158,23 +174,6 @@ kotlin {
         }
     }
 }
-
-android {
-    namespace = "com.outsidesource.oskitkmp"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
