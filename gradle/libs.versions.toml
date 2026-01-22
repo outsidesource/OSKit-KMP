@@ -1,25 +1,24 @@
 [versions]
-kotlin = "2.2.0"
-activityCompose = "1.10.1"
-ktor = "3.2.3"
-sqldelight = "2.1.0"
+kotlin = "2.3.0"
+activityCompose = "1.12.2"
+ktor = "3.3.3"
+sqldelight = "2.2.1"
 testcore = "1.7.0"
 documentfile = "1.1.0"
 junit = "4.13.2"
 kotlinx-atomicfu = "0.29.0"
 kotlinx-datetime = "0.7.1"
-kotlinx-serialization-encoding = "1.9.0"
+kotlinx-serialization-encoding = "1.10.0"
 kotlinx-coroutines-core = "1.10.2"
-kotlinx-browser = "0.3" # Can't update this until Kotlint 2.2.20 is released
-lifecycleRuntime = "2.9.2"
-okio = "3.16.0"
-ktlint = "11.6.1"
+kotlinx-browser = "0.5.0"
+lifecycleRuntime = "2.10.0"
+okio = "3.16.4"
 android-compileSdk = "36"
 android-minSdk = "28"
 testrunner = "1.7.0"
-dokka = "2.0.0"
-jna = "5.17.0"
-dbus-java = "5.1.1"
+dokka = "2.1.0"
+jna = "5.18.1"
+dbus-java = "5.2.0"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -38,8 +37,6 @@ kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "lifecycleRuntime" }
-lwjgl = { module = "org.lwjgl:lwjgl" }
-lwjgl-tinyfd = { module = "org.lwjgl:lwjgl-tinyfd" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
@@ -49,7 +46,6 @@ dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = 
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbus-java" }
 
 [plugins]
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

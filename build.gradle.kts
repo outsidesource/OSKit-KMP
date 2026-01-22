@@ -27,7 +27,6 @@ repositories {
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ktlint)
     alias(libs.plugins.dokka)
     id("com.android.library")
     id("maven-publish")
@@ -176,19 +175,6 @@ android {
     }
 }
 
-ktlint {
-    debug.set(true)
-    disabledRules.set(setOf("no-wildcard-imports", "filename"))
-
-    filter {
-        include("src/**/*.kt")
-        exclude("**/*.kts")
-        val excludedDirs = listOf("/generated/", "/commonTest/", "/androidTest/", "/iosTest/", "/jvmTest/")
-        exclude { tree -> excludedDirs.any { projectDir.toURI().relativize(tree.file.toURI()).path.contains(it) } }
-    }
-}
-
-tasks.getByName("preBuild").dependsOn("ktlintFormat")
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
