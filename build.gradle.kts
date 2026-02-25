@@ -10,20 +10,17 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import java.io.FileInputStream
 import java.util.*
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath(kotlin("gradle-plugin", libs.versions.kotlin.toString()))
-    }
-}
-
 repositories {
-    google()
-    mavenCentral()
+    mavenLocal()
+    google {
+        mavenContent {
+            includeGroupAndSubgroups("androidx")
+            includeGroupAndSubgroups("com.android")
+            includeGroupAndSubgroups("com.google")
+        }
+    }
     gradlePluginPortal()
-    maven("https://plugins.gradle.org/m2/")
+    mavenCentral()
 }
 
 plugins {
