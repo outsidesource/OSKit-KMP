@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.router
 
 import com.outsidesource.oskitkmp.concurrency.Queue

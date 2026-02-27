@@ -11,11 +11,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * [KmpKvStore] is a multiplatform key value store that allows persistent storage of any data
@@ -96,6 +97,7 @@ internal class KmpKvStoreRollbackException : Exception("Transaction Rolled Back"
 
 internal typealias KmpKvStoreObserver = suspend (Any?) -> Unit
 
+@OptIn(ExperimentalTime::class)
 internal object KmpKvStoreKeyGenerator {
     private val counter = atomic(Random(Clock.System.now().toEpochMilliseconds()).nextLong())
 

@@ -6,8 +6,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class FlowTimeoutCancellationException(timeout: Long) : CancellationException("Flow timed out after ${timeout}ms")
 
@@ -44,6 +45,7 @@ inline fun <reified R> Flow<*>.filterIsInstance(crossinline predicate: suspend (
 /**
  * Throttles a flow at a specific interval. This will only return one emission during the specified period.
  */
+@OptIn(ExperimentalTime::class)
 fun <T> Flow<T>.throttle(periodMillis: Long): Flow<T> = flow {
     var windowStartTime = Instant.DISTANT_PAST
 

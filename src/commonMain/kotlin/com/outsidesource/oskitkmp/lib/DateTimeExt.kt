@@ -3,6 +3,7 @@ package com.outsidesource.oskitkmp.lib
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.Month
+import kotlinx.datetime.number
 
 fun LocalDateTime.kmpFormat(format: String): String {
     val twelveHour = time.convertTo12HourFormat()
@@ -23,8 +24,8 @@ fun LocalDateTime.kmpFormat(format: String): String {
                 'a' -> append(twelveHour.second.name)
                 '@' -> append("at")
                 'd' -> when (characterCount) {
-                    2 -> append(if (dayOfMonth < 10) "0$dayOfMonth" else dayOfMonth.toString())
-                    1 -> append(dayOfMonth)
+                    2 -> append(if (day < 10) "0$day" else day.toString())
+                    1 -> append(day)
                 }
                 'D' -> when (characterCount) {
                     1 -> append(dayOfYear)
@@ -32,8 +33,8 @@ fun LocalDateTime.kmpFormat(format: String): String {
                 'M' -> when (characterCount) {
                     4 -> append(month.getDisplayName(DateTextFormat.Full))
                     3 -> append(month.getDisplayName(DateTextFormat.Short))
-                    2 -> append(if (monthNumber < 10) "0$monthNumber" else monthNumber.toString())
-                    1 -> append(monthNumber)
+                    2 -> append(if (month.number < 10) "0${month.number}" else month.number.toString())
+                    1 -> append(month.number)
                 }
                 'y' -> when (characterCount) {
                     4 -> append(year)
@@ -72,7 +73,7 @@ fun LocalDateTime.kmpFormat(format: String): String {
 private fun LocalTime.convertTo12HourFormat(): Pair<Int, Meridiem> {
     val hour = this.hour
     val period = if (hour < 12) Meridiem.AM else Meridiem.PM
-    var hour12 = (hour % 12).let { if (it == 0) 12 else it }
+    val hour12 = (hour % 12).let { if (it == 0) 12 else it }
     return Pair(hour12, period)
 }
 
@@ -125,7 +126,6 @@ private fun Month.getDisplayName(format: DateTextFormat): String = when (this) {
         DateTextFormat.Full -> "December"
         DateTextFormat.Short -> "Dec"
     }
-    else -> ""
 }
 
 private enum class Meridiem {

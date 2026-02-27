@@ -14,6 +14,11 @@ sealed class Outcome<out V, out E> {
     }
 }
 
+/**
+ * A convenience function. Calls [unwrapOrReturn]
+ */
+inline infix fun <T, E> Outcome<T, E>.guard(elseBlock: (Outcome.Error<E>) -> Nothing): T = unwrapOrReturn(elseBlock)
+
 fun <V, E> Outcome<V, E>.unwrapOrDefault(default: V): V = when (this) {
     is Outcome.Ok -> this.value
     else -> default

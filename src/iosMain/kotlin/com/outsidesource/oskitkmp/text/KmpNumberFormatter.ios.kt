@@ -5,7 +5,7 @@ import platform.Foundation.NSNumberFormatter
 import platform.Foundation.NSNumberFormatterDecimalStyle
 import platform.Foundation.NSNumberFormatterNoStyle
 
-actual class NumberFormatter actual constructor(
+actual class KmpNumberFormatter actual constructor(
     private val minimumFractionDigits: Int,
     private val maximumFractionDigits: Int,
     private val useGrouping: Boolean,

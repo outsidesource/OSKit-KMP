@@ -11,7 +11,7 @@ expect class KmpFsContext
  *
  * Internal:
  * The Internal API deals with files/directories inside the application sandbox. Files/directories made in Internal
- * are not meant for end-users to see. On some platforms (i.e. Android they may even be encrypted).
+ * are not meant for end-users to see. On some platforms (i.e. Android) they may even be encrypted.
  *
  * External:
  * The External API deals with files/directories outside the application sandbox. Files/directories made in External
@@ -45,40 +45,7 @@ expect class KmpFsContext
  *  * All `startingDirectory` parameters are ignored
  *
  * Desktop/JVM:
- * Using KmpFileHandler for the desktop/JVM target will require consumers to include LWJGL's tinyfd library in their classpath
- * ```
- * val lwjglVersion = "3.3.3"
- * val lwjglNatives = Pair(
- * 	System.getProperty("os.name")!!,
- * 	System.getProperty("os.arch")!!
- * ).let { (name, arch) ->
- * 	when {
- * 		arrayOf("Linux", "SunOS", "Unit").any { name.startsWith(it) } ->
- * 			if (arrayOf("arm", "aarch64").any { arch.startsWith(it) }) {
- * 				"natives-linux${if (arch.contains("64") || arch.startsWith("armv8")) "-arm64" else "-arm32"}"
- * 			} else if (arch.startsWith("ppc")) {
- * 				"natives-linux-ppc64le"
- * 			} else if (arch.startsWith("riscv")) {
- * 				"natives-linux-riscv64"
- * 			} else {
- * 				"natives-linux"
- * 			}
- * 		arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) }     ->
- * 			"natives-macos${if (arch.startsWith("aarch64")) "-arm64" else ""}"
- * 		arrayOf("Windows").any { name.startsWith(it) }                ->
- * 			if (arch.contains("64")) {
- * 				"natives-windows${if (arch.startsWith("aarch64")) "-arm64" else ""}"
- * 			} else {
- * 				"natives-windows-x86"
- * 			}
- * 		else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
- * 	 }
- * }
- *
- * dependencies {
- *     runtimeOnly("org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives")
- *     runtimeOnly("org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives")
- * }
+ * JVM used native calls for all desktop platforms. For Linux, `xdg-desktop-portal` must be installed.
  * ```
  *
  * It may also be necessary to add the `jdk.unsupported` module for some linux builds:

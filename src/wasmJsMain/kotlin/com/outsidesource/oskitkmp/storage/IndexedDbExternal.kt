@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.storage
 
 import com.outsidesource.oskitkmp.lib.jsTryOutcome

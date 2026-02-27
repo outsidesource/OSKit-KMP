@@ -2,7 +2,7 @@ package com.outsidesource.oskitkmp.text
 
 import java.text.DecimalFormat
 
-actual class NumberFormatter actual constructor(
+actual class KmpNumberFormatter actual constructor(
     private val minimumFractionDigits: Int,
     private val maximumFractionDigits: Int,
     private val useGrouping: Boolean,

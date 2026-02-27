@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.outsidesource.oskitkmp.lib
 
 import com.outsidesource.oskitkmp.outcome.Outcome

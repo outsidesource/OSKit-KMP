@@ -13,6 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationStrategy
@@ -153,4 +154,5 @@ class InMemoryKmpKvStoreNode(
 
     private inline fun <reified T> observe(key: String): Flow<T?> =
         KmpKvStoreObserverRegistry.observe<T, T>(nodeName = name, key = key) { it }
+            .onStart { emit(storage.value[key] as? T) }
 }

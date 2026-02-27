@@ -15,7 +15,7 @@ fun Double.toFixed(decimalPlaces: Int): String {
     }
 }
 
-expect class NumberFormatter(
+expect class KmpNumberFormatter(
     minimumFractionDigits: Int = 0,
     maximumFractionDigits: Int = 2,
     useGrouping: Boolean = true,
@@ -28,6 +28,6 @@ expect class NumberFormatter(
     companion object
 }
 
-val WholeNumberFormatter = NumberFormatter(maximumFractionDigits = 0, minimumFractionDigits = 0)
-val TenthsNumberFormatter = NumberFormatter(maximumFractionDigits = 1, minimumFractionDigits = 1)
-val HundredthsNumberFormatter = NumberFormatter
+val WholeNumberFormatter = KmpNumberFormatter(maximumFractionDigits = 0, minimumFractionDigits = 0)
+val TenthsNumberFormatter = KmpNumberFormatter(maximumFractionDigits = 1, minimumFractionDigits = 1)
+val HundredthsNumberFormatter = KmpNumberFormatter

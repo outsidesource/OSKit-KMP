@@ -41,3 +41,13 @@ inline fun <T, R> List<T>.lastNotNullOfOrNull(transform: (T) -> R?): R? {
     }
     return null
 }
+
+inline fun <K, V, R> Map<K, V>.mapValuesNotNull(transform: (Map.Entry<K, V>) -> R?): Map<K, R> {
+    val map = LinkedHashMap<K, R>(size)
+    for (entry in this@mapValuesNotNull.entries) {
+        map[entry.key] = transform(entry) ?: continue
+    }
+    return map
+}
+
+inline fun <K, V> Map<K, V>.update(block: MutableMap<K, V>.() -> Unit): Map<K, V> = toMutableMap().apply { block() }

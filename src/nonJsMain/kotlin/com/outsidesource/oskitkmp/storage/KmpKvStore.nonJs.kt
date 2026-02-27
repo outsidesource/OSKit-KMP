@@ -5,6 +5,7 @@ import app.cash.sqldelight.db.SqlDriver
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.storage.sqldelight.KmpKvStoreDatabaseQueries
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -155,6 +156,8 @@ class KmpKvStoreNode internal constructor(
         }
     }
 
-    private inline fun <T> observe(key: String, crossinline mapper: (rawValue: ByteArray) -> T?): Flow<T?> =
-        KmpKvStoreObserverRegistry.observe<ByteArray, T>(nodeName = name, key = key, mapper)
+    private inline fun <T> observe(key: String, crossinline mapper: (rawValue: ByteArray) -> T?): Flow<T?> {
+        return KmpKvStoreObserverRegistry.observe<ByteArray, T>(nodeName = name, key = key, mapper)
+            .onStart { emit(get(key, mapper)) }
+    }
 }
