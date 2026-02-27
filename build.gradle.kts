@@ -178,7 +178,7 @@ mavenPublishing {
 
     configure(
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka("dokkaGenerateHtml"),
             sourcesJar = true,
             androidVariantsToPublish = listOf("debug", "release"),
         )
