@@ -88,7 +88,8 @@ kotlin {
     listOf(
         iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        macosArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries {
             framework {
@@ -148,7 +149,7 @@ kotlin {
                 implementation(libs.junit)
             }
         }
-        val iosMain by getting {
+        val appleMain by getting {
             dependsOn(nonJsMain)
             dependencies {
                 implementation(libs.sqldelight.native.driver)
