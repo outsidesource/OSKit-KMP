@@ -1,28 +1,26 @@
 package com.outsidesource.oskitkmp.lib
 
-import kotlin.math.absoluteValue
+import kotlin.math.round
 
 fun Int.snapTo(value: Int): Int {
-    require(value > 0f)
+    require(value > 0)
 
-    if (value == 1) return this
+    val current = this.toLong()
+    val step = value.toLong()
+    val halfStep = step / 2
 
-    val diff = (this % value).absoluteValue
-    return if (this > 0) {
-        if (diff >= (value / 2)) this + (value - diff) else this - diff
+    val snapped = if (current >= 0) {
+        (current + halfStep) / step * step
     } else {
-        if (diff >= (value / 2)) this - (value - diff) else this + diff
+        (current - halfStep) / step * step
     }
+
+    return snapped.toInt()
 }
 
 fun Float.snapTo(value: Float): Float {
-    require(value > 0f)
-    val diff = (this % value).absoluteValue
-    return if (this > 0) {
-        if (diff >= (value / 2)) this + (value - diff) else this - diff
-    } else {
-        if (diff >= (value / 2)) this - (value - diff) else this + diff
-    }
+    require(value != 0f)
+    return round(this / value) * value
 }
 
 operator fun ClosedRange<Float>.times(value: Float) = (start * value)..(endInclusive * value)
