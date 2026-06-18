@@ -11,26 +11,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlin.js.Promise
 
 private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-class LocationKmpCapability(
-    private val flags: Array<LocationCapabilityFlags>,
-) : IInitializableKmpCapability, IKmpCapability {
-
-    private val isCapabilityRequiredForFlags = when (flags.size) {
-        1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess
-        else -> true
-    }
-
+class MicrophoneKmpCapability: IInitializableKmpCapability, IKmpCapability {
     private val localStatusFlow = MutableStateFlow<CapabilityStatus>(
         if (!hardwareSupportsCapability()) {
             CapabilityStatus.Unsupported()
-        } else if (!isCapabilityRequiredForFlags) {
-            CapabilityStatus.Ready
         } else {
             CapabilityStatus.Unknown
         },
@@ -38,7 +25,7 @@ class LocationKmpCapability(
 
     override val status: Flow<CapabilityStatus> = localStatusFlow
 
-    override val hasPermissions: Boolean = isCapabilityRequiredForFlags
+    override val hasPermissions: Boolean = true
     override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = false
@@ -47,7 +34,6 @@ class LocationKmpCapability(
     override fun init(context: KmpCapabilityContext) {
         scope.launch {
             if (!hardwareSupportsCapability()) return@launch
-            if (!isCapabilityRequiredForFlags) return@launch
 
             val status = queryPermissions().unwrapOrReturn { return@launch }
             localStatusFlow.value = mapJsPermissionStatusToCapabilityStatus(status)
@@ -58,14 +44,13 @@ class LocationKmpCapability(
 
     override suspend fun queryStatus(): CapabilityStatus {
         if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()
-        if (!isCapabilityRequiredForFlags) return CapabilityStatus.Ready
 
         val status = queryPermissions().unwrapOrReturn { return CapabilityStatus.Unknown }
         return mapJsPermissionStatusToCapabilityStatus(status)
     }
 
     private suspend fun queryPermissions(): Outcome<PermissionStatus, Any> = navigator.permissions
-        .query(permissionQueryParams("geolocation"))
+        .query(permissionQueryParams("microphone"))
         .kmpAwaitOutcome()
 
     private fun mapJsPermissionStatusToCapabilityStatus(status: PermissionStatus): CapabilityStatus {
@@ -76,21 +61,14 @@ class LocationKmpCapability(
         }
     }
 
-    override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> = suspendCoroutine { continuation ->
-        navigator.geolocation.getCurrentPosition(
-            success = {
-                localStatusFlow.value = CapabilityStatus.Ready
-                continuation.resume(Outcome.Ok(CapabilityStatus.Ready))
-            },
-            error = {
-                if (it.code == 1) {
-                    localStatusFlow.value = CapabilityStatus.NoPermission(NoPermissionReason.DeniedPermanently)
-                    continuation.resume(Outcome.Ok(localStatusFlow.value))
-                    return@getCurrentPosition
-                }
-                continuation.resume(Outcome.Error(KmpCapabilitiesError.Unknown))
-            },
-        )
+    override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> {
+        navigator.mediaDevices.getUserMedia(requestQueryParams()).kmpAwaitOutcome().unwrapOrReturn {
+            localStatusFlow.value = CapabilityStatus.NoPermission(NoPermissionReason.DeniedPermanently)
+            return Outcome.Ok(localStatusFlow.value)
+        }
+
+        localStatusFlow.value = CapabilityStatus.Ready
+        return Outcome.Ok(CapabilityStatus.Ready)
     }
 
     override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
@@ -104,7 +82,7 @@ class LocationKmpCapability(
 }
 
 
-
 private fun permissionQueryParams(name: String): JsAny = js("""({ name: name })""")
+private fun requestQueryParams(): JsAny = js("""({ audio: true })""")
 
-private fun hardwareSupportsCapability(): Boolean = js("""navigator.geolocation !== undefined""")
+private fun hardwareSupportsCapability(): Boolean = js("""navigator.mediaDevices !== undefined""")

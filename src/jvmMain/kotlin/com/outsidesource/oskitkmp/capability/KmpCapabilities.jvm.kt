@@ -10,6 +10,8 @@ internal actual fun createPlatformBluetoothCapability(flags: Array<BluetoothCapa
 internal actual fun createPlatformLocationCapability(flags: Array<LocationCapabilityFlags>): IKmpCapability =
     LocationKmpCapability(flags)
 
+internal actual fun createPlatformMicrophoneCapability(): IKmpCapability = MicrophoneKmpCapability()
+
 internal actual suspend fun internalOpenAppSettingsScreen(
     context: KmpCapabilityContext?,
 ): Outcome<Unit, Any> = Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
