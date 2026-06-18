@@ -2,79 +2,25 @@
 
 package com.outsidesource.oskitkmp.capability
 
-import com.outsidesource.oskitkmp.concurrency.kmpAwaitOutcome
 import com.outsidesource.oskitkmp.outcome.Outcome
-import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlin.js.Promise
 
-private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-
-class LocationKmpCapability(
-    private val flags: Array<LocationCapabilityFlags>,
-) : IInitializableKmpCapability, IKmpCapability {
-
-    private val isCapabilityRequiredForFlags = when (flags.size) {
+internal class LocationKmpCapability(
+    flags: Array<LocationCapabilityFlags>,
+) : WasmPermissionKmpCapability(
+    permissionName = "geolocation",
+    hardwareSupported = hardwareSupportsCapability(),
+    isCapabilityRequired = when (flags.size) {
         1 -> flags[0] != LocationCapabilityFlags.BluetoothAccess
         else -> true
-    }
-
-    private val localStatusFlow = MutableStateFlow<CapabilityStatus>(
-        if (!hardwareSupportsCapability()) {
-            CapabilityStatus.Unsupported()
-        } else if (!isCapabilityRequiredForFlags) {
-            CapabilityStatus.Ready
-        } else {
-            CapabilityStatus.Unknown
-        },
-    )
-
-    override val status: Flow<CapabilityStatus> = localStatusFlow
-
-    override val hasPermissions: Boolean = isCapabilityRequiredForFlags
+    },
+) {
+    override val hasPermissions: Boolean = isCapabilityRequired
     override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = false
     override val supportsOpenServiceSettingsScreen: Boolean = false
-
-    override fun init(context: KmpCapabilityContext) {
-        scope.launch {
-            if (!hardwareSupportsCapability()) return@launch
-            if (!isCapabilityRequiredForFlags) return@launch
-
-            val status = queryPermissions().unwrapOrReturn { return@launch }
-            localStatusFlow.value = mapJsPermissionStatusToCapabilityStatus(status)
-
-            status.onchange = { localStatusFlow.value = mapJsPermissionStatusToCapabilityStatus(status) }
-        }
-    }
-
-    override suspend fun queryStatus(): CapabilityStatus {
-        if (!hardwareSupportsCapability()) return CapabilityStatus.Unsupported()
-        if (!isCapabilityRequiredForFlags) return CapabilityStatus.Ready
-
-        val status = queryPermissions().unwrapOrReturn { return CapabilityStatus.Unknown }
-        return mapJsPermissionStatusToCapabilityStatus(status)
-    }
-
-    private suspend fun queryPermissions(): Outcome<PermissionStatus, Any> = navigator.permissions
-        .query(permissionQueryParams("geolocation"))
-        .kmpAwaitOutcome()
-
-    private fun mapJsPermissionStatusToCapabilityStatus(status: PermissionStatus): CapabilityStatus {
-        return when (status.state) {
-            "granted" -> CapabilityStatus.Ready
-            "prompt" -> CapabilityStatus.NoPermission(reason = NoPermissionReason.NotRequested)
-            else -> CapabilityStatus.NoPermission(reason = NoPermissionReason.DeniedPermanently)
-        }
-    }
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> = suspendCoroutine { continuation ->
         navigator.geolocation.getCurrentPosition(
@@ -92,19 +38,6 @@ class LocationKmpCapability(
             },
         )
     }
-
-    override suspend fun requestEnable(): Outcome<CapabilityStatus, Any> =
-        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
-
-    override suspend fun openServiceSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
-
-    override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> =
-        Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 }
-
-
-
-private fun permissionQueryParams(name: String): JsAny = js("""({ name: name })""")
 
 private fun hardwareSupportsCapability(): Boolean = js("""navigator.geolocation !== undefined""")

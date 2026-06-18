@@ -6,7 +6,7 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class BluetoothKmpCapability(
+internal class BluetoothKmpCapability(
     private val flags: Array<BluetoothCapabilityFlags>,
 ) : IInitializableKmpCapability, IKmpCapability {
     override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }

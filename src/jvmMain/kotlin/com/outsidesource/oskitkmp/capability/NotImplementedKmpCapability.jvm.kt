@@ -4,9 +4,11 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class BluetoothKmpCapability(
-    private val flags: Array<BluetoothCapabilityFlags>,
-) : IInitializableKmpCapability, IKmpCapability {
+/**
+ * Base for JVM capabilities that are not yet implemented. Reports [UnsupportedReason.NotImplemented]
+ * and rejects every operation. Concrete capabilities exist only to provide distinct types.
+ */
+internal abstract class NotImplementedKmpCapability : IInitializableKmpCapability, IKmpCapability {
     override fun init(context: KmpCapabilityContext) {}
 
     override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }
@@ -31,3 +33,13 @@ class BluetoothKmpCapability(
     override suspend fun openAppSettingsScreen(): Outcome<Unit, Any> =
         Outcome.Error(KmpCapabilitiesError.UnsupportedOperation)
 }
+
+internal class BluetoothKmpCapability(
+    flags: Array<BluetoothCapabilityFlags>,
+) : NotImplementedKmpCapability()
+
+internal class LocationKmpCapability(
+    flags: Array<LocationCapabilityFlags>,
+) : NotImplementedKmpCapability()
+
+internal class MicrophoneKmpCapability : NotImplementedKmpCapability()
