@@ -4,7 +4,7 @@ import com.outsidesource.oskitkmp.outcome.Outcome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapability {
+internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapability {
     override fun init(context: KmpCapabilityContext) {}
 
     override val status: Flow<CapabilityStatus> = flow { emit(queryStatus()) }

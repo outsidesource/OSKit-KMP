@@ -1,12 +1,7 @@
 package com.outsidesource.oskitkmp.capability
 
 import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.location.LocationManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -30,10 +25,7 @@ internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapabi
     private var context: KmpCapabilityContext? = null
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var permissionResultLauncher: ActivityResultLauncher<Array<String>>? = null
-    private var enableResultLauncher: ActivityResultLauncher<Intent>? = null
     private val permissionsResultFlow =
-        MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    private val enableResultFlow =
         MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private var hardwareSupportsCapability: Boolean = false
@@ -42,10 +34,10 @@ internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapabi
     private val permissions = arrayOf(Manifest.permission.RECORD_AUDIO)
 
     override val hasPermissions: Boolean = true
-    override val hasEnablableService: Boolean = true
+    override val hasEnablableService: Boolean = false
     override val supportsRequestEnable: Boolean = false
     override val supportsOpenAppSettingsScreen: Boolean = true
-    override val supportsOpenServiceSettingsScreen: Boolean = true
+    override val supportsOpenServiceSettingsScreen: Boolean = false
 
     override val status: Flow<CapabilityStatus> = callbackFlow {
         val activity = context?.activity ?: return@callbackFlow
@@ -59,19 +51,9 @@ internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapabi
             }
         }
 
-        val filter = IntentFilter(LocationManager.MODE_CHANGED_ACTION)
-        val broadcastReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                launch { send(queryStatus()) }
-            }
-        }
-        ContextCompat.registerReceiver(activity, broadcastReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
-
         send(queryStatus())
 
-        awaitClose {
-            activity.unregisterReceiver(broadcastReceiver)
-        }
+        awaitClose {}
     }.distinctUntilChanged()
 
     override fun init(context: KmpCapabilityContext) {
@@ -81,11 +63,6 @@ internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapabi
         permissionResultLauncher = context.activity
             .registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                 scope.launch { permissionsResultFlow.emit(Unit) }
-            }
-
-        enableResultLauncher = context.activity
-            .registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                scope.launch { enableResultFlow.emit(Unit) }
             }
     }
 

@@ -55,7 +55,6 @@ internal class MicrophoneKmpCapability : IInitializableKmpCapability, IKmpCapabi
     }
 
     override suspend fun requestPermissions(): Outcome<CapabilityStatus, Any> {
-        internalStateFlow.firstOrNull()
         suspendCancellableCoroutine { continuation ->
             AVAudioApplication.requestRecordPermissionWithCompletionHandler {
                 continuation.resume(it) { _, _, _ -> }
