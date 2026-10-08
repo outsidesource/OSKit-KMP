@@ -7,13 +7,17 @@ actual class KmpNumberFormatter actual constructor(
     private val maximumFractionDigits: Int,
     private val useGrouping: Boolean,
 ) {
-    private val formatter = Intl.NumberFormat(
-        numberFormatOptions(
-            minimumFractionDigits = minimumFractionDigits,
-            maximumFractionDigits = maximumFractionDigits,
-            useGrouping = useGrouping,
-        ),
-    )
+    private val formatter =
+        Intl.NumberFormat(
+            // An empty list uses the browser's locale, like DecimalFormat on the JVM. Null would throw.
+            locales = JsArray(),
+            options =
+                numberFormatOptions(
+                    minimumFractionDigits = minimumFractionDigits,
+                    maximumFractionDigits = maximumFractionDigits,
+                    useGrouping = useGrouping,
+                ),
+        )
 
     actual fun format(value: Float): String = formatter.format(value)
     actual fun format(value: Double): String = formatter.format(value)
@@ -24,9 +28,7 @@ actual class KmpNumberFormatter actual constructor(
 }
 
 private external object Intl {
-    class NumberFormat(options: JsAny?) {
-        constructor(locales: String, options: JsAny?)
-
+    class NumberFormat(locales: JsArray<JsString>, options: JsAny) {
         fun format(value: Float): String
         fun format(value: Double): String
         fun format(value: Int): String
@@ -45,5 +47,5 @@ private fun numberFormatOptions(
         "maximumFractionDigits": maximumFractionDigits,
         "useGrouping": useGrouping,
     })
-""",
+    """
 )
