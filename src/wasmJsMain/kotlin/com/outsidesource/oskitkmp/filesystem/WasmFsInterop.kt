@@ -23,7 +23,7 @@ internal fun showSaveFilePicker(options: JsAny?): Promise<FileSystemFileHandle> 
 
 internal fun showSaveFilePickerOptions(suggestedName: String): JsAny = js("""({suggestedName: suggestedName})""")
 
-internal fun showFilePicker(options: JsAny?): Promise<JsArray<FileSystemDirectoryHandle>> =
+internal fun showFilePicker(options: JsAny?): Promise<JsArray<FileSystemHandle>> =
     js("""window.showOpenFilePicker(options)""")
 
 internal fun showFilePickerOptions(multiple: Boolean, mimeTypes: JsAny?): JsAny = js(
