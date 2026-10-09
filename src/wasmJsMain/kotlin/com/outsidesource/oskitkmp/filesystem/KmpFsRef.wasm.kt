@@ -13,10 +13,8 @@ import org.w3c.files.File
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
-    when (fsType) {
-        KmpFsType.Internal -> if (!supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
-        KmpFsType.External -> if (!supportsFileSystemApi) return Outcome.Error(KmpFsError.NotSupported)
-    }
+    // External refs from the <input> fallback hold a plain File, which is readable without the File System API
+    if (fsType == KmpFsType.Internal && !supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
 
     val file = getFile().unwrapOrReturn { return it }
     return Outcome.Ok(WasmKmpIoSource(file))
