@@ -145,7 +145,7 @@ internal fun writeOptions(
     })""",
 )
 
-internal external class Blob {
+external class Blob : JsAny {
     val size: JsNumber
     val type: String
     val isClosed: Boolean

@@ -10,6 +10,7 @@ import com.outsidesource.oskitkmp.io.WasmKmpIoSource
 import com.outsidesource.oskitkmp.outcome.Outcome
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
 import org.w3c.files.File
+import kotlin.js.unsafeCast
 
 actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     if (isDirectory) return Outcome.Error(KmpFsError.ReadWriteOnDirectory)
@@ -17,7 +18,7 @@ actual suspend fun KmpFsRef.source(): Outcome<IKmpIoSource, KmpFsError> {
     if (fsType == KmpFsType.Internal && !supportsOpfs) return Outcome.Error(KmpFsError.NotSupported)
 
     val file = getFile().unwrapOrReturn { return it }
-    return Outcome.Ok(WasmKmpIoSource(file))
+    return Outcome.Ok(WasmKmpIoSource(file.unsafeCast()))
 }
 
 actual suspend fun KmpFsRef.sink(mode: KmpFsWriteMode): Outcome<IKmpIoSink, KmpFsError> {

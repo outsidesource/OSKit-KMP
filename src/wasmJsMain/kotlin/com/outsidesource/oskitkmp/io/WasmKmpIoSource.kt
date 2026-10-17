@@ -9,16 +9,16 @@ import com.outsidesource.oskitkmp.lib.copyInto
 import com.outsidesource.oskitkmp.lib.toByteArray
 import com.outsidesource.oskitkmp.lib.toUint8Array
 import com.outsidesource.oskitkmp.outcome.unwrapOrReturn
-import org.w3c.files.File
 
-internal class WasmKmpIoSource(file: File) : IKmpIoSource {
-
-    @Suppress("CAST_NEVER_SUCCEEDS")
-    private val blob = file as Blob
+class WasmKmpIoSource(internal val blob: Blob) : IKmpIoSource {
     private var position: Long = 0L
     private val size: Long = blob.size.toDouble().toLong()
     private var isClosed: Boolean = false
     private val sb = StringBuilder()
+
+    /** The bytes not read yet, as a slice of [blob], so nothing is copied */
+    internal fun remainingBlob(): Blob =
+        blob.slice(start = position.toDouble().toJsNumber(), end = size.toDouble().toJsNumber())
 
     override suspend fun require(byteCount: Long) {
         if (byteCount > size - position) throw KmpIoError.Eof

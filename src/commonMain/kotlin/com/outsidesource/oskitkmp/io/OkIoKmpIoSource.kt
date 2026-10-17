@@ -4,7 +4,7 @@ import okio.Source
 import okio.buffer
 
 class OkIoKmpIoSource(source: Source) : IKmpIoSource {
-    private val buffer = source.buffer()
+    internal val buffer = source.buffer()
 
     override suspend fun require(byteCount: Long) = buffer.require(byteCount)
     override suspend fun read(buffer: ByteArray, bufferOffset: Int, byteCount: Int): Int =
